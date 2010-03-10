@@ -280,7 +280,7 @@ package flashx.textLayout.container.table
 			while( elements.length > 0 )
 			{
 				element = elements.shift() as FlowElement;
-				element.format = TextLayoutFormatUtils.mergeFormats( config.textFlowInitialFormat, element.format );
+				element.format = ( element.format ) ? TextLayoutFormatUtils.mergeFormats( config.textFlowInitialFormat, element.format ) : config.textFlowInitialFormat;
 //				TextLayoutFormatUtils.applyUserStyles( element );
 				element.uid = _uid;
 				// Add to held list of elements.

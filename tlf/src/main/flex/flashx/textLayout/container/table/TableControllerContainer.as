@@ -31,12 +31,12 @@ package flashx.textLayout.container.table
 		
 		public function get actualHeight():Number
 		{
-			return _table.height;
+			return ( _table ) ? _table.height : 0;
 		}
 		
 		public function get actualWidth():Number
 		{
-			return _table.width;
+			return ( _table ) ? _table.width : 0;
 		}
 	}
 }

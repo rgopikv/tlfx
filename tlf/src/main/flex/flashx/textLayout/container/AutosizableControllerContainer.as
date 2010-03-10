@@ -32,5 +32,14 @@ package flashx.textLayout.container
 		{
 			return _controller.actualHeight;
 		}
+		
+		/**
+		 * Returns the ascent associated with the top element content. This is used to shim the container into place. 
+		 * @return Number
+		 */
+		public function get topElementAscent():Number
+		{
+			return _controller.topElementAscent;
+		}
 	}
 }

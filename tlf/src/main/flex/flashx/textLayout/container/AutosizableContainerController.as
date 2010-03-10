@@ -13,6 +13,7 @@ package flashx.textLayout.container
 	import flashx.textLayout.elements.FlowElement;
 	import flashx.textLayout.elements.TextFlow;
 	import flashx.textLayout.events.AutosizableContainerControllerEvent;
+	import flashx.textLayout.events.StatusChangeEvent;
 	import flashx.textLayout.factory.TextFlowTextLineFactory;
 	import flashx.textLayout.formats.ITextLayoutFormat;
 	import flashx.textLayout.tlf_internal;
@@ -30,6 +31,9 @@ package flashx.textLayout.container
 		protected var _previousHeight:Number = Number.NaN;
 		protected var _background:Shape;
 		
+		protected var _topElementAscent:Number = 0;
+		protected var _numLines:int;
+		
 		protected static var UID:int;
 		
 		public function AutosizableContainerController( container:AutosizableControllerContainer, compositionWidth:Number=100, compositionHeight:Number=100 )
@@ -40,6 +44,7 @@ package flashx.textLayout.container
 			
 			_uid = "AutosizableContainerController" + AutosizableContainerController.UID++;
 			_elements = new Vector.<FlowElement>();
+			
 			_containerFlow = new TextFlow();
 			
 			_background = new Shape();
@@ -59,6 +64,9 @@ package flashx.textLayout.container
 			_background.graphics.beginFill( 0xFF0000, 0.3 );
 			_background.graphics.drawRect( 0, 0, compositionWidth, _actualHeight );
 			_background.graphics.endFill();
+			
+			if( ++_numLines == 1 )
+				_topElementAscent = line.ascent - line.descent;
 		}
 		
 		protected function containsElement( element:FlowElement ):Boolean
@@ -134,6 +142,7 @@ package flashx.textLayout.container
 				_containerFlow.addChild( elementsCopy[i].deepCopy() );
 			}
 			
+			_numLines = 0;
 			var bounds:Rectangle = new Rectangle( 0, 0, compositionWidth, 1000000 );
 			var factory:TextFlowTextLineFactory = new TextFlowTextLineFactory();
 			factory.compositionBounds = bounds;
@@ -170,6 +179,11 @@ package flashx.textLayout.container
 		public function get actualHeight():Number
 		{
 			return _actualHeight;
+		}
+		
+		public function get topElementAscent():Number
+		{
+			return _topElementAscent;	
 		}
 	}
 }
