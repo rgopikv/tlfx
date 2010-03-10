@@ -1,114 +1,90 @@
 package flashx.textLayout.elements
 {
-	import flashx.textLayout.formats.TextLayoutFormat;
 	import flashx.textLayout.tlf_internal;
-
+	
 	use namespace tlf_internal;
 	
-	public class ListItemElement extends DivElement
+	public class ListItemElement extends ParagraphElement
 	{
-		private var _p:ParagraphElement;
-		private var _span:SpanElement;
-		
-		private var _rawText:String;
+		private var _baseText:String;
 		private var _mode:String;
 		
-		private var _number:uint;
+		private var _num:uint;
 		
 		private var _first:Boolean;
 		private var _last:Boolean;
+		
+		public var span:SpanElement;
 		
 		public function ListItemElement()
 		{
 			super();
 			
+			init();
+			
+			tlf_internal::setTextLength(1);
+			
 			_mode = ListElement.UNORDERED;
+			_baseText = '';
+			_num = 0;
+			_first = false;
+			_last = false;
 			
-			_rawText = '';
 			
-			_number = 1;
 			
-			_first = _last = false;
-			
-			_p = new ParagraphElement();
-			_span = new SpanElement();
-			_p.addChild( _span );
-			super.addChild( _p );
+//			span = new SpanElement();
+//			
+//			this.addChild( span );
 		}
 		
-		
-		
-		override public function addChild(child:FlowElement) : FlowElement
+		public function init():void
 		{
-			if ( child is DivElement || child is ListElement )
-			{
-				var newChild:FlowElement = super.addChild( child );
-				_p = new ParagraphElement();
-				_span = new SpanElement();
-				_p.addChild( _span );
-				super.addChild( _p );
-				return newChild;
-			}
-			else
-			{
-				return _p.addChild( child );
-			}
+			span = new SpanElement();
+			this.addChild( span );
 		}
 		
-		override public function addChildAt(index:uint, child:FlowElement) : FlowElement
+//		override tlf_internal function c
+		
+		private function getSeparator():String
+		{					
+			switch (_mode)
+			{
+				case ListElement.UNORDERED:
+					return '\u2022 ';
+					
+				case ListElement.ORDERED:
+					if ( isNaN( _num ) )
+						return '\u2022 ';
+					else
+						return _num.toString() + '. ';
+					
+				default:
+					return '';
+			}	
+		}
+		
+		override tlf_internal function canReleaseContentElement() : Boolean
 		{
-			if ( child is DivElement || child is ListElement )
-			{
-				var newChild:FlowElement = super.addChildAt(index, child);
-				if ( index < getChildIndex( _p ) )
-				{
-					_p = new ParagraphElement();
-					_span = new SpanElement();
-					_p.addChild( _span );
-					super.addChild( _p );
-				}
-				return newChild;
-			}
-			else
-			{
-				return _p.addChildAt(index, child);
-			}
+			return false;
 		}
 		
-//		override public function removeChild(child:FlowElement) : FlowElement
-//		{
-//			return child.parent.removeChild(child);
-//		}
-//		
-//		override public function removeChildAt(index:uint) : FlowElement
-//		{
-//			return 
-//		}
-		
-		
-		
-		public function get separator():String
+		override tlf_internal function canOwnFlowElement(elem:FlowElement) : Boolean
 		{
-			//	TODO: Leave open for extending with different bullets
-			if ( mode == ListElement.ORDERED )
-			{
-				return number.toString() + '. ';
-			}
-			else
-			{
-				return '\u2022 ';
-			}
+			return elem is ParagraphElement || elem is SpanElement;
 		}
+		
+		
 		
 		public function set mode( value:String ):void
 		{
-			if ( value == ListElement.ORDERED || value == ListElement.UNORDERED )
-			{
-				_mode = value;
-				text = rawText;
-			}
-			else
+			if ( value != ListElement.UNORDERED && 
+				 value != ListElement.ORDERED && 
+				 value != ListElement.NONE &&
+				!first &&
+				!last)
 				return;
+			_mode = value;
+			this.text = rawText;
 		}
 		public function get mode():String
 		{
@@ -117,18 +93,19 @@ package flashx.textLayout.elements
 		
 		public function set number( value:uint ):void
 		{
-			_number = value;
-			text = rawText;
+			_num = value;
+			this.text = rawText;
 		}
 		public function get number():uint
 		{
-			return _number;
+			return _num;
 		}
 		
 		public function set first( value:Boolean ):void
 		{
 			_first = value;
-			text = rawText;
+			if ( first )
+				this.text = rawText;
 		}
 		public function get first():Boolean
 		{
@@ -138,61 +115,36 @@ package flashx.textLayout.elements
 		public function set last( value:Boolean ):void
 		{
 			_last = value;
-			text = rawText;
+			if ( last )
+				this.text = rawText;
 		}
 		public function get last():Boolean
 		{
 			return _last;
 		}
 		
-		public function set text( value:String ):void
+		public function set text(textValue:String) : void
 		{
-			_rawText = value;
+			_baseText = textValue;
+			//var start:String = first ? '\n' : '';
+			//var end:String = last ? '\n' : '';
 			
-			var start:String;
-			var end:String;
+			//start = getSeparator();
 			
-//			if ( parent )
-//			{
-//				if ( parent.parent )
-//				{
-//					if ( parent.parent is ListItemElement )
-//					{
-						start = '\t' + separator;
-//						end = '\n';
-						
-						_span.text = start + rawText + end;
-//						return;
-//					}
-//				}
-//			}
-//			start = first ? '\n' : '';
-//			end = last ? '\n' : '';
-//			
-//			start += '\t' + separator;
-//			end += '\n';
-			
-			_span.text = start + rawText;// + end;
+			//var textToPass:String = start + textValue + end;
+
+			span.text = getSeparator() + textValue;
 		}
-		public function get text():String
+		public function get text() : String
 		{
-			return _span.text;
+			return span.text;
 		}
 		
-		public function get rawText():String
+		public function get rawText() : String
 		{
-			return _rawText;
+			return _baseText;
 		}
 		
-		
-		
-		//	Necessary in order to be able to add children
-		override tlf_internal function canOwnFlowElement(elem:FlowElement) : Boolean
-		{
-			return elem is SpanElement || elem is InlineGraphicElement || elem is LinkElement || elem is DivElement || elem is ParagraphElement || elem is ListElement || elem is FlowGroupElement || elem is FlowLeafElement;
-		}
-		
-		//	Necessary for instantiation
 		override protected function get abstract() : Boolean
 		{
 			return false;

@@ -17,6 +17,8 @@ package flashx.textLayout.elements
 			super();
 			
 			_mode = ListElement.UNORDERED;
+			
+			
 		}
 		
 		
@@ -70,20 +72,85 @@ package flashx.textLayout.elements
 		
 		
 		private function setFirstAndLast():void
-		{
-			//	Reset all elements to not be first and/or last (no extra breaks)
-			var i:int = numChildren;
-			while ( --i > -1 )
+		{		
+			var i:int;
+			var item:ListItemElement;
+			
+			var first:ListItemElement;
+			
+			for (i = 0; i < numChildren; i++)
 			{
-				( getChildAt(i) as ListItemElement ).first = ( getChildAt(i) as ListItemElement ).last = false;
+				item = ListItemElement(getChildAt(i));
+				
+				if (item.first)
+				{
+					first = item;
+					break;
+				}
+			}
+
+			if (first)
+			{
+				super.removeChild(first);
 			}
 			
+			var last:ListItemElement;
+			
+			for (i = 0; i < numChildren; i++)
+			{
+				item = ListItemElement(getChildAt(i));
+				if (item.last)
+				{
+					last = item;
+					break;
+				}
+			}			
+			
+			if (last)
+			{
+				super.removeChild(last);
+			}
+			
+			if (numChildren > 0)
+			{
+				if (!first)
+				{
+					first = new ListItemElement();
+					first.mode = NONE;
+					first.text = "";
+					first.first = true;
+				}
+				
+				super.addChildAt(0, first);
+				
+				if (!last)
+				{
+					last = new ListItemElement();
+					last.mode = NONE;
+					last.text = "";
+					last.last = true;
+				}
+				
+				super.addChild(last);
+			}
+			else
+			{
+				//trace("1 or less children - so not adding a 'last' item");
+			}
+			
+			//	Reset all elements to not be first and/or last (no extra breaks)
+			/*var i:int = numChildren;
+			while ( --i > -1 )
+			{
+			( getChildAt(i) as ListItemElement ).first = ( getChildAt(i) as ListItemElement ).last = false;
+			}*/
+			
 			//	If there are still children, set the first and last (mimics the breaks of an ordered or unordered list in html)
-			if ( numChildren > 0 )
+			/*if ( numChildren > 0 )
 			{
 				( getChildAt(0) as ListItemElement ).first = true;
 				( getChildAt(numChildren - 1) as ListItemElement ).last = true;
-			}
+			}*/
 		}
 		
 		private function update():void

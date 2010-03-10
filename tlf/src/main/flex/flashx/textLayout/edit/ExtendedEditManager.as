@@ -60,9 +60,9 @@ package flashx.textLayout.edit
 					if ( this.hasSelection() )
 					{
 //						trace('startElement:', startElement);
-						if ( startElement is ListItemElement )
+						if ( startElement.parent is ListItemElement )
 						{
-							ListItemElementEnterHelper.processReturnKey( this, startElement as ListItemElement );
+							ListItemElementEnterHelper.processReturnKey( this, startElement.parent as ListItemElement );
 						}
 						else
 						{
@@ -75,7 +75,7 @@ package flashx.textLayout.edit
 					{
 						var previousElement:FlowLeafElement = this.textFlow.findLeaf( startElement.getElementRelativeStart( this.textFlow ) - 1 );
 						
-						if ( (startElement is ListItemElement) || (endElement is ListItemElement) )
+						if ( (startElement.parent is ListItemElement) || (endElement.parent is ListItemElement) )
 						{
 							ListItemElementEnterHelper.processDeleteKey( this, startElement, endElement );
 						}
