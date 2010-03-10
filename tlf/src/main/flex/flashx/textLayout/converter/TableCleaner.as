@@ -78,6 +78,12 @@ package flashx.textLayout.converter
 				for( var i:int = 0; i < imageList.length(); i++ )
 				{
 					imgFragment = imageList[i] as XML;
+					var imgSource:String = imgFragment.@src;
+					if ( imgSource.length > 0 )
+					{
+						delete imgFragment.@src;
+						imgFragment.@source = imgSource;
+					}
 					// only send it to queue if dimensions aren't set.
 					if( !FragmentAttributeUtil.exists( imgFragment, "width" ) || !FragmentAttributeUtil.exists( imgFragment, "height" ) )
 					{

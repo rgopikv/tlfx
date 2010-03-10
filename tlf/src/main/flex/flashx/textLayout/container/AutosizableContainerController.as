@@ -29,7 +29,7 @@ package flashx.textLayout.container
 		
 		protected var _actualHeight:Number = Number.NaN;
 		protected var _previousHeight:Number = Number.NaN;
-		protected var _background:Shape;
+		protected var _background:Sprite;
 		
 		protected var _topElementAscent:Number = 0;
 		protected var _numLines:int;
@@ -47,7 +47,7 @@ package flashx.textLayout.container
 			
 			_containerFlow = new TextFlow();
 			
-			_background = new Shape();
+			_background = new Sprite();
 			_background.graphics.beginFill( 0xFF0000, 0.3 );
 			_background.graphics.drawRect( 0, 0, compositionWidth, compositionHeight );
 			_background.graphics.endFill();
@@ -121,8 +121,16 @@ package flashx.textLayout.container
 			}
 		}
 		
+		public function containsMonitoredElement( element:FlowElement ):Boolean
+		{
+			return containsElement( element );
+		}
+		
 		public function processContainerHeight():void
 		{
+			while( _background.numChildren > 0 )
+				_background.removeChildAt( 0 )
+			
 			_previousHeight = ( isNaN(_actualHeight) ) ? compositionHeight : _actualHeight;
 			
 			var format:ITextLayoutFormat = _computedFormat;
@@ -139,6 +147,7 @@ package flashx.textLayout.container
 			var elementsCopy:Vector.<FlowElement> = getMonitoredElements();
 			for( i = 0; i < elementsCopy.length; i++ )
 			{
+				elementsCopy[i].uid = _uid;
 				_containerFlow.addChild( elementsCopy[i].deepCopy() );
 			}
 			
@@ -155,6 +164,27 @@ package flashx.textLayout.container
 			{
 				container.dispatchEvent( new AutosizableContainerControllerEvent( AutosizableContainerControllerEvent.RESIZE_COMPLETE, this, offset ) );
 			}
+		}
+		
+		public function removeAllMonitoredElements():void
+		{
+			while( _elements.length > 0 )
+			{
+				removeMonitoredElement( _elements[0] );
+			}
+		}
+		
+		public function update( elements:Vector.<FlowElement> ):void
+		{
+			removeAllMonitoredElements();
+			
+			var i:int;
+			var length:int = elements.length;
+			for( i = 0; i < length; i++ )
+			{
+				addMonitoredElement( elements[i] );
+			}
+			processContainerHeight();
 		}
 		
 		public function getUID():String
