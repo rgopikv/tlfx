@@ -1,5 +1,6 @@
 package flashx.textLayout.container
 {
+	import flash.display.Loader;
 	import flash.display.Shape;
 	import flash.display.Sprite;
 	import flash.events.Event;
@@ -128,9 +129,6 @@ package flashx.textLayout.container
 		
 		public function processContainerHeight():void
 		{
-			while( _background.numChildren > 0 )
-				_background.removeChildAt( 0 )
-			
 			_previousHeight = ( isNaN(_actualHeight) ) ? compositionHeight : _actualHeight;
 			
 			var format:ITextLayoutFormat = _computedFormat;
@@ -148,7 +146,7 @@ package flashx.textLayout.container
 			for( i = 0; i < elementsCopy.length; i++ )
 			{
 				elementsCopy[i].uid = _uid;
-				_containerFlow.addChild( elementsCopy[i].deepCopy() );
+				_containerFlow.addChild( elementsCopy[i] );
 			}
 			
 			_numLines = 0;
@@ -174,7 +172,7 @@ package flashx.textLayout.container
 			}
 		}
 		
-		public function update( elements:Vector.<FlowElement> ):void
+		public function update( elements:Array ):void
 		{
 			removeAllMonitoredElements();
 			
@@ -201,9 +199,9 @@ package flashx.textLayout.container
 			{
 				element = textFlow.getChildAt( i ) as FlowElement;
 				if( element.uid == _uid )
-					elements.push( element );
+					elements.push( element.deepCopy() );
 			}
-			return elements.slice();
+			return elements;
 		}
 		
 		public function get actualHeight():Number
