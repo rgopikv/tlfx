@@ -15,12 +15,11 @@ package flashx.textLayout.conversion
 	import flashx.textLayout.debug.assert;
 	import flashx.textLayout.elements.ParagraphFormattedElement;
 	
-	[ExcludeClass]
 	/**
 	 * @private  
 	 * Contains configuration data about FlowElement types. 
 	 */
-	internal class FlowElementInfo
+	public class FlowElementInfo
 	{
 		/** Class used for the FlowElement sub-type */
 		private var _flowClass:Class;
