@@ -47,20 +47,48 @@ package flashx.textLayout.elements
 		
 		private function getSeparator():String
 		{					
+			trace("mode: " + _mode);
+			
 			switch (_mode)
 			{
 				case ListElement.UNORDERED:
-					return '\u2022 ';
+					trace("i say i'm unordered");
+					return getSeperatorForIndent();
 					
 				case ListElement.ORDERED:
-					if ( isNaN( _num ) )
-						return '\u2022 ';
-					else
-						return _num.toString() + '. ';
+					trace("i say i'm ordered");
+					return _num.toString() + '. ';
 					
 				default:
 					return '';
 			}	
+		}
+		
+		private function getSeperatorForIndent():String 
+		{
+			trace("paragraphStart: " + paragraphStartIndent);
+			
+			if (paragraphStartIndent == 0 || paragraphStartIndent == undefined)
+			{
+				trace("undefined");
+				return '\u25CF ';
+			}
+			
+			var mod:int = (paragraphStartIndent / 24);
+			
+			if (mod < 2)
+			{
+				return '\u25CB ';
+			}
+			
+			return '\u25A0 ';
+		}
+		
+		public override function set paragraphStartIndent(paragraphStartIndentValue:*):void
+		{
+			super.paragraphStartIndent = paragraphStartIndentValue;
+			
+			this.text = rawText;
 		}
 		
 		override tlf_internal function canReleaseContentElement() : Boolean
