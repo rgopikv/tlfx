@@ -4,7 +4,7 @@ package flashx.textLayout.elements
 	
 	use namespace tlf_internal;
 	
-	public class ListItemElement extends ParagraphElement
+	public class ListItemElement extends ParagraphElement implements IListElement
 	{
 		private var _baseText:String;
 		private var _mode:String;
@@ -46,17 +46,13 @@ package flashx.textLayout.elements
 //		override tlf_internal function c
 		
 		private function getSeparator():String
-		{					
-			trace("mode: " + _mode);
-			
+		{								
 			switch (_mode)
 			{
 				case ListElement.UNORDERED:
-					trace("i say i'm unordered");
 					return getSeperatorForIndent();
 					
 				case ListElement.ORDERED:
-					trace("i say i'm ordered");
 					return _num.toString() + '. ';
 					
 				default:
@@ -65,12 +61,9 @@ package flashx.textLayout.elements
 		}
 		
 		private function getSeperatorForIndent():String 
-		{
-			trace("paragraphStart: " + paragraphStartIndent);
-			
+		{			
 			if (paragraphStartIndent == 0 || paragraphStartIndent == undefined)
 			{
-				trace("undefined");
 				return '\u25CF ';
 			}
 			
@@ -110,6 +103,7 @@ package flashx.textLayout.elements
 						
 			if (!first && !last)
 			{
+				trace("Setting list item element mode: " + value);
 				_mode = value;
 				this.text = rawText;
 			}

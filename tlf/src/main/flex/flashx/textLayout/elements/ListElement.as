@@ -4,11 +4,13 @@ package flashx.textLayout.elements
 
 	use namespace tlf_internal;
 	
-	public class ListElement extends DivElement
+	public class ListElement extends DivElement implements IListElement
 	{
 		public static const NONE:String 		= 	'none';
 		public static const ORDERED:String		=	'ordered';
 		public static const UNORDERED:String	=	'unordered';
+		
+		//private var groups:Array = [];
 		
 		private var _mode:String;
 		
@@ -21,24 +23,34 @@ package flashx.textLayout.elements
 		
 		override public function addChild(child:FlowElement) : FlowElement
 		{
-			var newChild:ListItemElement = super.addChild( child ) as ListItemElement;
+			var newChild:FlowElement = super.addChild( child ) as FlowElement;
 			
-			newChild.mode = mode;
+			if (child is ListItemElement)
+			{
+				(child as ListItemElement).mode = _mode;
+			}
 			
 			updateList();
 			updateFlow();
+			
+			//addToGroups(newChild);
 			
 			return newChild;
 		}
 		
 		override public function addChildAt(index:uint, child:FlowElement) : FlowElement
 		{
-			var newChild:ListItemElement = super.addChildAt(index, child) as ListItemElement;
+			var newChild:FlowElement = super.addChildAt(index, child) as FlowElement;
 			
-			newChild.mode = mode;		
+			if (child is ListItemElement)
+			{
+				(child as ListItemElement).mode = _mode;
+			}		
 			
 			updateList();
 			updateFlow();
+			
+			//addToGroups(newChild);
 			
 			return newChild;
 		}
@@ -50,6 +62,8 @@ package flashx.textLayout.elements
 			updateList();
 			updateFlow();
 			
+			//removeFromGroups(removedChild);
+			
 			return removedChild;
 		}
 		
@@ -60,8 +74,46 @@ package flashx.textLayout.elements
 			updateList();
 			updateFlow();
 			
+			//removeFromGroups(removedChild);
+			
 			return removedChild;
 		}
+		
+		/*private function addToGroups(item:ListItemElement):void 
+		{
+			var index:int;
+			
+			if (item.paragraphStartIndent > 0)
+			{
+				index = item.paragraphStartIndent / 24;
+			}			
+			else
+			{
+				index = 0;
+			}
+			
+			if (groups[index] == null)
+			{
+				groups[index] = [];
+			}
+			
+			(groups[index] as Array).push(item);
+		}*/
+		
+		/*private function removeFromGroups(item:ListItemElement):void 
+		{
+			for each (var group:Array in groups)
+			{
+				for (var i:int = 0; i < group.length; i++)
+				{
+					if (group[i] == item)
+					{
+						group.splice(i, 1);
+						break;
+					}
+				}
+			}
+		}*/
 		
 		private function updateList():void 
 		{
@@ -78,7 +130,10 @@ package flashx.textLayout.elements
 			var i:int = numChildren;
 			while ( --i > -1 )
 			{
-				( getChildAt(i) as ListItemElement ).number = i;
+				if (getChildAt(i) is ListItemElement)
+				{
+					( getChildAt(i) as ListItemElement ).number = i;
+				}
 			}
 		}
 		
@@ -88,29 +143,35 @@ package flashx.textLayout.elements
 		 */
 		private function updateFirst():void 
 		{
-			var first:ListItemElement;
-			
-			for (var i:int = 0; i < numChildren; i++)
+			if (!(parent is ListElement))
 			{
-				var item:ListItemElement = ListItemElement(getChildAt(i));
+				var first:ListItemElement;
 				
-				if (item.first)
+				for (var i:int = 0; i < numChildren; i++)
 				{
-					first = item;
-					break;
+					if (getChildAt(i) is ListItemElement)
+					{
+						var item:ListItemElement = ListItemElement(getChildAt(i));
+						
+						if (item.first)
+						{
+							first = item;
+							break;
+						}
+					}
 				}
-			}
-			
-			if (numChildren > 0)
-			{
-				if (!first)
+				
+				if (numChildren > 0)
 				{
-					first = new ListItemElement();
-					first.mode = NONE;
-					first.text = "";
-					first.first = true;
-					
-					super.addChildAt(0, first);
+					if (!first)
+					{
+						first = new ListItemElement();
+						first.mode = NONE;
+						first.text = "";
+						first.first = true;
+						
+						super.addChildAt(0, first);
+					}
 				}
 			}
 		}
@@ -121,34 +182,40 @@ package flashx.textLayout.elements
 		 */
 		private function updateLast():void
 		{					
-			var last:ListItemElement;
-			
-			for (var i:int = 0; i < numChildren; i++)
+			if (!(parent is ListElement))
 			{
-				var item:ListItemElement = ListItemElement(getChildAt(i));
-
-				if (item.last)
-				{
-					last = item;
-					break;
-				}
-			}		
-
-			if (numChildren > 1)
-			{				
-				if (!last)
-				{
-					last = new ListItemElement();
-					last.mode = NONE;
-					last.text = "";
-					last.last = true;
-				}
-				else
-				{
-					super.removeChildAt(getChildIndex(last));
-				}
+				var last:ListItemElement;
 				
-				super.addChild(last);	
+				for (var i:int = 0; i < numChildren; i++)
+				{
+					if (getChildAt(i) is ListItemElement)
+					{
+						var item:ListItemElement = ListItemElement(getChildAt(i));
+		
+						if (item.last)
+						{
+							last = item;
+							break;
+						}
+					}
+				}		
+	
+				if (numChildren > 1)
+				{				
+					if (!last)
+					{
+						last = new ListItemElement();
+						last.mode = NONE;
+						last.text = "";
+						last.last = true;
+					}
+					else
+					{
+						super.removeChildAt(getChildIndex(last));
+					}
+					
+					super.addChild(last);	
+				}
 			}
 		}
 		
@@ -165,18 +232,23 @@ package flashx.textLayout.elements
 		
 		public function set mode( value:String ):void
 		{
-			if ( value == ListElement.ORDERED || value == ListElement.UNORDERED )
+			if ( value == ListElement.ORDERED || value == ListElement.UNORDERED || value == ListElement.NONE )
 			{
 				_mode = value;
 				var i:int = numChildren;
 				while ( --i > -1 )
 				{
-					( getChildAt(i) as ListItemElement ).mode = _mode;
+					if (getChildAt(i) is ListItemElement)
+					{
+						( getChildAt(i) as ListItemElement ).mode = _mode;
+					}
 				}
 				updateFlow();
 			}
 			else
 				return;
+			
+			trace("ListElement mode set to : " + _mode + " " + value);
 		}
 		public function get mode():String
 		{
@@ -188,7 +260,7 @@ package flashx.textLayout.elements
 		//	Necessary in order to be able to add children
 		override tlf_internal function canOwnFlowElement(elem:FlowElement) : Boolean
 		{
-			return elem is ListItemElement;
+			return elem is ListItemElement || elem is ListElement;
 		}
 		
 		//	Necessary for instantiation
