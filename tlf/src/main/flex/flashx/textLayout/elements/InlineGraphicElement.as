@@ -983,6 +983,15 @@ package flashx.textLayout.elements
 			
 			return retFlow;
 		}
+		 
+		 // [TA] :: 03/11/2010 - Update for true width and height values for copy of element.
+		 public override function deepCopy(relativeStart:int=0, relativeEnd:int=-1):FlowElement
+		 {
+			 var copy:InlineGraphicElement = super.deepCopy( relativeStart, relativeEnd ) as InlineGraphicElement;
+			 copy.width = _elementWidth;
+			 copy.height = _elementHeight;
+			 return copy;
+		 }
 
 		/** @private */
 		override protected function get abstract():Boolean
