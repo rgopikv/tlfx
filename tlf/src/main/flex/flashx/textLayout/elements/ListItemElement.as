@@ -40,7 +40,7 @@ package flashx.textLayout.elements
 		public function init():void
 		{
 			span = new SpanElement();
-			this.addChild( span );
+			super.addChild( span );
 		}
 		
 //		override tlf_internal function c
@@ -73,18 +73,18 @@ package flashx.textLayout.elements
 			return elem is ParagraphElement || elem is SpanElement;
 		}
 		
-		
-		
 		public function set mode( value:String ):void
 		{
 			if ( value != ListElement.UNORDERED && 
 				 value != ListElement.ORDERED && 
-				 value != ListElement.NONE &&
-				!first &&
-				!last)
+				 value != ListElement.NONE)
 				return;
-			_mode = value;
-			this.text = rawText;
+						
+			if (!first && !last)
+			{
+				_mode = value;
+				this.text = rawText;
+			}
 		}
 		public function get mode():String
 		{

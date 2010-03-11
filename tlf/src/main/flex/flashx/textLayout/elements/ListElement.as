@@ -16,22 +16,18 @@ package flashx.textLayout.elements
 		{
 			super();
 			
-			_mode = ListElement.UNORDERED;
-			
-			
-		}
-		
-		
+			_mode = ListElement.NONE;			
+		}	
 		
 		override public function addChild(child:FlowElement) : FlowElement
 		{
 			var newChild:ListItemElement = super.addChild( child ) as ListItemElement;
 			
 			newChild.mode = mode;
-			newChild.number = numChildren;
 			
-			setFirstAndLast();
-			update();
+			updateList();
+			updateFlow();
+			
 			return newChild;
 		}
 		
@@ -39,76 +35,70 @@ package flashx.textLayout.elements
 		{
 			var newChild:ListItemElement = super.addChildAt(index, child) as ListItemElement;
 			
-			newChild.mode = mode;
+			newChild.mode = mode;		
 			
-			//	Reset all current ListItem numbers
-			var i:int = numChildren;
-			while ( --i > index-1 )
-			{
-				( getChildAt(i) as ListItemElement ).number = i+1;
-			}
+			updateList();
+			updateFlow();
 			
-			setFirstAndLast();
-			update();
 			return newChild;
 		}
 		
 		override public function removeChild(child:FlowElement) : FlowElement
 		{
 			var removedChild:ListItemElement = super.removeChild( child ) as ListItemElement;
-			setFirstAndLast();
-			update();
+			
+			updateList();
+			updateFlow();
+			
 			return removedChild;
 		}
 		
 		override public function removeChildAt(index:uint) : FlowElement
 		{
 			var removedChild:ListItemElement = super.removeChildAt( index ) as ListItemElement;
-			setFirstAndLast();
-			update();
+			
+			updateList();
+			updateFlow();
+			
 			return removedChild;
 		}
 		
+		private function updateList():void 
+		{
+			updateFirst();
+			updateLast();
+			updateNumbers();
+		}
 		
+		/**
+		 * Reset all the current list item numbers.
+		 */
+		private function updateNumbers():void 
+		{
+			var i:int = numChildren;
+			while ( --i > -1 )
+			{
+				( getChildAt(i) as ListItemElement ).number = i;
+			}
+		}
 		
-		private function setFirstAndLast():void
-		{		
-			var i:int;
-			var item:ListItemElement;
-			
+		/**
+		 * Ensures that a list with at least one list item will have a line-height break before it 
+		 * by adding an empty list item at the head of the list.
+		 */
+		private function updateFirst():void 
+		{
 			var first:ListItemElement;
 			
-			for (i = 0; i < numChildren; i++)
+			for (var i:int = 0; i < numChildren; i++)
 			{
-				item = ListItemElement(getChildAt(i));
+				var item:ListItemElement = ListItemElement(getChildAt(i));
 				
 				if (item.first)
 				{
 					first = item;
 					break;
 				}
-			}
-
-			if (first)
-			{
-				super.removeChild(first);
-			}
-			
-			var last:ListItemElement;
-			
-			for (i = 0; i < numChildren; i++)
-			{
-				item = ListItemElement(getChildAt(i));
-				if (item.last)
-				{
-					last = item;
-					break;
-				}
-			}			
-			
-			if (last)
-			{
-				super.removeChild(last);
 			}
 			
 			if (numChildren > 0)
@@ -119,10 +109,33 @@ package flashx.textLayout.elements
 					first.mode = NONE;
 					first.text = "";
 					first.first = true;
+					
+					super.addChildAt(0, first);
 				}
-				
-				super.addChildAt(0, first);
-				
+			}
+		}
+		
+		/**
+		 * Ensures a list with at least one list item will have a line-height break after it
+		 * by adding an empty list item at the tail of the list.
+		 */
+		private function updateLast():void
+		{					
+			var last:ListItemElement;
+			
+			for (var i:int = 0; i < numChildren; i++)
+			{
+				var item:ListItemElement = ListItemElement(getChildAt(i));
+
+				if (item.last)
+				{
+					last = item;
+					break;
+				}
+			}		
+
+			if (numChildren > 1)
+			{				
 				if (!last)
 				{
 					last = new ListItemElement();
@@ -130,30 +143,16 @@ package flashx.textLayout.elements
 					last.text = "";
 					last.last = true;
 				}
+				else
+				{
+					super.removeChildAt(getChildIndex(last));
+				}
 				
-				super.addChild(last);
+				super.addChild(last);	
 			}
-			else
-			{
-				//trace("1 or less children - so not adding a 'last' item");
-			}
-			
-			//	Reset all elements to not be first and/or last (no extra breaks)
-			/*var i:int = numChildren;
-			while ( --i > -1 )
-			{
-			( getChildAt(i) as ListItemElement ).first = ( getChildAt(i) as ListItemElement ).last = false;
-			}*/
-			
-			//	If there are still children, set the first and last (mimics the breaks of an ordered or unordered list in html)
-			/*if ( numChildren > 0 )
-			{
-				( getChildAt(0) as ListItemElement ).first = true;
-				( getChildAt(numChildren - 1) as ListItemElement ).last = true;
-			}*/
 		}
 		
-		private function update():void
+		private function updateFlow():void
 		{
 			if ( getTextFlow() )
 			{
@@ -163,8 +162,6 @@ package flashx.textLayout.elements
 				}
 			}
 		}
-		
-		
 		
 		public function set mode( value:String ):void
 		{
@@ -176,7 +173,7 @@ package flashx.textLayout.elements
 				{
 					( getChildAt(i) as ListItemElement ).mode = _mode;
 				}
-				update();
+				updateFlow();
 			}
 			else
 				return;
