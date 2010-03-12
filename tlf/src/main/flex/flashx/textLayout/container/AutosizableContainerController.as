@@ -51,11 +51,12 @@ package flashx.textLayout.container
 			
 			_containerFlow = new TextFlow();
 			
-			_background = new Sprite();
-			_background.graphics.beginFill( 0xFF0000, 0.3 );
-			_background.graphics.drawRect( 0, 0, compositionWidth, compositionHeight );
-			_background.graphics.endFill();
-			container.addChildAt( _background, 0 );
+			// TODO: See if we can grab a background color from styles. Might also be bitmap.
+//			_background = new Sprite();
+//			_background.graphics.beginFill( 0xFF0000, 0.3 );
+//			_background.graphics.drawRect( 0, 0, compositionWidth, compositionHeight );
+//			_background.graphics.endFill();
+//			container.addChildAt( _background, 0 );
 		}
 		
 		protected function handleLineCreation( line:TextLine ):void
@@ -64,10 +65,10 @@ package flashx.textLayout.container
 			var pt:Point = container.localToGlobal( new Point( bounds.left, bounds.top ) );
 			_actualHeight = pt.y + bounds.height + line.descent;
 			
-			_background.graphics.clear();
-			_background.graphics.beginFill( 0xFF0000, 0.3 );
-			_background.graphics.drawRect( 0, 0, compositionWidth, _actualHeight );
-			_background.graphics.endFill();
+//			_background.graphics.clear();
+//			_background.graphics.beginFill( 0xFF0000, 0.3 );
+//			_background.graphics.drawRect( 0, 0, compositionWidth, _actualHeight );
+//			_background.graphics.endFill();
 			
 			if( ++_numLines == 1 )
 				_topElementAscent = line.ascent - line.descent;

@@ -13,6 +13,7 @@ package flashx.textLayout.container.table
 	
 	import flashx.textLayout.container.ContainerController;
 	import flashx.textLayout.conversion.TextConverter;
+	import flashx.textLayout.converter.IHTMLImporter;
 	import flashx.textLayout.converter.TableDataElementConverter;
 	import flashx.textLayout.elements.Configuration;
 	import flashx.textLayout.elements.DivElement;
@@ -65,6 +66,7 @@ package flashx.textLayout.container.table
 		protected var _descent:Number = 0;
 		
 		protected var _data:TableData;
+		protected var _htmlConverter:IHTMLImporter;
 		protected var _tableAttributes:IAttribute;
 		protected var _textFlow:TextFlow;
 		protected var _elementList:Array; /* FlowElement[] */
@@ -86,10 +88,14 @@ package flashx.textLayout.container.table
 		 *  
 		 * @param data The HTML table data to be presented.
 		 */
-		public function TableCellContainer( data:TableData, tableAttributes:IAttribute )
+		public function TableCellContainer( data:TableData, tableAttributes:IAttribute, htmlImporter:IHTMLImporter )
 		{
 			_data = data;
 			_tableAttributes = tableAttributes;
+			_htmlConverter = htmlImporter;
+			
+			// Create text flow.
+			_textFlow = new TextFlow( getDefaultConfiguration() );
 			
 			// Precompute index lengths.
 			_rowLength = Math.max( ( _data.attributes as Object ).rowspan - 1, 0 );
@@ -126,8 +132,9 @@ package flashx.textLayout.container.table
 		 */
 		protected function invalidateSize():void
 		{
+			//TODO: Get background color from styles.
 			background.graphics.clear();
-			background.graphics.beginFill( 0xEEEEEE, 1 );
+			background.graphics.beginFill( 0xFFFFFF, 1 );
 			background.graphics.drawRect( 0, 0, _width, _height );
 			background.graphics.endFill();
 			
@@ -232,7 +239,10 @@ package flashx.textLayout.container.table
 			var config:IConfiguration = getDefaultConfiguration();
 			// Create textflow and import data as HTML.
 			
-			var composedFlow:TextFlow = TextConverter.importToFlow( _data.content, TextConverter.TEXT_LAYOUT_FORMAT, config );
+			// TODO: For custom html importer.
+//			var composedFlow:TextFlow = _htmlConverter.importToFlow( _data.content );
+//			determineCellSize( composedFlow.mxmlChildren, toWidth, notify );
+			var composedFlow:TextFlow = TextConverter.importToFlow( _data.content, TextConverter.TEXT_LAYOUT_FORMAT );
 			var div:DivElement = composedFlow.getElementByID( TableData.CONTENT_PARENT_ID ) as DivElement;
 			// Update cell size container bounds based on composed children.
 			determineCellSize( div.mxmlChildren, toWidth, notify );
@@ -274,7 +284,6 @@ package flashx.textLayout.container.table
 			
 			cleanElementList();
 			cleanTextFlow();
-			_textFlow = new TextFlow( config );
 			var element:FlowElement;
 			// Loop through elements and pop from Array and place on TextFlow instance.
 			while( elements.length > 0 )

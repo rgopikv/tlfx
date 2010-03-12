@@ -132,7 +132,7 @@ package flashx.textLayout.elements
 		 * @playerversion AIR 1.5
 	 	 * @langversion 3.0
 		 */
-		 
+		
 		public function InlineGraphicElement():void
 		{
 			super();

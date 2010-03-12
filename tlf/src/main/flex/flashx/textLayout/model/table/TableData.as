@@ -76,6 +76,36 @@ package flashx.textLayout.model.table
 			return tlf.toXMLString();
 		}
 		
+		/*
+		TODO: For CustomHTMLImporter.
+		public function get content():String
+		{
+		XML.ignoreWhitespace = true;
+		XML.prettyIndent = 0;
+		XML.prettyPrinting = false;
+		var html:XML = <html/>;
+		var body:XML = <body/>;
+		var children:XMLList = data.children();
+		if( children.length() > 0 )
+		{
+		var child:XML;
+		for( var i:int = 0; i < children.length(); i++ )
+		{
+		child = children[i];
+		body.appendChild( child );	
+		}
+		}
+		else 
+		{
+		var p:XML = <p />;
+		var span:XML = <span></span>
+		p.appendChild( span );
+		body.appendChild( p );
+		}
+		html.appendChild( body );
+		return html.toXMLString();
+		}*/
+		
 		/**
 		 * Static access to a new Empty TableData instance. 
 		 * @param id String The id to assign the new data. Ids are used during recomposition after an alteration to the Table model for the TextFlow.
