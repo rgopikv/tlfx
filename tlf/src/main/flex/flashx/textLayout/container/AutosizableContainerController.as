@@ -12,6 +12,7 @@ package flashx.textLayout.container
 	
 	import flashx.textLayout.elements.Configuration;
 	import flashx.textLayout.elements.FlowElement;
+	import flashx.textLayout.elements.InlineGraphicElement;
 	import flashx.textLayout.elements.TextFlow;
 	import flashx.textLayout.events.AutosizableContainerControllerEvent;
 	import flashx.textLayout.events.StatusChangeEvent;
@@ -31,6 +32,8 @@ package flashx.textLayout.container
 		protected var _actualHeight:Number = Number.NaN;
 		protected var _previousHeight:Number = Number.NaN;
 		protected var _background:Sprite;
+		
+		protected var _processedElements:Vector.<MonitoredElementContent>;
 		
 		protected var _topElementAscent:Number = 0;
 		protected var _numLines:int;
@@ -70,13 +73,22 @@ package flashx.textLayout.container
 				_topElementAscent = line.ascent - line.descent;
 		}
 		
+		protected function returnMonitoredElements():void
+		{
+			var element:MonitoredElementContent;
+			while( _processedElements.length > 0 )
+			{
+				element = _processedElements.shift();
+				textFlow.addChildAt( element.index, element.element );
+			}
+		}
+		
 		protected function containsElement( element:FlowElement ):Boolean
 		{
-			var i:int = _elements.length;
-			while( --i > -1 )
+			while( element != null )
 			{
-				if( _elements[i] == element )
-					return true;
+				if( element.uid == _uid ) return true;
+				element = element.parent;
 			}
 			return false;
 		}
@@ -142,11 +154,11 @@ package flashx.textLayout.container
 			_containerFlow.format = format;
 			
 			var i:int = 0;
-			var elementsCopy:Vector.<FlowElement> = getMonitoredElements();
-			for( i = 0; i < elementsCopy.length; i++ )
+			_processedElements = getMonitoredElements();
+			for( i = 0 ;i < _processedElements.length; i++ )
 			{
-				elementsCopy[i].uid = _uid;
-				_containerFlow.addChild( elementsCopy[i] );
+				_processedElements[i].element.uid = _uid;
+				_containerFlow.addChild( _processedElements[i].element );
 			}
 			
 			_numLines = 0;
@@ -155,6 +167,7 @@ package flashx.textLayout.container
 			factory.compositionBounds = bounds;
 			factory.createTextLines( handleLineCreation, _containerFlow );
 			
+			returnMonitoredElements();
 			setCompositionSize( compositionWidth, _actualHeight );
 			
 			var offset:Number = _actualHeight - _previousHeight;
@@ -172,34 +185,24 @@ package flashx.textLayout.container
 			}
 		}
 		
-		public function update( elements:Array ):void
-		{
-			removeAllMonitoredElements();
-			
-			var i:int;
-			var length:int = elements.length;
-			for( i = 0; i < length; i++ )
-			{
-				addMonitoredElement( elements[i] );
-			}
-			processContainerHeight();
-		}
-		
 		public function getUID():String
 		{
 			return _uid;
 		}
 		
-		public function getMonitoredElements():Vector.<FlowElement>
+		public function getMonitoredElements():Vector.<MonitoredElementContent>
 		{
+			if( textFlow == null || textFlow.mxmlChildren == null ) return new Vector.<MonitoredElementContent>();
+			
+			var flowElements:Array = textFlow.mxmlChildren.slice();
 			var i:int;
 			var element:FlowElement;
-			var elements:Vector.<FlowElement> = new Vector.<FlowElement>();
-			for( i = 0; i < textFlow.numChildren; i++ )
+			var elements:Vector.<MonitoredElementContent> = new Vector.<MonitoredElementContent>();
+			for( i = 0; i < flowElements.length; i++ )
 			{
-				element = textFlow.getChildAt( i ) as FlowElement;
+				element = flowElements[i] as FlowElement;
 				if( element.uid == _uid )
-					elements.push( element.deepCopy() );
+					elements.push( new MonitoredElementContent( element, i ) );
 			}
 			return elements;
 		}
@@ -213,5 +216,17 @@ package flashx.textLayout.container
 		{
 			return _topElementAscent;	
 		}
+	}
+}
+
+import flashx.textLayout.elements.FlowElement;
+class MonitoredElementContent
+{
+	public var element:FlowElement;
+	public var index:int;
+	public function MonitoredElementContent( element:FlowElement, index:int )
+	{
+		this.element = element;
+		this.index = index;
 	}
 }
