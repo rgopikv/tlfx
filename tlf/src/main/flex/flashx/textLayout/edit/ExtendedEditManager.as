@@ -9,6 +9,7 @@ package flashx.textLayout.edit
 	import flashx.textLayout.container.table.ICellContainer;
 	import flashx.textLayout.conversion.ConversionType;
 	import flashx.textLayout.conversion.TextConverter;
+	import flashx.textLayout.converter.IHTMLImporter;
 	import flashx.textLayout.edit.helpers.ListItemElementEnterHelper;
 	import flashx.textLayout.elements.FlowElement;
 	import flashx.textLayout.elements.FlowLeafElement;
@@ -24,6 +25,8 @@ package flashx.textLayout.edit
 	
 	public class ExtendedEditManager extends EditManager
 	{
+		protected var _htmlImporter:IHTMLImporter;
+		
 		public function ExtendedEditManager(undoManager:IUndoManager=null)
 		{
 			super(undoManager);
