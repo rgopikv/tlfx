@@ -16,6 +16,11 @@ package flashx.textLayout.elements
 		
 		public var span:SpanElement;
 		
+		public function get list():ListElement
+		{
+			return parent as ListElement;
+		}
+		
 		public function ListItemElement()
 		{
 			super();
@@ -103,7 +108,6 @@ package flashx.textLayout.elements
 						
 			if (!first && !last)
 			{
-				trace("Setting list item element mode: " + value);
 				_mode = value;
 				this.text = rawText;
 			}

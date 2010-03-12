@@ -77,7 +77,8 @@ package flashx.textLayout.edit
 						
 						if ( (startElement.parent is ListItemElement) || (endElement.parent is ListItemElement) )
 						{
-							ListItemElementEnterHelper.processDeleteKey( this, startElement, endElement );
+							ListItemElementEnterHelper.processDeleteKey( textFlow );
+							this.textFlow.flowComposer.updateAllControllers();
 						}
 						else if ( previousElement is ListItemElement )
 						{

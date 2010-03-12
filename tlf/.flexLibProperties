@@ -85,7 +85,9 @@
     <classEntry path="flashx.textLayout.edit.TextClipboard"/>
     <classEntry path="flashx.textLayout.edit.TextFlowEdit"/>
     <classEntry path="flashx.textLayout.edit.TextScrap"/>
+    <classEntry path="flashx.textLayout.edit.helpers.ListHelper"/>
     <classEntry path="flashx.textLayout.edit.helpers.ListItemElementEnterHelper"/>
+    <classEntry path="flashx.textLayout.edit.helpers.SelectionHelper"/>
     <classEntry path="flashx.textLayout.elements.BackgroundManager"/>
     <classEntry path="flashx.textLayout.elements.BreakElement"/>
     <classEntry path="flashx.textLayout.elements.Configuration"/>
@@ -98,6 +100,7 @@
     <classEntry path="flashx.textLayout.elements.GlobalSettings"/>
     <classEntry path="flashx.textLayout.elements.IConfiguration"/>
     <classEntry path="flashx.textLayout.elements.IFormatResolver"/>
+    <classEntry path="flashx.textLayout.elements.IListElement"/>
     <classEntry path="flashx.textLayout.elements.InlineGraphicElement"/>
     <classEntry path="flashx.textLayout.elements.InlineGraphicElementStatus"/>
     <classEntry path="flashx.textLayout.elements.LinkElement"/>
@@ -221,7 +224,6 @@
     <classEntry path="flashx.undo.IOperation"/>
     <classEntry path="flashx.undo.IUndoManager"/>
     <classEntry path="flashx.undo.UndoManager"/>
-    <classEntry path="flashx.textLayout.elements.IListElement"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests>
