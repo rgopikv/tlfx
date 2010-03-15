@@ -41,9 +41,10 @@ package flashx.textLayout.operations
 			var parent:ContainerFormattedElement = para.parent as ContainerFormattedElement;
 			elementInsertIndex = parent.getChildIndex(para);
 			var i:int;
+			var index:int = 0;
 			for( i = elementInsertIndex; i < elementInsertIndex + _elementsToPaste.length; i++ )
 			{
-				parent.addChildAt( i, _elementsToPaste[0] );
+				parent.addChildAt( i, _elementsToPaste[index++] );
 			}
 		}
 		

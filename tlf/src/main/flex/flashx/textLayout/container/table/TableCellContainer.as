@@ -630,7 +630,7 @@ package flashx.textLayout.container.table
 		 */
 		public function get actualWidth():Number
 		{
-			return Math.round( _actualWidth );
+			return Math.ceil( _actualWidth );
 		}
 		public function set actualWidth( value:Number ):void
 		{
@@ -644,7 +644,7 @@ package flashx.textLayout.container.table
 		 */
 		public function get actualHeight():Number
 		{
-			return Math.round( _actualHeight );
+			return Math.ceil( _actualHeight );
 		}
 		public function set actualHeight( value:Number ):void
 		{
@@ -658,7 +658,7 @@ package flashx.textLayout.container.table
 		 */
 		public function get measuredWidth():Number
 		{
-			return Math.round( _width );
+			return Math.ceil( _width );
 		}
 		public function set measuredWidth( value:Number ):void
 		{
@@ -675,7 +675,7 @@ package flashx.textLayout.container.table
 		 */
 		public function get measuredHeight():Number
 		{
-			return Math.round( _height );
+			return Math.ceil( _height );
 		}
 		public function set measuredHeight( value:Number ):void
 		{
@@ -698,7 +698,7 @@ package flashx.textLayout.container.table
 		public function set explicitWidth( value:Number ):void
 		{
 			_data.attributes[TableDataAttribute.WIDTH] = Math.round( value );
-			measuredWidth = Math.round( value );
+			measuredWidth = Math.ceil( value );
 			process( false );
 		}
 		
@@ -717,7 +717,7 @@ package flashx.textLayout.container.table
 			if( _data.attributes[TableAttribute.HEIGHT] == Math.round( value ) ) return;
 			
 			_data.attributes[TableDataAttribute.HEIGHT] = Math.round( value );
-			measuredHeight = Math.round( value );
+			measuredHeight = Math.ceil( value );
 			process( false );
 		}
 		
@@ -784,7 +784,7 @@ package flashx.textLayout.container.table
 		 */
 		public function get minimumWidth():Number
 		{
-			return Math.round( _minimumWidth + getUnifiedPadding() );
+			return Math.ceil( _minimumWidth + getUnifiedPadding() );
 		}
 		
 		/**
@@ -793,7 +793,7 @@ package flashx.textLayout.container.table
 		 */
 		public function get minimumHeight():Number
 		{
-			return Math.round( _minimumHeight + getUnifiedPadding() );
+			return Math.ceil( _minimumHeight + getUnifiedPadding() );
 		}
 		
 		/**
