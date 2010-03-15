@@ -82,7 +82,7 @@ package flashx.textLayout.converter
 					if ( imgSource.length > 0 )
 					{
 						delete imgFragment.@src;
-						imgFragment.@source = imgSource;
+						imgFragment.@source = "http://www.newviewnetworks.com/nvnhome/imageProxy.cfm?imageURL=" + imgSource;
 					}
 					// only send it to queue if dimensions aren't set.
 					if( !FragmentAttributeUtil.exists( imgFragment, "width" ) || !FragmentAttributeUtil.exists( imgFragment, "height" ) )

@@ -39,7 +39,7 @@ package flashx.textLayout.converter.loader
 			if( source.length > 0 )
 			{
 				delete fragment.@src;
-				fragment.@source = source;
+				fragment.@source = "http://www.newviewnetworks.com/nvnhome/imageProxy.cfm?imageURL=" + source;
 			}
 			source = fragment.@source;
 			
