@@ -51,7 +51,9 @@ package flashx.textLayout.elements
 //		override tlf_internal function c
 		
 		private function getSeparator():String
-		{								
+		{						
+			trace("mode = " + _mode);
+			
 			switch (_mode)
 			{
 				case ListElement.UNORDERED:
@@ -101,6 +103,7 @@ package flashx.textLayout.elements
 		
 		public function set mode( value:String ):void
 		{
+			trace("trying to set new mode");
 			if ( value != ListElement.UNORDERED && 
 				 value != ListElement.ORDERED && 
 				 value != ListElement.NONE)
@@ -109,6 +112,7 @@ package flashx.textLayout.elements
 			if (!first && !last)
 			{
 				_mode = value;
+				trace("new mode set");
 				this.text = rawText;
 			}
 		}

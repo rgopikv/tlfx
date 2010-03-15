@@ -57,7 +57,6 @@ package flashx.textLayout.edit.helpers
 			{
 				trace("Checking a ListElement");
 				
-				
 				var selectedItems:Array = ListHelper.getSelectedListItemsInList(list, selection);
 				
 				// if the selection doesn't contain any chars...
@@ -96,7 +95,7 @@ package flashx.textLayout.edit.helpers
 					if (ListHelper.isEveryItemInListCompletelySelected(tf, list))
 					{
 						list.parent.removeChild(list);
-					}
+					}/*
 					// Otherwise we need to look at the list items.
 					else
 					{
@@ -142,7 +141,7 @@ package flashx.textLayout.edit.helpers
 								IEditManager(tf.interactionManager).deleteText(deleteSelection);
 							}
 						}
-					}
+					}*/
 				}
 				//tf.flowComposer.updateAllControllers();
 				//tf.interactionManager.setSelectionState(new SelectionState(tf, selection.absoluteStart, selection.absoluteStart));
@@ -253,6 +252,7 @@ package flashx.textLayout.edit.helpers
 				var endPos:int = list.getChildIndex( endItem ? endItem : endElem );
 				
 				var newElement:ListItemElement = new ListItemElement();
+				newElement.paragraphStartIndent = startItem.paragraphStartIndent;
 				var strStart:int = startRel;
 				
 				//	At least 1 whole character is selected (i.e. end of selection != start of selection)

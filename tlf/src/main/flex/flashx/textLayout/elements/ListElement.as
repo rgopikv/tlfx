@@ -10,6 +10,13 @@ package flashx.textLayout.elements
 		public static const ORDERED:String		=	'ordered';
 		public static const UNORDERED:String	=	'unordered';
 		
+		private var _groups:ListGroup;
+		
+		public function get groups():ListGroup 
+		{
+			return _groups;
+		}
+		
 		private var _mode:String;
 		
 		public function get numListElements():int 
@@ -31,27 +38,24 @@ package flashx.textLayout.elements
 			return count;
 		}
 		
-		public function get numElements():int 
+		public function get listElements():Array 
 		{
-			var count:int;
+			var listElements:Array = [];
 			
 			for (var i:int = 0; i < numChildren; i++)
 			{
-				if (getChildAt(i) is ListItemElement)
+				var item:FlowElement = FlowElement(getChildAt(i));
+				
+				if (item is ListItemElement)
 				{
-					var child:ListItemElement = ListItemElement(getChildAt(i));
-					if (!child.first && !child.last)
+					if (!ListItemElement(item).first && !ListItemElement(item).last)
 					{
-						count++;
+						listElements.push(item);
 					}
-				}
-				else
-				{
-					count++;
 				}
 			}
 			
-			return count;
+			return listElements;
 		}
 		
 		public function ListElement()
@@ -65,11 +69,6 @@ package flashx.textLayout.elements
 		{
 			var newChild:FlowElement = super.addChild( child ) as FlowElement;
 			
-			if (child is ListItemElement)
-			{
-				(child as ListItemElement).mode = _mode;
-			}
-			
 			updateList();
 			updateFlow();
 			
@@ -79,12 +78,7 @@ package flashx.textLayout.elements
 		override public function addChildAt(index:uint, child:FlowElement) : FlowElement
 		{
 			var newChild:FlowElement = super.addChildAt(index, child) as FlowElement;
-			
-			if (child is ListItemElement)
-			{
-				(child as ListItemElement).mode = _mode;
-			}		
-			
+				
 			updateList();
 			updateFlow();
 			
@@ -125,29 +119,30 @@ package flashx.textLayout.elements
 			
 			updateFirst();
 			updateLast();
-			updateNumbers();
-			updateIndent();
+			updateGroups();
+			updateNumbers(_groups);
 		}
 		
 		/**
 		 * Reset all the current list item numbers.
 		 */
-		private function updateNumbers():void 
-		{			
-			var adj:int;
-			var firstItem:FlowElement = getChildAt(0);
-
-			if (firstItem is ListItemElement)
+		private function updateNumbers(group:ListGroup):void 
+		{		
+			if (group.listMode == ORDERED)
 			{
-				adj = 1;
-			}
-			
-			var i:int = numChildren;
-			while ( --i > -1 )
-			{
-				if (getChildAt(i) is ListItemElement)
+				var count:int = 1;
+				
+				for each (var item:* in group.listItems)
 				{
-					( getChildAt(i) as ListItemElement ).number = i + adj;
+					if (item is ListItemElement)
+					{
+						ListItemElement(item).number = count++;
+					}
+					
+					if (item is ListGroup)
+					{
+						updateNumbers(ListGroup(item));
+					}
 				}
 			}
 		}
@@ -197,25 +192,17 @@ package flashx.textLayout.elements
 					}
 				}
 			}
-			
-			if (first)
+							
+			if (numChildren > 0)
 			{
-				super.removeChildAt(0);
-			}
-			
-			if (!(parent is ListElement))
-			{				
-				if (numChildren > 0)
+				if (!first)
 				{
-					if (!first)
-					{
-						first = new ListItemElement();
-						first.mode = NONE;
-						first.text = "";
-						first.first = true;
-						
-						super.addChildAt(0, first);
-					}
+					first = new ListItemElement();
+					first.mode = NONE;
+					first.text = "";
+					first.first = true;
+					
+					super.addChildAt(0, first);
 				}
 			}
 		}
@@ -242,31 +229,21 @@ package flashx.textLayout.elements
 				}
 			}		
 			
-			if (!(parent is ListElement))
-			{	
-				if (numChildren > 1)
-				{				
-					if (!last)
-					{
-						last = new ListItemElement();
-						last.mode = NONE;
-						last.text = "";
-						last.last = true;
-					}
-					else
-					{
-						super.removeChildAt(getChildIndex(last));
-					}
-					
-					super.addChild(last);	
+			if (numChildren > 1)
+			{				
+				if (!last)
+				{
+					last = new ListItemElement();
+					last.mode = NONE;
+					last.text = "";
+					last.last = true;
 				}
-			}
-			else
-			{
-				if (last)
+				else
 				{
 					super.removeChildAt(getChildIndex(last));
 				}
+				
+				super.addChild(last);	
 			}
 		}
 		
@@ -316,6 +293,82 @@ package flashx.textLayout.elements
 		override protected function get abstract() : Boolean
 		{
 			return false;
+		}
+		
+		public function updateGroups():void 
+		{			
+			_groups = new ListGroup();
+			var group:ListGroup = _groups;
+			group.startIndex = 0;
+			group.indent = 0;
+			group.listMode = baseMode;
+						
+			var i:int;
+			for each (var li:ListItemElement in listElements)
+			{
+				if (li.paragraphStartIndent != group.indent ||
+					li.mode != group.listMode)
+				{
+					var newGroup:ListGroup;
+					
+					if (li.paragraphStartIndent != group.indent)
+					{
+						while (li.paragraphStartIndent > group.indent)
+						{			
+							newGroup = new ListGroup();
+							newGroup.startIndex = i;
+							newGroup.listMode = li.mode;
+							newGroup.indent = group.indent + 24;
+							
+							group.listItems.push(newGroup);
+							
+							newGroup.parent = group;
+							group = newGroup;
+						}
+												
+						while (li.paragraphStartIndent < group.indent)
+						{
+							group = group.parent;
+						}
+					}
+					else
+					{
+						newGroup = new ListGroup();
+						newGroup.startIndex = i;
+						newGroup.listMode = li.mode;
+						newGroup.indent = li.paragraphStartIndent;
+						
+						if (group.parent)
+						{
+							group.parent.listItems.push(newGroup);
+							newGroup.parent = group.parent;
+						}
+						else
+						{
+							group.listItems.push(newGroup);
+						}
+						
+						group = newGroup;
+					}
+				}			
+				
+				group.listItems.push(li);
+
+				i++;
+			}
+		}
+		
+		private function get baseMode():String 
+		{
+			for each (var li:ListItemElement in listElements)
+			{
+				if (li.paragraphStartIndent == 0)
+				{
+					return li.mode;
+				}
+			}
+			
+			return UNORDERED;
 		}
 	}
 }
