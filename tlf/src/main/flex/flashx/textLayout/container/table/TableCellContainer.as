@@ -244,7 +244,7 @@ package flashx.textLayout.container.table
 //			determineCellSize( composedFlow.mxmlChildren, toWidth, notify );
 			var composedFlow:TextFlow = TextConverter.importToFlow( _data.content, TextConverter.TEXT_LAYOUT_FORMAT );
 			var div:DivElement = composedFlow.getElementByID( TableData.CONTENT_PARENT_ID ) as DivElement;
-			// Update cell size container bounds based on composed children.
+//			// Update cell size container bounds based on composed children.
 			determineCellSize( div.mxmlChildren, toWidth, notify );
 		}
 		

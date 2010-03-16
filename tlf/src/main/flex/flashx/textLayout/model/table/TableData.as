@@ -80,31 +80,32 @@ package flashx.textLayout.model.table
 		TODO: For CustomHTMLImporter.
 		public function get content():String
 		{
-		XML.ignoreWhitespace = true;
-		XML.prettyIndent = 0;
-		XML.prettyPrinting = false;
-		var html:XML = <html/>;
-		var body:XML = <body/>;
-		var children:XMLList = data.children();
-		if( children.length() > 0 )
-		{
-		var child:XML;
-		for( var i:int = 0; i < children.length(); i++ )
-		{
-		child = children[i];
-		body.appendChild( child );	
+			XML.ignoreWhitespace = true;
+			XML.prettyIndent = 0;
+			XML.prettyPrinting = false;
+//			var div:XML = <div/>
+			var children:XMLList = data.children();
+			var p:XML = children[0];
+			if( children.length() > 0 )
+			{
+//				var child:XML;
+//				for( var i:int = 0; i < children.length(); i++ )
+//				{
+//					child = children[i];
+//					div.appendChild( child );	
+//				}
+			}
+			else 
+			{
+				p = <p />;
+				var span:XML = <span></span>
+				p.appendChild( span );
+//				div.appendChild( p );
+				return p.toXMLString();
+			}
+			return p.toXMLString();
 		}
-		}
-		else 
-		{
-		var p:XML = <p />;
-		var span:XML = <span></span>
-		p.appendChild( span );
-		body.appendChild( p );
-		}
-		html.appendChild( body );
-		return html.toXMLString();
-		}*/
+		/**/
 		
 		/**
 		 * Static access to a new Empty TableData instance. 

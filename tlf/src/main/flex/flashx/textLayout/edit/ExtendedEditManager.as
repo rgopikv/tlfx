@@ -69,7 +69,9 @@ package flashx.textLayout.edit
 						}
 						else
 						{
-							this.insertText( '\n' );
+							// [TA] :: 03/16/10 -> entering a line character would not properly perform a Split paragraph operation.
+							//this.insertText( '\n' );
+							super.keyDownHandler( event );
 						}
 					}
 					break;

@@ -49,10 +49,17 @@ package flashx.textLayout.converter
 				
 				// Cycle through children and recursively add elements to parent tag.
 				var children:Array = ( element as FlowGroupElement ).mxmlChildren;
-				var i:int;
-				for( i = 0; i < children.length; i++ )
+				if( children != null )
 				{
-					tag.appendChild( tagifyElement( children[i] as FlowElement ) );
+					var i:int;
+					for( i = 0; i < children.length; i++ )
+					{
+						tag.appendChild( tagifyElement( children[i] as FlowElement ) );
+					}
+				}
+				else
+				{
+					trace( element );
 				}
 			}
 			// Create Span.
