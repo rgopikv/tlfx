@@ -133,7 +133,7 @@ package flashx.textLayout.elements
 	 *
 	 */ 
 	 
-	public final class LinkElement extends SubParagraphGroupElement implements IEventDispatcher
+	public class LinkElement extends SubParagraphGroupElement implements IEventDispatcher
 	{
 		private var _uriString:String;
 		private var _targetString:String;
