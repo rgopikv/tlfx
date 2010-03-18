@@ -33,5 +33,10 @@ package flashx.textLayout.elements.table
 		 * @return TableElement
 		 */
 		function getManagedTableElement():TableElement;
+		
+		/**
+		 * Runs a refresh command on the table element manager.
+		 */
+		function refresh():void;
 	}
 }
