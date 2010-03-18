@@ -34,6 +34,9 @@ package flashx.textLayout.edit.helpers
 			var selectedLists:Array = ListHelper.getSelectedListElements(tf);
 			var newSelection:SelectionState;
 			
+			var selectionStart:int = selection.absoluteStart;
+			var selectionEnd:int = selection.absoluteEnd;
+			
 			for each (var list:ListElement in selectedLists)
 			{				
 				var selectedItems:Array = ListHelper.getSelectedListItemsInList(list, selection);
@@ -74,8 +77,7 @@ package flashx.textLayout.edit.helpers
 				}
 				else
 				{					
-					var selectionStart:int = selection.absoluteStart;
-					var selectionEnd:int = selection.absoluteEnd;
+					
 					
 					// If the whole list (including all items in sub-lists)
 					// is contained within the selection we can just get rid of the list.
@@ -174,6 +176,7 @@ package flashx.textLayout.edit.helpers
 								{
 									previousItem.text = previousItem.rawText + newStr;
 									list.removeChild(item);
+									list.updateList();
 								}
 								else
 								{
@@ -185,11 +188,12 @@ package flashx.textLayout.edit.helpers
 							}
 							
 							tf.flowComposer.updateAllControllers();
-						}					
+						}	
 					}
 					
-					newSelection = new SelectionState(tf, selection.absoluteStart - 1, selection.absoluteStart - 1);
+					newSelection = new SelectionState(tf, selection.absoluteStart, selection.absoluteStart);
 					tf.interactionManager.setSelectionState(newSelection);
+					tf.flowComposer.updateAllControllers();
 				}
 			}		
 		}
