@@ -28,35 +28,14 @@ package flashx.textLayout.edit.helpers
 		}
 		
 		public static function processDeleteKey( tf:TextFlow ):void
-		{
-			/*var list:ListElement;
-			var startIndex:int = extendedEditManager.textFlow.getChildIndex( startElement );
-			var endIndex:int = extendedEditManager.textFlow.getChildIndex( endElement );
-			var startPos:int = startElement.getElementRelativeStart( extendedEditManager.textFlow );
-			var endPos:int = endElement.getElementRelativeStart( extendedEditManager.textFlow );
-			
-			var startIndexRelative:int;
-			var endIndexRelative:int;
-			
-			var startPosRelative:int;
-			var endPosRelative:int;
-			
-			var startItem:ListItemElement;
-			var endItem:ListItemElement;
-			
-			var startText:String;
-			var endText:String;
-			
-			var newSelectionState:SelectionState;*/
-			
+		{			
 			var selection:SelectionState = IEditManager(tf.interactionManager).getSelectionState();
 			
 			var selectedLists:Array = ListHelper.getSelectedListElements(tf);
+			var newSelection:SelectionState;
 			
 			for each (var list:ListElement in selectedLists)
-			{
-				trace("Checking a ListElement");
-				
+			{				
 				var selectedItems:Array = ListHelper.getSelectedListItemsInList(list, selection);
 				
 				// if the selection doesn't contain any chars...
@@ -72,7 +51,10 @@ package flashx.textLayout.edit.helpers
 					}
 					// Otherwise we need to remove the whole list item.
 					else
-					{
+					{						
+						newSelection = new SelectionState(tf, li.getAbsoluteStart() - 1, li.getAbsoluteStart() - 1);
+						tf.interactionManager.setSelectionState(newSelection);
+						
 						list.removeChild(li);
 
 						// If that was the only item in the list then
@@ -87,118 +69,129 @@ package flashx.textLayout.edit.helpers
 							list.parent.removeChild(list);
 						}
 					}
+					
+					tf.flowComposer.updateAllControllers();
 				}
 				else
 				{					
+					var selectionStart:int = selection.absoluteStart;
+					var selectionEnd:int = selection.absoluteEnd;
+					
 					// If the whole list (including all items in sub-lists)
 					// is contained within the selection we can just get rid of the list.
 					if (ListHelper.isEveryItemInListCompletelySelected(tf, list))
 					{
 						list.parent.removeChild(list);
-					}/*
+					}
 					// Otherwise we need to look at the list items.
 					else
 					{
-						trace("removing individual list items");
+						var item:ListItemElement;
+						var completeItemsRemoved:int;
+						var previousItem:ListItemElement;
+						
+						//trace("removing individual list items");
 						// Check if all the item has been selected.
-						for each (var item:ListItemElement in selectedItems)
+						// If it has get rid of it from the list and the selectedItems array.
+						for (var i:int = 0; i < selectedItems.length; i++)
 						{							
-							trace("Checking a ListItemElement");
+							item = ListItemElement(selectedItems[i]);
+	
 							// If it has then delete the whole item from it's list.
 							if (ListHelper.isListItemCompletelySelected(selection, item))
 							{
-								trace("list item is completely selected - removing it entirely");
+								//trace("list item is completely selected - removing it entirely");
+								//newSelection = new SelectionState(tf, item.getAbsoluteStart() - 1, item.getAbsoluteStart() - 1);
+								//tf.interactionManager.setSelectionState(newSelection);
+								selectionEnd -= item.getText().length;
 								item.list.removeChild(item);
-							}
-							// Otherwise just remove the selected text.
-							else
-							{		
-								var deleteSelection:SelectionState;
-								var deleteStart:int;
-								var deleteEnd:int;
+								selectedItems.splice(i, 1);
+								i--;
+								selection = new SelectionState(tf, selectionStart, selectionEnd);
+								tf.interactionManager.setSelectionState(selection);
 								
-								if (item.getAbsoluteStart() + 2 > selection.absoluteStart)
-								{
-									trace("Start with the item start");	
-									deleteStart = item.getAbsoluteStart();
-								}
-								else
-								{
-									trace("start with the selection start");
-									deleteStart = selection.absoluteStart;
-								}
-								
-								if (item.getAbsoluteStart() + item.textLength < selection.absoluteEnd)
-								{
-									deleteEnd = item.getAbsoluteStart() + item.textLength;
-								}
-								else
-								{
-									deleteEnd = selection.absoluteEnd;
-								}
-								
-								deleteSelection = new SelectionState(tf, deleteStart, deleteEnd);
-								IEditManager(tf.interactionManager).deleteText(deleteSelection);
+								completeItemsRemoved++;
 							}
 						}
-					}*/
+						
+						for each (item in selectedItems)
+						{	
+							//trace("removing part of a list item");
+							var deleteSelection:SelectionState;
+							var deleteStart:int;
+							var deleteEnd:int;
+							var previousSelectionWidth:int;
+							var nudge:int = item.mode == ListElement.ORDERED ? 3 : 2;
+							
+							var itemStart:int = item.getElementRelativeStart(tf);
+							
+							// If the entire selection is contained within a single list item...
+							if (item.getAbsoluteStart() + 2 < selection.absoluteStart &&
+								item.getAbsoluteStart() + item.textLength > selection.absoluteEnd)
+							{
+								//trace("removing the middle of a list item " + nudge);
+								
+								deleteStart = (selection.absoluteStart - itemStart) - nudge;
+								deleteEnd = (selection.absoluteEnd - itemStart) - nudge;
+								
+								var first:String = item.rawText.substr(0, deleteStart);
+								var last:String = item.rawText.substr(deleteEnd, (item.getAbsoluteStart() + item.textLength) - itemStart);
+
+								item.text = first + last;
+							}
+							// Otherwise the selection either starts or ends in this list item...
+							else
+							{
+								if (item.getAbsoluteStart() + nudge > selection.absoluteStart)
+								{
+									//trace("Start with the selection end " + selection.absoluteEnd + " " + selectionEnd + " " + itemStart + " " + nudge + " " + previousSelectionWidth);	
+
+									deleteStart = ((selectionEnd - itemStart) - nudge) - completeItemsRemoved;
+								}
+								else
+								{
+									//trace("start with the item start");
+									deleteStart = 0;
+								}
+
+								if ((item.getAbsoluteStart() + item.textLength) + previousSelectionWidth < selection.absoluteEnd)
+								{
+									//trace("ending with the selection start");
+									deleteEnd = (selection.absoluteStart - itemStart) - nudge;
+								}
+								else
+								{									
+									//trace("ending with the item end " + item.getText().length + " " + nudge);
+									deleteEnd = item.textLength;
+								}
+								
+								previousSelectionWidth = (item.getText().length - nudge) - deleteEnd;
+								var newStr:String = item.rawText.substr(deleteStart, deleteEnd);
+								
+								//trace(deleteStart + " " + deleteEnd + " " + previousSelectionWidth + " == " + newStr);
+								
+								if (previousItem)
+								{
+									previousItem.text = previousItem.rawText + newStr;
+									list.removeChild(item);
+								}
+								else
+								{
+									item.text = newStr;
+									previousItem = item;
+								}
+								
+								selectionEnd -= previousSelectionWidth;
+							}
+							
+							tf.flowComposer.updateAllControllers();
+						}					
+					}
+					
+					newSelection = new SelectionState(tf, selection.absoluteStart - 1, selection.absoluteStart - 1);
+					tf.interactionManager.setSelectionState(newSelection);
 				}
-				//tf.flowComposer.updateAllControllers();
-				//tf.interactionManager.setSelectionState(new SelectionState(tf, selection.absoluteStart, selection.absoluteStart));
-			}
-			
-			//	Delete up to the absolute start position
-			/*if ( startElement.parent is ListItemElement )
-			{
-				var endSelectedText:String;
-				startItem = startElement.parent as ListItemElement;
-				list = startItem.list;
-				startIndexRelative = list.getChildIndex( startItem );
-				startPosRelative = startItem.getElementRelativeStart( list );
-				if ( endElement.parent is ListItemElement )
-				{
-					endItem = endElement.parent as ListItemElement;
-					endIndexRelative = list.getChildIndex( endItem );
-					endPosRelative = endItem.getElementRelativeStart( list );
-					
-					endSelectedText = endItem.text.substr(0, extendedEditManager.absoluteEnd - endPos);
-					
-					//	create new selection state & use the edit manager to delete the text, as it creates far less hassle
-					newSelectionState = new SelectionState( extendedEditManager.textFlow, extendedEditManager.absoluteStart, endPos + endSelectedText.length, extendedEditManager.textFlow.format );
-					extendedEditManager.deleteText( newSelectionState );
-					
-					//	force an update to fix the #'s
-//					list.update();
-				}
-				else
-				{
-					endSelectedText = endElement.text.substr(0, extendedEditManager.absoluteEnd - endPos);	//	correct
-					
-					var offset:int = list.mode == ListElement.UNORDERED ? 4 : 5;
-					var newStartText:String = startItem.rawText.substr(0, extendedEditManager.absoluteStart-startPos-offset);	//	works
-					startItem.text = newStartText;
-					
-					
-					
-					newSelectionState = new SelectionState( extendedEditManager.textFlow, extendedEditManager.absoluteStart, endPos + endSelectedText.length - 1, extendedEditManager.textFlow.format );
-					extendedEditManager.deleteText( newSelectionState );
-					
-//					list.update();
-				}
-			}
-			//	Delete down to the position previous the beginning of the list item,
-			//	Delete all list items between 
-			else if ( endElement.parent is ListItemElement )
-			{
-				//	Impossible that they're both ListItemElements
-				//	Delete everything before
-				//	Normal delete for ListItemElements
-				trace("Hello");
-			}
-			else
-			{
-				trace('Why was this called? That doesn\'t make any sense!');
-			}*/
+			}		
 		}
 		
 		public static function processReturnKey( extendedEditManager:ExtendedEditManager, startItem:ListItemElement ):void

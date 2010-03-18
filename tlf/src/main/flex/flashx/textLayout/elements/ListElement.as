@@ -106,17 +106,7 @@ package flashx.textLayout.elements
 		}
 		
 		public function updateList():void 
-		{
-			for (var i:int = 0; i < numChildren; i++)
-			{
-				var child:FlowElement = getChildAt(i);
-				
-				if (child is ListElement)
-				{
-					(child as ListElement).updateList();
-				}
-			}
-			
+		{			
 			updateFirst();
 			updateLast();
 			updateGroups();
@@ -128,21 +118,18 @@ package flashx.textLayout.elements
 		 */
 		private function updateNumbers(group:ListGroup):void 
 		{		
-			if (group.listMode == ORDERED)
+			var count:int = 1;
+			
+			for each (var item:* in group.listItems)
 			{
-				var count:int = 1;
-				
-				for each (var item:* in group.listItems)
+				if (item is ListItemElement)
 				{
-					if (item is ListItemElement)
-					{
-						ListItemElement(item).number = count++;
-					}
-					
-					if (item is ListGroup)
-					{
-						updateNumbers(ListGroup(item));
-					}
+					ListItemElement(item).number = count++;
+				}
+				
+				if (item is ListGroup)
+				{
+					updateNumbers(ListGroup(item));
 				}
 			}
 		}
@@ -302,6 +289,8 @@ package flashx.textLayout.elements
 			group.startIndex = 0;
 			group.indent = 0;
 			group.listMode = baseMode;
+			
+			var previousElement:ListItemElement;
 						
 			var i:int;
 			for each (var li:ListItemElement in listElements)
@@ -355,6 +344,9 @@ package flashx.textLayout.elements
 				group.listItems.push(li);
 
 				i++;
+				
+				li.previousItem = previousElement;
+				previousElement = li;
 			}
 		}
 		
