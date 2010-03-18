@@ -127,10 +127,10 @@ package flashx.textLayout.edit.helpers
 						selectedElements.push(element);
 					}
 					
-					if (element is FlowGroupElement && recurse)
-					{
-						selectedElements = selectedElements.concat(getSelectedElements(element as FlowGroupElement, selectionState, filter));
-					}
+				}
+				if (element is FlowGroupElement && recurse)
+				{
+					selectedElements = selectedElements.concat(getSelectedElements(element as FlowGroupElement, selectionState, filter));
 				}
 			}
 			
