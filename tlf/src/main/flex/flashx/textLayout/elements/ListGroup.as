@@ -2,6 +2,8 @@ package flashx.textLayout.elements
 {
 	public class ListGroup
 	{
+		public var id:int = -1;
+		
 		public var indent:int = -1;
 		
 		public var startIndex:int;

@@ -284,14 +284,16 @@ package flashx.textLayout.elements
 		
 		public function updateGroups():void 
 		{			
+			var id:int = 0;
 			_groups = new ListGroup();
+			_groups.id = id++;
 			var group:ListGroup = _groups;
 			group.startIndex = 0;
 			group.indent = 0;
 			group.listMode = baseMode;
 			
 			var previousElement:ListItemElement;
-						
+
 			var i:int;
 			for each (var li:ListItemElement in listElements)
 			{
@@ -305,6 +307,7 @@ package flashx.textLayout.elements
 						while (li.paragraphStartIndent > group.indent)
 						{			
 							newGroup = new ListGroup();
+							newGroup.id = id++;
 							newGroup.startIndex = i;
 							newGroup.listMode = li.mode;
 							newGroup.indent = group.indent + 24;
@@ -317,12 +320,30 @@ package flashx.textLayout.elements
 												
 						while (li.paragraphStartIndent < group.indent)
 						{
-							group = group.parent;
+							
+							if (group.parent.listMode == li.mode)
+							{
+								group = group.parent;
+							}
+							else
+							{
+								newGroup = new ListGroup();
+								newGroup.id = id++;
+								newGroup.startIndex = i;
+								newGroup.listMode = li.mode;
+								newGroup.indent = li.paragraphStartIndent;
+								
+								group.parent.parent.listItems.push(newGroup);
+								
+								newGroup.parent = group.parent.parent;
+								group = newGroup;
+							}
 						}
 					}
 					else
 					{
 						newGroup = new ListGroup();
+						newGroup.id = id++;
 						newGroup.startIndex = i;
 						newGroup.listMode = li.mode;
 						newGroup.indent = li.paragraphStartIndent;
@@ -340,7 +361,7 @@ package flashx.textLayout.elements
 						group = newGroup;
 					}
 				}			
-				
+
 				group.listItems.push(li);
 
 				i++;
