@@ -202,7 +202,7 @@ package flashx.textLayout.edit
 		override public function editHandler(event:Event):void
 		{
 			// Access to String pasted form clipboard. Just for reference.
-			var data:String = TextClipboard.getTextOnClipboardForFormat(ClipboardFormats.TEXT_FORMAT );
+//			var data:String = TextClipboard.getTextOnClipboardForFormat(ClipboardFormats.TEXT_FORMAT );
 			super.editHandler( event );
 		}
 		
