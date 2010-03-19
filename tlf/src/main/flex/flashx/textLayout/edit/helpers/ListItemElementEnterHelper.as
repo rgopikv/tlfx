@@ -76,9 +76,7 @@ package flashx.textLayout.edit.helpers
 					tf.flowComposer.updateAllControllers();
 				}
 				else
-				{					
-					
-					
+				{										
 					// If the whole list (including all items in sub-lists)
 					// is contained within the selection we can just get rid of the list.
 					if (ListHelper.isEveryItemInListCompletelySelected(tf, list))
@@ -87,45 +85,50 @@ package flashx.textLayout.edit.helpers
 					}
 					// Otherwise we need to look at the list items.
 					else
-					{
+					{						
 						var item:ListItemElement;
 						var completeItemsRemoved:int;
 						var previousItem:ListItemElement;
+						var nudge:int;
+						var itemStart:int;
 						
-						//trace("removing individual list items");
 						// Check if all the item has been selected.
 						// If it has get rid of it from the list and the selectedItems array.
 						for (var i:int = 0; i < selectedItems.length; i++)
 						{							
 							item = ListItemElement(selectedItems[i]);
-	
-							// If it has then delete the whole item from it's list.
-							if (ListHelper.isListItemCompletelySelected(selection, item))
+							
+							nudge = (item.mode == ListElement.ORDERED) ? 3 : 2;
+							var sStart:int = selection.absoluteStart;
+							var sEnd:int = selection.absoluteEnd;
+							itemStart = item.getAbsoluteStart() + nudge;
+							var itemEnd:int = item.getAbsoluteStart() + item.textLength - 1;
+
+							if ((selectionStart <= itemStart) && (selectionEnd >= itemEnd))
 							{
-								//trace("list item is completely selected - removing it entirely");
-								//newSelection = new SelectionState(tf, item.getAbsoluteStart() - 1, item.getAbsoluteStart() - 1);
-								//tf.interactionManager.setSelectionState(newSelection);
-								selectionEnd -= item.getText().length;
-								item.list.removeChild(item);
 								selectedItems.splice(i, 1);
 								i--;
+								
+								item.list.removeChild(item);
+								
+								selectionEnd -= item.textLength;
 								selection = new SelectionState(tf, selectionStart, selectionEnd);
 								tf.interactionManager.setSelectionState(selection);
 								
-								completeItemsRemoved++;
 							}
 						}
-						
+
 						for each (item in selectedItems)
 						{	
-							//trace("removing part of a list item");
+							trace("ITEM: " + item.getAbsoluteStart() + " " + (item.getAbsoluteStart() + item.textLength)); 
+
 							var deleteSelection:SelectionState;
 							var deleteStart:int;
 							var deleteEnd:int;
 							var previousSelectionWidth:int;
-							var nudge:int = item.mode == ListElement.ORDERED ? 3 : 2;
+							nudge = item.mode == ListElement.ORDERED ? 3 : 2;
 							
-							var itemStart:int = item.getElementRelativeStart(tf);
+							itemStart = item.getElementRelativeStart(tf);
 							
 							// If the entire selection is contained within a single list item...
 							if (item.getAbsoluteStart() + 2 < selection.absoluteStart &&
@@ -144,11 +147,13 @@ package flashx.textLayout.edit.helpers
 							// Otherwise the selection either starts or ends in this list item...
 							else
 							{
+								//trace("numbers: " + item.getAbsoluteStart() + " " + nudge + " " + selection.absoluteEnd);
+								
 								if (item.getAbsoluteStart() + nudge > selection.absoluteStart)
 								{
 									//trace("Start with the selection end " + selection.absoluteEnd + " " + selectionEnd + " " + itemStart + " " + nudge + " " + previousSelectionWidth);	
 
-									deleteStart = ((selectionEnd - itemStart) - nudge) - completeItemsRemoved;
+									deleteStart = ((selectionEnd - itemStart) - nudge);// - completeItemsRemoved;
 								}
 								else
 								{
@@ -187,7 +192,7 @@ package flashx.textLayout.edit.helpers
 								selectionEnd -= previousSelectionWidth;
 							}
 							
-							tf.flowComposer.updateAllControllers();
+							//tf.flowComposer.updateAllControllers();
 						}	
 					}
 					

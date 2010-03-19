@@ -107,11 +107,10 @@ package flashx.textLayout.edit.helpers
 		
 		public static function isListItemCompletelySelected(selection:SelectionState, listItem:ListItemElement):Boolean 
 		{
-			//var selection:SelectionState = IEditManager(tf.interactionManager).getSelectionState();
-					
+			var nudge:int = (listItem.mode == ListElement.ORDERED) ? 3 : 2;
 			var selectionStart:int = selection.absoluteStart;
 			var selectionEnd:int = selection.absoluteEnd;
-			var itemStart:int = listItem.getAbsoluteStart() + 2;
+			var itemStart:int = listItem.getAbsoluteStart() + nudge;
 			var itemEnd:int = listItem.getAbsoluteStart() + listItem.textLength - 1;
 			
 			return (selectionStart <= itemStart) && (selectionEnd >= itemEnd);
