@@ -32,15 +32,6 @@ package flashx.textLayout.converter.loader
 		public function PendingImageFragment( fragment:XML )
 		{
 			this.fragment = fragment;
-			
-			// grab and update correct property on image that TLF recognizes.
-			// TLF recognizes 'source' not 'src'.
-			source = fragment.@src;
-			if( source.length > 0 )
-			{
-				delete fragment.@src;
-				fragment.@source = source;
-			}
 			source = fragment.@source;
 			
 			// Create loader and assign listeners.

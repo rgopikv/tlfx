@@ -33,6 +33,7 @@ package flashx.textLayout.container.table
 	import flashx.textLayout.model.table.TableData;
 	import flashx.textLayout.model.table.TableHeading;
 	import flashx.textLayout.utils.FragmentAttributeUtil;
+	import flashx.textLayout.utils.StyleAttributeUtil;
 	import flashx.textLayout.utils.TextLayoutFormatUtils;
 	
 	[Event(name="cellResize", type="com.constantcontact.texteditor.event.TableCellContainerEvent")]
@@ -290,7 +291,7 @@ package flashx.textLayout.container.table
 			{
 				element = elements.shift() as FlowElement;
 				element.format = ( element.format ) ? TextLayoutFormatUtils.mergeFormats( config.textFlowInitialFormat, element.format ) : config.textFlowInitialFormat;
-//				TextLayoutFormatUtils.applyUserStyles( element );
+//				StyleAttributeUtil.applyUserStyles( element );
 				element.uid = _uid;
 				// Add to held list of elements.
 				_elementList.push( element );

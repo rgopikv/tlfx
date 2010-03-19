@@ -1,6 +1,12 @@
 package flashx.textLayout.utils
 {
+	import flash.utils.getQualifiedClassName;
+	
 	import flashx.textLayout.elements.FlowElement;
+	import flashx.textLayout.elements.FlowGroupElement;
+	import flashx.textLayout.elements.FlowValueHolder;
+	import flashx.textLayout.formats.TextLayoutFormat;
+	import flashx.textLayout.tlf_internal;
 
 	public class StyleAttributeUtil
 	{
@@ -45,6 +51,57 @@ package flashx.textLayout.utils
 		{
 			var match:* = value.match( /[A-Z]/ig );
 			return value;
+		}
+		
+		public static function parseStyles( style:String ):Object
+		{
+			var styleObj:Object = {};
+			var styles:Array = style.split(";");
+			var i:int;
+			var keyValue:Array;
+			for( i = 0; i < styles.length; i++ )
+			{
+				keyValue = styles[i].split( ":" );
+				styleObj[keyValue[0]] = keyValue[1];
+			}
+			return styleObj;
+		}
+		
+		public static function assignFormatFromStyles( tag:XML, element:FlowElement ):void
+		{
+			var format:TextLayoutFormat = new TextLayoutFormat( element.format );
+			var style:String = tag.@style;
+			if( style.length > 0 )
+			{
+				var styles:Object = StyleAttributeUtil.parseStyles( style );
+				var property:String;
+				for( property in styles )
+				{
+					try
+					{
+						format[StyleAttributeUtil.camelize(property)] = styles[property];
+					}
+					catch( e:Error )
+					{
+						trace( "[StyleAttributeUtil] :: Syle property not supported: " + property );
+					}
+				}
+			}
+			element.format = format;
+		}
+		
+		public static function applyUserStyles( element:FlowElement ):void
+		{
+			if( element is FlowGroupElement )
+			{
+				var children:Array = ( element as FlowGroupElement ).mxmlChildren;
+				var i:int;
+				for( i = 0; i < children.length; i++ )
+				{
+					applyUserStyles( children[i] as FlowElement );
+				}
+			}
+			if( element.format ) TextLayoutFormatUtils.applyUserStyles( element );
 		}
 		
 		/**

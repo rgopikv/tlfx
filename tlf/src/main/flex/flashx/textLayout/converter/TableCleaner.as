@@ -1,15 +1,15 @@
 package flashx.textLayout.converter
 {
+	import flash.events.Event;
+	import flash.events.EventDispatcher;
+	import flash.events.IEventDispatcher;
+	import flash.events.ProgressEvent;
+	
 	import flashx.textLayout.converter.loader.PendingImageFragment;
 	import flashx.textLayout.converter.loader.PendingImageQueue;
 	import flashx.textLayout.events.TagParserCleanCompleteEvent;
 	import flashx.textLayout.events.TagParserCleanProgressEvent;
 	import flashx.textLayout.utils.FragmentAttributeUtil;
-	
-	import flash.events.Event;
-	import flash.events.EventDispatcher;
-	import flash.events.IEventDispatcher;
-	import flash.events.ProgressEvent;
 	
 	[Event(name="cleanProgress", type="flashx.textLayout.events.TagParserCleanProgressEvent")]
 	[Event(name="cleanComplete", type="flashx.textLayout.events.TagParserCleanCompleteEvent")]
@@ -21,14 +21,16 @@ package flashx.textLayout.converter
 	{
 		protected var queue:PendingImageQueue;
 		protected var cleanXML:XML;
-		
+		protected var imageProxy:String = "";
 		protected var originalTotal:int;
 		
 		/**
 		 * Constructor.
 		 */
-		public function TableCleaner() 
+		public function TableCleaner( imageProxy:String = "" ) 
 		{
+			this.imageProxy = imageProxy;
+			
 			queue = new PendingImageQueue();
 			queue.addEventListener( ProgressEvent.PROGRESS, handlePendingItemProgress, false, 0, true );
 			queue.addEventListener( Event.COMPLETE, handlePendingQueueComplete, false, 0, true );
@@ -78,11 +80,13 @@ package flashx.textLayout.converter
 				for( var i:int = 0; i < imageList.length(); i++ )
 				{
 					imgFragment = imageList[i] as XML;
+					// grab and update correct property on image that TLF recognizes.
+					// TLF recognizes 'source' not 'src'.
 					var imgSource:String = imgFragment.@src;
 					if ( imgSource.length > 0 )
 					{
 						delete imgFragment.@src;
-						imgFragment.@source = imgSource;
+						imgFragment.@source = imageProxy + imgSource;
 					}
 					// only send it to queue if dimensions aren't set.
 					if( !FragmentAttributeUtil.exists( imgFragment, "width" ) || !FragmentAttributeUtil.exists( imgFragment, "height" ) )

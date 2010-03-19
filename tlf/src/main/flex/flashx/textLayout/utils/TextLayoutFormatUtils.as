@@ -13,13 +13,11 @@ package flashx.textLayout.utils
 	{
 		static private function normalizeColorProperty( value:String ):Number
 		{
-			return 0x000000;
 			return Number( value );
 		}
 		
 		static private function normalizeFontSizeProperty( value:String ):Number
 		{
-			return 12;
 			return Number( value );	
 		}
 		
@@ -43,21 +41,24 @@ package flashx.textLayout.utils
 			var styleClass:String = format.userStyles.styleClass;
 			
 			var property:String;
-			var value:*
-			for( property in userStyles )
+			var value:*;
+			var styles:Object = StyleAttributeUtil.parseStyles( userStyles );
+			for( property in styles )
 			{
 				property = StyleAttributeUtil.camelize( property );
-				value = userStyles[property];
+				value = styles[property];
 				if( property == "color" )
 					value = TextLayoutFormatUtils.normalizeColorProperty( value );
 				else if( property == "fontSize" )
 					value = TextLayoutFormatUtils.normalizeFontSizeProperty( value );
 				
 				try {
+					trace( "property: " + property );
 					element.format[property] = value;
 				}
 				catch( e:Error ) {
 					// property not on format.
+					trace( e.message );
 				}
 			}
 		}

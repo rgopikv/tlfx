@@ -10,10 +10,15 @@ package flashx.textLayout.converter
 	 */
 	public class TableDataAssembler implements ITagAssembler
 	{
+		protected var imageProxy:String = "";
+		
 		/**
 		 * Constructor.
 		 */		
-		public function TableDataAssembler() {}
+		public function TableDataAssembler( imageProxy:String = "" ) 
+		{
+			this.imageProxy = imageProxy;
+		}
 		
 		/**
 		 * @private
@@ -34,7 +39,7 @@ package flashx.textLayout.converter
 				if( source.length > 0 )
 				{
 					delete node.@source;
-					node.@src = source;
+					node.@src = source.replace( imageProxy, "" );
 				}
 			}
 		}

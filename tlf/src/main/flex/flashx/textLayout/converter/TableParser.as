@@ -28,9 +28,9 @@ package flashx.textLayout.converter
 		/**
 		 * Constructor.
 		 */
-		public function TableParser() 
+		public function TableParser( imageProxy:String = "" ) 
 		{
-			_cleaner = new TableCleaner();
+			_cleaner = new TableCleaner( imageProxy );
 			_cleaner.addEventListener( TagParserCleanCompleteEvent.CLEAN_COMPLETE, handleCleanComplete, false, 0, true );
 			_cleaner.addEventListener( TagParserCleanProgressEvent.CLEAN_PROGRESS, handleCleanProgress, false, 0, true );
 		}
