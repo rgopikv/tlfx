@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <flexLibProperties includeAllClasses="false" version="3">
   <includeClasses>
     <classEntry path="flash.text.ime.CompositionAttributeRange"/>
@@ -55,6 +55,7 @@
     <classEntry path="flashx.textLayout.conversion.TextConverter"/>
     <classEntry path="flashx.textLayout.conversion.TextLayoutExporter"/>
     <classEntry path="flashx.textLayout.conversion.TextLayoutImporter"/>
+    <classEntry path="flashx.textLayout.converter.IHTMLImporter"/>
     <classEntry path="flashx.textLayout.converter.ITagAssembler"/>
     <classEntry path="flashx.textLayout.converter.ITagCleaner"/>
     <classEntry path="flashx.textLayout.converter.ITagParser"/>
@@ -93,6 +94,7 @@
     <classEntry path="flashx.textLayout.elements.Configuration"/>
     <classEntry path="flashx.textLayout.elements.ContainerFormattedElement"/>
     <classEntry path="flashx.textLayout.elements.DivElement"/>
+    <classEntry path="flashx.textLayout.elements.ExtendedLinkElement"/>
     <classEntry path="flashx.textLayout.elements.FlowElement"/>
     <classEntry path="flashx.textLayout.elements.FlowGroupElement"/>
     <classEntry path="flashx.textLayout.elements.FlowLeafElement"/>
@@ -106,6 +108,7 @@
     <classEntry path="flashx.textLayout.elements.LinkElement"/>
     <classEntry path="flashx.textLayout.elements.LinkState"/>
     <classEntry path="flashx.textLayout.elements.ListElement"/>
+    <classEntry path="flashx.textLayout.elements.ListGroup"/>
     <classEntry path="flashx.textLayout.elements.ListItemElement"/>
     <classEntry path="flashx.textLayout.elements.OverflowPolicy"/>
     <classEntry path="flashx.textLayout.elements.ParagraphElement"/>
@@ -195,6 +198,7 @@
     <classEntry path="flashx.textLayout.operations.InsertInlineGraphicOperation"/>
     <classEntry path="flashx.textLayout.operations.InsertTextOperation"/>
     <classEntry path="flashx.textLayout.operations.ModifyInlineGraphicOperation"/>
+    <classEntry path="flashx.textLayout.operations.PasteElementsOperation"/>
     <classEntry path="flashx.textLayout.operations.PasteOperation"/>
     <classEntry path="flashx.textLayout.operations.RedoOperation"/>
     <classEntry path="flashx.textLayout.operations.SplitParagraphOperation"/>
