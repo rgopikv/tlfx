@@ -4,7 +4,7 @@ package flashx.textLayout.elements
 	
 	use namespace tlf_internal;
 	
-	public class ListItemElement extends ParagraphElement implements IListElement
+	public class ListItemElement extends DivElement implements IListElement
 	{
 		private var _baseText:String;
 		private var _mode:String;
@@ -17,6 +17,7 @@ package flashx.textLayout.elements
 		public var previousItem:ListItemElement;
 		
 		public var span:SpanElement;
+		public var p:ParagraphElement;
 		
 		public function get list():ListElement
 		{
@@ -36,21 +37,34 @@ package flashx.textLayout.elements
 			_num = 0;
 			_first = false;
 			_last = false;
-			
-			
-			
-//			span = new SpanElement();
-//			
-//			this.addChild( span );
 		}
 		
 		public function init():void
 		{
+			p = new ParagraphElement();
 			span = new SpanElement();
-			super.addChild( span );
+			p.addChild( span );
+			super.addChild( p );
 		}
 		
-//		override tlf_internal function c
+		
+		
+		override public function addChild(child:FlowElement):FlowElement
+		{
+			if ( child is FlowLeafElement )
+				return p.addChild( child );
+			else
+			{
+				var toReturn:FlowElement = super.addChild( child );
+				p = new ParagraphElement();
+				span = new SpanElement();
+				p.addChild( span );
+				super.addChild( p );
+				return toReturn;
+			}
+		}
+		
+		
 		
 		private function getSeparator():String
 		{									
@@ -98,7 +112,7 @@ package flashx.textLayout.elements
 		
 		override tlf_internal function canOwnFlowElement(elem:FlowElement) : Boolean
 		{
-			return elem is ParagraphElement || elem is SpanElement;
+			return elem is FlowLeafElement || elem is ParagraphElement || elem is ListElement;
 		}
 		
 		public function set mode( value:String ):void
