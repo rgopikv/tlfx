@@ -18,8 +18,8 @@ package flashx.textLayout.operations
 	import flashx.textLayout.elements.ParagraphElement;
 	import flashx.textLayout.elements.SpanElement;
 	import flashx.textLayout.elements.TextFlow;
-	import flashx.textLayout.formats.TextLayoutFormat;
 	import flashx.textLayout.formats.ITextLayoutFormat;
+	import flashx.textLayout.formats.TextLayoutFormat;
 	import flashx.textLayout.tlf_internal;
 
 
@@ -161,7 +161,7 @@ package flashx.textLayout.operations
 			if (this.endGeneration != operation.beginGeneration)
 				return null;
 			// TODO we could probably do something a bit more efficient for a backspace
-			if ((operation is SplitParagraphOperation) || (operation is InsertTextOperation))
+			if ((operation is SplitParagraphOperation) || (operation is InsertTextOperation) || (operation is PasteElementsOperation))
 				return new CompositeOperation([this,operation]);
 			return null;
 		}

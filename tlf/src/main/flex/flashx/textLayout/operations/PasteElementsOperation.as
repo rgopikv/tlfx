@@ -14,6 +14,7 @@ package flashx.textLayout.operations
 	import flashx.textLayout.elements.TextFlow;
 	import flashx.textLayout.tlf_internal;
 	
+	use namespace tlf_internal;
 	/**
 	 * PasteElementOperation is an operation that handles placing flow elements into an insertion point within the text flow. 
 	 * @author toddanderson
@@ -21,7 +22,8 @@ package flashx.textLayout.operations
 	public class PasteElementsOperation extends FlowTextOperation
 	{
 		protected var _elementsToPaste:Array;
-		protected var elementInsertIndex:int;
+		protected var _elementInsertIndex:int;
+		protected var _isPartOfComposite:Boolean;
 		
 		/**
 		 * Constructor. 
@@ -36,15 +38,47 @@ package flashx.textLayout.operations
 		
 		protected function internalDoOperation():void
 		{
-			use namespace tlf_internal;
-			var para:ParagraphElement = textFlow.findLeaf(absoluteStart).getParagraph();
-			var parent:ContainerFormattedElement = para.parent as ContainerFormattedElement;
-			elementInsertIndex = parent.getChildIndex(para);
+			// Update selection state if part of merge
+			if( _isPartOfComposite )
+			{
+				originalSelectionState = textFlow.interactionManager.getSelectionState();
+				absoluteStart = originalSelectionState.absoluteStart;
+				absoluteEnd = originalSelectionState.absoluteEnd;
+			}
+			
 			var i:int;
 			var index:int = 0;
-			for( i = elementInsertIndex; i < elementInsertIndex + _elementsToPaste.length; i++ )
+			var length:int;
+			
+			var leaf:FlowLeafElement = textFlow.findLeaf( absoluteEnd );
+			var para:ParagraphElement = leaf.getParagraph();
+			var parent:ContainerFormattedElement = para.parent as ContainerFormattedElement;
+			_elementInsertIndex = textFlow.getChildIndex( ( parent is TextFlow ) ? para : parent ) + 1;
+			// If the partent of the target is a Textflow. Just pop it and begin.
+			if( parent is TextFlow )
 			{
-				parent.addChildAt( i, _elementsToPaste[index++] );
+				( parent as TextFlow ).removeChild( para );
+				_elementsToPaste.push( para );
+				_elementInsertIndex -= 1;
+			}
+			// Else sever the div and add the lower children as needed to be re-adsed to the flow.
+			else if( parent is DivElement )
+			{
+				index = ( parent as DivElement ).getChildIndex( para );
+				length = ( parent as DivElement ).numChildren;
+				var content:Array = parent.mxmlChildren;
+				parent.mxmlChildren = content.slice( 0, index );
+				var newDivChildren:Array = content.slice( index, length );
+				var newDiv:DivElement = ( parent as DivElement ).shallowCopy() as DivElement;
+				newDiv.mxmlChildren = newDivChildren;
+				_elementsToPaste.push( newDiv );
+			}
+			length = _elementInsertIndex + _elementsToPaste.length;
+			index = 0;
+			// Update the text flow with required elements in past operation.
+			for( i = _elementInsertIndex; i < length; i++ )
+			{
+				textFlow.addChildAt( i, _elementsToPaste[index++] );
 			}
 		}
 		
@@ -61,11 +95,12 @@ package flashx.textLayout.operations
 				var i:int;
 				for( i = 0; i < _elementsToPaste.length; i++ )
 				{
-					textFlow.removeChildAt( --elementInsertIndex );
+					textFlow.removeChildAt( --_elementInsertIndex );
 				}
 				if ( textFlow.interactionManager )
 					textFlow.interactionManager.notifyInsertOrDelete( absoluteStart, 0 );
 			}
+			
 			return originalSelectionState;
 		}
 		
@@ -77,6 +112,19 @@ package flashx.textLayout.operations
 			return new SelectionState(textFlow, absoluteStart, absoluteStart, null );
 		}
 		
+		tlf_internal override function merge(operation:FlowOperation):FlowOperation
+		{
+			if (this.endGeneration != operation.beginGeneration)
+				return null;
+			
+			if ((operation is SplitParagraphOperation))
+			{
+				_isPartOfComposite = true;
+				return new CompositeOperation([operation,this]);
+			}
+			return null;
+		}
+		
 		public function get elements():Array
 		{
 			return _elementsToPaste;
@@ -84,6 +132,11 @@ package flashx.textLayout.operations
 		public function set elements( value:Array ):void
 		{
 			_elementsToPaste = value;
+		}
+		
+		public function get insertIndex():int
+		{
+			return _elementInsertIndex;
 		}
 	}
 }

@@ -50,6 +50,13 @@ package flashx.textLayout.elements.table
 			return false;
 		}
 		
+		override public function shallowCopy(startPos:int=0, endPos:int=-1):FlowElement
+		{
+			var copy:TableElement = super.shallowCopy(startPos, endPos) as TableElement;
+			copy.fragment = _fragment;
+			return copy;
+		}
+		
 		/**
 		 * @private
 		 * 
@@ -146,7 +153,7 @@ package flashx.textLayout.elements.table
 		{
 			XML.prettyIndent = 4;
 			XML.prettyPrinting = true;
-			_fragment = XML( _exporter.createFragment( _table ) );
+			_fragment = ( _table ) ? XML( _exporter.createFragment( _table ) ) : <table/>;
 			return _fragment.toXMLString();
 		}
 		

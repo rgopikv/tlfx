@@ -32,6 +32,7 @@ package flashx.textLayout.container
 		protected var _actualHeight:Number = Number.NaN;
 		protected var _previousHeight:Number = Number.NaN;
 		protected var _background:Sprite;
+		protected var _lineHolder:Sprite;
 		
 		protected var _processedElements:Vector.<MonitoredElementContent>;
 		
@@ -53,10 +54,13 @@ package flashx.textLayout.container
 			
 			// TODO: See if we can grab a background color from styles. Might also be bitmap.
 //			_background = new Sprite();
-//			_background.graphics.beginFill( 0xFF0000, 0.3 );
+//			_background.graphics.beginFill( Math.random() * 0xFFFFFF, 0.3 );
 //			_background.graphics.drawRect( 0, 0, compositionWidth, compositionHeight );
 //			_background.graphics.endFill();
 //			container.addChildAt( _background, 0 );
+			
+//			_lineHolder = new Sprite();
+//			container.addChild( _lineHolder );
 		}
 		
 		protected function handleLineCreation( line:TextLine ):void
@@ -72,6 +76,25 @@ package flashx.textLayout.container
 			
 			if( ++_numLines == 1 )
 				_topElementAscent = line.ascent - line.descent;
+			
+//			_lineHolder.addChild( line );
+		}
+		
+		protected function getMonitoredElements():Vector.<MonitoredElementContent>
+		{
+			if( textFlow == null || textFlow.mxmlChildren == null ) return new Vector.<MonitoredElementContent>();
+			
+			var flowElements:Array = textFlow.mxmlChildren.slice();
+			var i:int;
+			var element:FlowElement;
+			var elements:Vector.<MonitoredElementContent> = new Vector.<MonitoredElementContent>();
+			for( i = 0; i < flowElements.length; i++ )
+			{
+				element = flowElements[i] as FlowElement;
+				if( element.uid == _uid )
+					elements.push( new MonitoredElementContent( element, i ) );
+			}
+			return elements;
 		}
 		
 		protected function returnMonitoredElements():void
@@ -142,6 +165,9 @@ package flashx.textLayout.container
 		
 		public function processContainerHeight():void
 		{
+//			while( _lineHolder.numChildren > 0 )
+//				_lineHolder.removeChildAt( 0 );
+			
 			_previousHeight = ( isNaN(_actualHeight) ) ? compositionHeight : _actualHeight;
 			
 			var format:ITextLayoutFormat = _computedFormat;
@@ -186,26 +212,26 @@ package flashx.textLayout.container
 			}
 		}
 		
-		public function getUID():String
+		public function getAllMonitoredElements():Array
 		{
-			return _uid;
-		}
-		
-		public function getMonitoredElements():Vector.<MonitoredElementContent>
-		{
-			if( textFlow == null || textFlow.mxmlChildren == null ) return new Vector.<MonitoredElementContent>();
+			if( textFlow == null || textFlow.mxmlChildren == null ) return [];
 			
-			var flowElements:Array = textFlow.mxmlChildren.slice();
+			var flowElements:Array = textFlow.mxmlChildren;
 			var i:int;
 			var element:FlowElement;
-			var elements:Vector.<MonitoredElementContent> = new Vector.<MonitoredElementContent>();
+			var elements:Array = []
 			for( i = 0; i < flowElements.length; i++ )
 			{
 				element = flowElements[i] as FlowElement;
 				if( element.uid == _uid )
-					elements.push( new MonitoredElementContent( element, i ) );
+					elements.push( element );
 			}
 			return elements;
+		}
+		
+		public function getUID():String
+		{
+			return _uid;
 		}
 		
 		public function get actualHeight():Number
