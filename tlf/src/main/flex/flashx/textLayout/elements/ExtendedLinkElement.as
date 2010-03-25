@@ -20,7 +20,7 @@ package flashx.textLayout.elements
 		
 		override tlf_internal function canOwnFlowElement(elem:FlowElement) : Boolean
 		{
-			return elem is SpanElement;
+			return elem is FlowLeafElement;
 		}
 	}
 }
