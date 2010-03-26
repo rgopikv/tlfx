@@ -10,23 +10,23 @@
 //////////////////////////////////////////////////////////////////////////////////
 package flashx.textLayout.conversion
 {
-	import flashx.textLayout.debug.assert;
-	import flashx.textLayout.elements.*;
-	import flashx.textLayout.formats.TabStopFormat;
-	import flashx.textLayout.formats.TextLayoutFormat;
-	import flashx.textLayout.formats.ITextLayoutFormat;
-	import flashx.textLayout.formats.TextAlign;
-	import flashx.textLayout.formats.Direction;
-	import flashx.textLayout.formats.Float;
-	import flashx.textLayout.formats.LeadingModel;
-	import flashx.textLayout.formats.FormatValue;
-	import flash.text.engine.FontWeight;
 	import flash.text.engine.FontPosture;
+	import flash.text.engine.FontWeight;
 	import flash.text.engine.Kerning;
 	import flash.text.engine.TabAlignment;
 	import flash.utils.getQualifiedClassName;
-	import flashx.textLayout.tlf_internal;
+	
+	import flashx.textLayout.debug.assert;
+	import flashx.textLayout.elements.*;
+	import flashx.textLayout.formats.Direction;
+	import flashx.textLayout.formats.Float;
 	import flashx.textLayout.formats.FormatValue;
+	import flashx.textLayout.formats.ITextLayoutFormat;
+	import flashx.textLayout.formats.LeadingModel;
+	import flashx.textLayout.formats.TabStopFormat;
+	import flashx.textLayout.formats.TextAlign;
+	import flashx.textLayout.formats.TextLayoutFormat;
+	import flashx.textLayout.tlf_internal;
 	use namespace tlf_internal;
 
 	
@@ -442,7 +442,18 @@ package flashx.textLayout.conversion
 		{
 			for(var i:int=0; i < flowGroupElement.numChildren; ++i)
 			{
-				xml.appendChild(exportElement(flowGroupElement.getChildAt(i)));	
+				//	Grab the child
+				var child:FlowElement = flowGroupElement.getChildAt(i);
+				
+				//	If the child is a SpanElement and the only text is a newline character, skip
+				if ( child is SpanElement )
+				{
+					if ( ( child as SpanElement ).text == '\n' )
+						continue;
+				}
+				
+				//	Export element
+				xml.appendChild(exportElement(child));	
 			}
 		}
 		
