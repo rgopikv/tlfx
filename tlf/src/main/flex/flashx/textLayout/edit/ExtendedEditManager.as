@@ -96,7 +96,7 @@ package flashx.textLayout.edit
 							}
 							else
 							{
-								previousItem.text = previousItem.rawText.substr( 0, previousItem.rawText.length-2 );
+								previousItem.text = previousItem.text.substr( 0, previousItem.text.length-2 );//rawText.substr( 0, previousItem.rawText.length-2 );
 								var selectionPos:int = previousItem.getElementRelativeStart( this.textFlow ) + previousItem.text.length - 2;
 								this.selectRange( selectionPos, selectionPos );
 							}
@@ -123,7 +123,7 @@ package flashx.textLayout.edit
 							var list:ListElement = startItem.parent as ListElement;
 							var offset:int = startItem.mode == ListElement.UNORDERED ? 3 : 4;
 							var relativeStart:int = this.absoluteStart - startItem.getElementRelativeStart( this.textFlow ) - offset;
-							var rawText:String = startItem.rawText;
+							var rawText:String = startItem.text;//rawText;
 							var beginning:String = rawText.substring(0, relativeStart-1);
 							var end:String;
 							
@@ -142,7 +142,7 @@ package flashx.textLayout.edit
 									this.deleteText( deleteState );
 									
 									var relativeEnd:int = this.absoluteEnd - endItem.getElementRelativeStart( this.textFlow ) - offset;
-									var endText:String = endItem.rawText;
+									var endText:String = endItem.text;//rawText;
 									endItem.text = endText.substr( relativeEnd, endText.length );
 									
 									var endPos:int = list.getChildIndex( endItem );

@@ -3,6 +3,7 @@ package flashx.textLayout.edit.helpers
 	import flash.utils.getDefinitionByName;
 	import flash.utils.getQualifiedClassName;
 	
+	import flashx.textLayout.accessibility.TextAccImpl;
 	import flashx.textLayout.edit.IEditManager;
 	import flashx.textLayout.edit.SelectionState;
 	import flashx.textLayout.elements.DivElement;
@@ -62,9 +63,9 @@ package flashx.textLayout.edit.helpers
 		 * Returns an Array containing all ListElements that are at least 
 		 * partially contained within the TextFlow's current selection state.
 		 */
-		public static function getSelectedLists(tf:TextFlow):Array 
+		public static function getSelectedLists(tf:TextFlow, recurse:Boolean = true):Array 
 		{
-			return getSelectedElements(tf, null, [ListElement]);
+			return getSelectedElements(tf, null, [ListElement], recurse);
 		}
 		
 		/**
