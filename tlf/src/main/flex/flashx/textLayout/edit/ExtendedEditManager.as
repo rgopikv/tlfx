@@ -6,6 +6,7 @@ package flashx.textLayout.edit
 	import flash.events.TextEvent;
 	import flash.ui.Keyboard;
 	
+	import flashx.textLayout.container.AutosizableContainerController;
 	import flashx.textLayout.container.table.ICellContainer;
 	import flashx.textLayout.conversion.ConversionType;
 	import flashx.textLayout.conversion.TextConverter;
@@ -46,6 +47,32 @@ package flashx.textLayout.edit
 			}
 		}
 		
+		// TODO: Hack to ensure won't throw error on delete including table cells.
+		protected function tableIsInDeletionRange():Boolean
+		{
+			var selectionState:SelectionState = this.getSelectionState();
+			var anchor:int = selectionState.anchorPosition;
+			var active:int = selectionState.activePosition;
+			var anchorIndex:int = ( anchor > active ) ? active : anchor;
+			var activeIndex:int = ( anchor > active ) ? anchor : active;
+			var start:int = textFlow.flowComposer.findControllerIndexAtPosition( anchorIndex );
+			var end:int = textFlow.flowComposer.findControllerIndexAtPosition( activeIndex );
+			// Allow for delete in single cell for table.
+			if( start == end ) return false;
+			var hasTable:Boolean;
+			for( var i:int = start; i < end + 1; i++ )
+			{
+				if( textFlow.flowComposer.getControllerAt( i ) is AutosizableContainerController )
+					continue;
+				else
+				{
+					hasTable = true;
+					break;
+				}
+			}
+			return hasTable;
+		}
+		
 		override public function keyDownHandler(event:KeyboardEvent) : void
 		{
 //			trace('key down handler');
@@ -76,7 +103,11 @@ package flashx.textLayout.edit
 					}
 					break;
 				case Keyboard.BACKSPACE:
-					if ( this.hasSelection() )
+					if( tableIsInDeletionRange() )
+					{
+						event.preventDefault();
+					}
+					else if ( this.hasSelection() )
 					{
 						var previousElement:FlowLeafElement = this.textFlow.findLeaf( startElement.getElementRelativeStart( this.textFlow ) - 1 );
 						
@@ -108,6 +139,17 @@ package flashx.textLayout.edit
 						}
 					}
 					break;
+				case Keyboard.DELETE: //del
+					if( !tableIsInDeletionRange() )
+					{
+						super.keyDownHandler( event );
+					}
+					else
+					{
+						trace( "Can;t DELETE A TABL>E" );
+					}
+					event.preventDefault();
+				break;
 				default:
 					var char:String = String.fromCharCode( event.charCode );
 					var regEx:RegExp = /\w/;
