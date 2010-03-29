@@ -112,7 +112,7 @@ package flashx.textLayout.edit
 		private var _unfocusedSelectionFormat:SelectionFormat;
 		private var _inactiveSelectionFormat:SelectionFormat;
 		private var _selFormatState:String = SelectionFormatState.UNFOCUSED;
-		private var _isActive:Boolean;
+		protected var _isActive:Boolean;
 		
 		/** The TextFlow of the selection. */
 		private var _textFlow:TextFlow;
