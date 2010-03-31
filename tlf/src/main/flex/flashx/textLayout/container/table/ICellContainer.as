@@ -5,6 +5,8 @@ package flashx.textLayout.container.table
 	import flash.events.IEventDispatcher;
 	
 	import flashx.textLayout.container.ContainerController;
+	import flashx.textLayout.container.IEditorContainerManager;
+	import flashx.textLayout.elements.TextFlow;
 	import flashx.textLayout.model.table.TableData;
 
 	/**
@@ -13,6 +15,8 @@ package flashx.textLayout.container.table
 	 */
 	public interface ICellContainer extends IEventDispatcher
 	{
+		
+		function precompose( textFlow:TextFlow, containerManager:IEditorContainerManager, flowIndex:int ):void;
 		/**
 		 * Runs any preprocesses.
 		 */

@@ -10,7 +10,10 @@ package flashx.textLayout.events
 	 */
 	public class AutosizableContainerControllerEvent extends Event
 	{
-		public var offset:Number;
+		public var width:Number;
+		public var height:Number;
+		public var oldWidth:Number;
+		public var oldHeight:Number;
 		public var controller:AutosizableContainerController;
 		public static const RESIZE_COMPLETE:String = "resizeComplete";
 		/**
@@ -19,11 +22,14 @@ package flashx.textLayout.events
 		 * @param controller AutosizableContainerController The dispatching instance.
 		 * @param offset Number The offset in height after a resize operation.
 		 */
-		public function AutosizableContainerControllerEvent( type:String, controller:AutosizableContainerController, offset:Number )
+		public function AutosizableContainerControllerEvent( type:String, controller:AutosizableContainerController, width:Number, height:Number, oldWidth:Number, oldHeight:Number )
 		{
 			super( type );
-			this.offset = offset;
 			this.controller = controller;
+			this.width = width;
+			this.height = height;
+			this.oldWidth = oldWidth;
+			this.oldHeight = oldHeight;
 		}
 		
 		/**
@@ -31,7 +37,7 @@ package flashx.textLayout.events
 		 */
 		override public function clone():Event
 		{
-			return new AutosizableContainerControllerEvent( type, controller, offset );
+			return new AutosizableContainerControllerEvent( type, controller, width, height, oldWidth, oldHeight );
 		}
 	}
 }

@@ -139,8 +139,8 @@ package flashx.textLayout.edit.helpers
 								deleteStart = (selection.absoluteStart - itemStart) - nudge;
 								deleteEnd = (selection.absoluteEnd - itemStart) - nudge;
 								
-								var first:String = item.rawText.substr(0, deleteStart);
-								var last:String = item.rawText.substr(deleteEnd, (item.getAbsoluteStart() + item.textLength) - itemStart);
+								var first:String = item.text.substr(0, deleteStart);//rawText.substr(0, deleteStart);
+								var last:String = item.text.substr(deleteEnd, (item.getAbsoluteStart() + item.textLength) - itemStart);//rawText.substr(deleteEnd, (item.getAbsoluteStart() + item.textLength) - itemStart);
 
 								item.text = first + last;
 							}
@@ -173,13 +173,13 @@ package flashx.textLayout.edit.helpers
 								}
 								
 								previousSelectionWidth = (item.getText().length - nudge) - deleteEnd;
-								var newStr:String = item.rawText.substr(deleteStart, deleteEnd);
+								var newStr:String = item.text.substr(deleteStart, deleteEnd);//rawText.substr(deleteStart, deleteEnd);
 								
 								//trace(deleteStart + " " + deleteEnd + " " + previousSelectionWidth + " == " + newStr);
 								
 								if (previousItem)
 								{
-									previousItem.text = previousItem.rawText + newStr;
+									previousItem.text = previousItem.text + newStr;//rawText + newStr;
 									list.removeChild(item);
 									list.updateList();
 								}
@@ -229,12 +229,12 @@ package flashx.textLayout.edit.helpers
 				
 				var newStr:String = '';
 				
-				var startText:String = startItem.rawText;
+				var startText:String = startItem.text;//rawText;
 				var endText:String = new String();
 				
 				if ( endItem )
 				{
-					endText = endItem.rawText;
+					endText = endItem.text;//rawText;
 				}
 				else
 				{

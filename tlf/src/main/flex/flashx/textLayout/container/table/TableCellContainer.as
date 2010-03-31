@@ -4,6 +4,7 @@ package flashx.textLayout.container.table
 	import flash.display.Shape;
 	import flash.display.Sprite;
 	import flash.events.Event;
+	import flash.events.IEventDispatcher;
 	import flash.events.MouseEvent;
 	import flash.events.TimerEvent;
 	import flash.geom.Point;
@@ -12,7 +13,9 @@ package flashx.textLayout.container.table
 	import flash.utils.Timer;
 	
 	import flashx.textLayout.container.ContainerController;
+	import flashx.textLayout.container.IEditorContainerManager;
 	import flashx.textLayout.conversion.TextConverter;
+	import flashx.textLayout.converter.IHTMLExporter;
 	import flashx.textLayout.converter.IHTMLImporter;
 	import flashx.textLayout.converter.TableDataElementConverter;
 	import flashx.textLayout.elements.Configuration;
@@ -67,8 +70,10 @@ package flashx.textLayout.container.table
 		protected var _descent:Number = 0;
 		
 		protected var _data:TableData;
-		protected var _htmlConverter:IHTMLImporter;
 		protected var _tableAttributes:IAttribute;
+		protected var _containerManager:IEditorContainerManager;
+		protected var _htmlConverter:IHTMLImporter;
+		protected var _htmlExporter:IHTMLExporter;
 		protected var _textFlow:TextFlow;
 		protected var _elementList:Array; /* FlowElement[] */
 		
@@ -89,11 +94,13 @@ package flashx.textLayout.container.table
 		 *  
 		 * @param data The HTML table data to be presented.
 		 */
-		public function TableCellContainer( data:TableData, tableAttributes:IAttribute, htmlImporter:IHTMLImporter )
+		public function TableCellContainer( data:TableData, tableAttributes:IAttribute, htmlImporter:IHTMLImporter, htmlExporter:IHTMLExporter )
 		{
 			_data = data;
 			_tableAttributes = tableAttributes;
+//			_containerManager = containerManager;
 			_htmlConverter = htmlImporter;
+			_htmlExporter = htmlExporter;
 			
 			// Create text flow.
 			_textFlow = new TextFlow( getDefaultConfiguration() );
@@ -120,6 +127,8 @@ package flashx.textLayout.container.table
 			_height = getDefinedHeight();
 			_actualWidth = _width - getUnifiedPadding();
 			_actualHeight = _height - getUnifiedPadding();
+			
+//			_containerManager.targetDisplay = targetDisplay;
 			
 			// Set Unique ID associated with this cell container.
 			_uid = TableCellContainer.UID_PREFIX + TableCellContainer.ID;
@@ -177,9 +186,9 @@ package flashx.textLayout.container.table
 		protected function updateData( elements:Array /* FlowElement[] */ ):void
 		{
 			var node:XML = ( _data is TableHeading ) ? <th /> : <td />;
-			var fragment:XML = XML( TableDataElementConverter.createFragmentFromElements( node, elements ) );
-			FragmentAttributeUtil.assignAttributes( fragment, _data.attributes );
-			_data.data = fragment;
+			_htmlExporter.exportElementsToFragment( node, elements );// XML( TableDataElementConverter.createFragmentFromElements( node, elements ) );
+			FragmentAttributeUtil.assignAttributes( node, _data.attributes );
+			_data.data = node;
 		}
 		
 		/**
@@ -241,12 +250,12 @@ package flashx.textLayout.container.table
 			// Create textflow and import data as HTML.
 			
 			// TODO: For custom html importer.
-//			var composedFlow:TextFlow = _htmlConverter.importToFlow( _data.content );
-//			determineCellSize( composedFlow.mxmlChildren, toWidth, notify );
-			var composedFlow:TextFlow = TextConverter.importToFlow( _data.content, TextConverter.TEXT_LAYOUT_FORMAT );
-			var div:DivElement = composedFlow.getElementByID( TableData.CONTENT_PARENT_ID ) as DivElement;
+			var composedFlow:TextFlow = _htmlConverter.importToFlow( _data.content );
+			determineCellSize( composedFlow.mxmlChildren, toWidth, notify );
+//			var composedFlow:TextFlow = TextConverter.importToFlow( _data.content, TextConverter.TEXT_LAYOUT_FORMAT );
+//			var div:DivElement = composedFlow.getElementByID( TableData.CONTENT_PARENT_ID ) as DivElement;
 //			// Update cell size container bounds based on composed children.
-			determineCellSize( div.mxmlChildren, toWidth, notify );
+//			determineCellSize( div.mxmlChildren, toWidth, notify );
 		}
 		
 		/**
@@ -489,6 +498,29 @@ package flashx.textLayout.container.table
 			composeCell( getTargetWidth() - getUnifiedPadding(), notify );
 		}
 		
+		public function precompose( textFlow:TextFlow, containerManager:IEditorContainerManager, flowIndex:int ):void
+		{
+			var elements:Array = getElementsFromData();
+			_containerManager = containerManager;
+			_containerManager.targetDisplay = targetDisplay;
+			_containerManager.addEventListener( "initialize", handleContainerManagerInitialize );
+			_containerManager.composeContainers( textFlow, elements, flowIndex );
+		}
+		protected function handleContainerManagerInitialize( evt:Event ):void
+		{
+			( evt.target as IEventDispatcher ).removeEventListener( "intialize", handleContainerManagerInitialize );
+			dispatchEvent( new Event( Event.COMPLETE ) );
+			
+			var unifiedPadding:Number = getUnifiedPadding();
+			_actualWidth = _containerManager.width;
+			_width = _actualWidth + unifiedPadding;
+		}
+		protected function getElementsFromData():Array
+		{
+			var composedFlow:TextFlow = _htmlConverter.importToFlow( _data.content );
+			return composedFlow.mxmlChildren;
+		}
+		
 		/**
 		 * Process the supplied data based on display mentions prior to creation.
 		 */
@@ -497,7 +529,7 @@ package flashx.textLayout.container.table
 			var unifiedPadding:Number = getUnifiedPadding();
 			// Request to compose cell in order to gain measured and actual size prior to processing.
 			composeCell( ( _width == 0 ) ? getTargetWidth( 1000000 ) : _width );
-			_width = _actualWidth + unifiedPadding;
+			_width = _actualWidth + unifiedPadding; 
 		}
 		
 		/**

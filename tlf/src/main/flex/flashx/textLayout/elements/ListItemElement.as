@@ -4,7 +4,7 @@ package flashx.textLayout.elements
 	
 	use namespace tlf_internal;
 	
-	public class ListItemElement extends ParagraphElement implements IListElement
+	public class ListItemElement extends DivElement implements IListElement
 	{
 		private var _baseText:String;
 		private var _mode:String;
@@ -17,6 +17,7 @@ package flashx.textLayout.elements
 		public var previousItem:ListItemElement;
 		
 		public var span:SpanElement;
+		public var p:ParagraphElement;
 		
 		public function get list():ListElement
 		{
@@ -36,21 +37,81 @@ package flashx.textLayout.elements
 			_num = 0;
 			_first = false;
 			_last = false;
-			
-			
-			
-//			span = new SpanElement();
-//			
-//			this.addChild( span );
 		}
 		
 		public function init():void
 		{
+			p = new ParagraphElement();
 			span = new SpanElement();
-			super.addChild( span );
+			p.addChild( span );
+			super.addChild( p );
 		}
 		
-//		override tlf_internal function c
+		
+		
+		override public function addChild(child:FlowElement):FlowElement
+		{
+			if ( child is FlowLeafElement )
+				return p.addChild( child );
+			else if ( child is ParagraphElement )
+			{
+				//	If p only contains span & span hasn't been set, remove it (prevents extra breaks)
+				//	was rawText
+				if ( this.text == '' && p.numChildren == 1 )
+					removeChild( p );
+				
+				//	add child, typecast for p
+				p = super.addChild( child as ParagraphElement ) as ParagraphElement;
+				
+				//	if the new paragraph has children
+				if ( p.numChildren > 0 )
+				{
+					var match:Boolean = false;
+					var i:int = p.numChildren;
+					while ( --i > -1 )
+					{
+						var child:FlowElement = p.getChildAt(i);
+						if ( child is SpanElement )
+						{
+							match = true;
+							span = child as SpanElement;
+//							_baseText = span.text;
+							break;
+						}
+					}
+					
+					if ( !match )
+					{
+						span = new SpanElement();
+						p.addChild( span );
+					}
+				}
+				else
+				{
+					span = new SpanElement();
+					p.addChild( span );
+				}
+				
+//				//	Add the separator
+//				var sep:SpanElement = new SpanElement();
+//				sep.text = getSeparator();
+//				p.addChildAt( 0, sep );
+				
+				return p;
+			}
+			else
+			{
+				return p.addChild( child );
+//				var toReturn:FlowElement = super.addChild( child );
+//				p = new ParagraphElement();
+//				span = new SpanElement();
+//				p.addChild( span );
+//				super.addChild( p );
+//				return toReturn;
+			}
+		}
+		
+		
 		
 		private function getSeparator():String
 		{									
@@ -88,7 +149,7 @@ package flashx.textLayout.elements
 		{
 			super.paragraphStartIndent = paragraphStartIndentValue;
 			
-			this.text = rawText;
+			this.text = this.text;//rawText;
 		}
 		
 		override tlf_internal function canReleaseContentElement() : Boolean
@@ -98,7 +159,7 @@ package flashx.textLayout.elements
 		
 		override tlf_internal function canOwnFlowElement(elem:FlowElement) : Boolean
 		{
-			return elem is ParagraphElement || elem is SpanElement;
+			return elem is FlowLeafElement || elem is ListElement || elem is ParagraphElement;
 		}
 		
 		public function set mode( value:String ):void
@@ -111,7 +172,7 @@ package flashx.textLayout.elements
 			if (!first && !last)
 			{
 				_mode = value;
-				this.text = rawText;
+				this.text = this.text;//rawText;
 			}
 		}
 		public function get mode():String
@@ -122,7 +183,7 @@ package flashx.textLayout.elements
 		public function set number( value:uint ):void
 		{
 			_num = value;
-			this.text = rawText;
+			this.text = this.text;//rawText;
 		}
 		public function get number():uint
 		{
@@ -133,7 +194,7 @@ package flashx.textLayout.elements
 		{
 			_first = value;
 			if ( first )
-				this.text = rawText;
+				this.text = this.text;//rawText;
 		}
 		public function get first():Boolean
 		{
@@ -144,7 +205,7 @@ package flashx.textLayout.elements
 		{
 			_last = value;
 			if ( last )
-				this.text = rawText;
+				this.text = this.text;//rawText;
 		}
 		public function get last():Boolean
 		{
@@ -165,13 +226,13 @@ package flashx.textLayout.elements
 		}
 		public function get text() : String
 		{
-			return span.text;
+			return _baseText;//span.text;
 		}
 		
-		public function get rawText() : String
-		{
-			return _baseText;
-		}
+//		public function get rawText() : String
+//		{
+//			return _baseText;
+//		}
 		
 		override protected function get abstract() : Boolean
 		{

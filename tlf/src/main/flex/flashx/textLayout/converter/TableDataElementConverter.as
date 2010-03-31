@@ -1,14 +1,15 @@
 package flashx.textLayout.converter
 {
-	import flashx.textLayout.utils.StyleAttributeUtil;
-	
 	import flashx.textLayout.elements.DivElement;
 	import flashx.textLayout.elements.FlowElement;
 	import flashx.textLayout.elements.FlowGroupElement;
 	import flashx.textLayout.elements.InlineGraphicElement;
 	import flashx.textLayout.elements.LinkElement;
+	import flashx.textLayout.elements.ListElement;
+	import flashx.textLayout.elements.ListItemElement;
 	import flashx.textLayout.elements.ParagraphElement;
 	import flashx.textLayout.elements.SpanElement;
+	import flashx.textLayout.utils.StyleAttributeUtil;
 
 	/**
 	 * The TableDataConverter converts a list of FlowElements into a formatted valid <td /> tag.
@@ -31,7 +32,15 @@ package flashx.textLayout.converter
 			{
 				// Find Group type and set appropriate flag.
 				// Create Paragraph.
-				if( element is ParagraphElement )
+				if( element is ListElement )
+				{
+					
+				}
+				else if( element is ListItemElement )
+				{
+					
+				}
+				else if( element is ParagraphElement )
 				{
 					tag = <p style="margin:0in;margin-bottom:.0001pt" />;
 				}

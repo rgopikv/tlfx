@@ -3,12 +3,13 @@ package flashx.textLayout.edit.helpers
 	import flash.utils.getDefinitionByName;
 	import flash.utils.getQualifiedClassName;
 	
+	import flashx.textLayout.accessibility.TextAccImpl;
 	import flashx.textLayout.edit.IEditManager;
 	import flashx.textLayout.edit.SelectionState;
+	import flashx.textLayout.elements.DivElement;
 	import flashx.textLayout.elements.FlowElement;
 	import flashx.textLayout.elements.FlowGroupElement;
 	import flashx.textLayout.elements.ListElement;
-	import flashx.textLayout.elements.ListItemElement;
 	import flashx.textLayout.elements.ParagraphElement;
 	import flashx.textLayout.elements.TextFlow;
 
@@ -53,18 +54,18 @@ package flashx.textLayout.edit.helpers
 		 * Returns an Array containing all ParagraphElements that are at least 
 		 * partially contained within the TextFlow's current selection state.
 		 */
-		public static function getSelectedParagraphs(tf:TextFlow):Array 
+		public static function getSelectedParagraphs(tf:TextFlow, recurse:Boolean = true):Array 
 		{
-			return getSelectedElements(tf, null, [ParagraphElement]);
+			return getSelectedElements(tf, null, [ParagraphElement], recurse);
 		}
 		
 		/**
 		 * Returns an Array containing all ListElements that are at least 
 		 * partially contained within the TextFlow's current selection state.
 		 */
-		public static function getSelectedLists(tf:TextFlow):Array 
+		public static function getSelectedLists(tf:TextFlow, recurse:Boolean = true):Array 
 		{
-			return getSelectedElements(tf, null, [ListElement]);
+			return getSelectedElements(tf, null, [ListElement], recurse);
 		}
 		
 		/**
@@ -128,9 +129,9 @@ package flashx.textLayout.edit.helpers
 					}
 					
 				}
-				if (element is FlowGroupElement && recurse)
+				if (element is FlowGroupElement && (recurse || selectedElements.length == 0))
 				{
-					selectedElements = selectedElements.concat(getSelectedElements(element as FlowGroupElement, selectionState, filter));
+					selectedElements = selectedElements.concat(getSelectedElements(element as FlowGroupElement, selectionState, filter, recurse));
 				}
 			}
 			

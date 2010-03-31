@@ -48,6 +48,7 @@ package flashx.textLayout.model.table
 		 * USeful when inserting and converting elements for the targeted TextFlow. 
 		 * @return String
 		 */
+		/*
 		public function get content():String
 		{
 			XML.ignoreWhitespace = true;
@@ -75,35 +76,38 @@ package flashx.textLayout.model.table
 			tlf.appendChild( div );
 			return tlf.toXMLString();
 		}
+		*/
 		
 		/*
 		TODO: For CustomHTMLImporter.
+		*/
 		public function get content():String
 		{
 			XML.ignoreWhitespace = true;
 			XML.prettyIndent = 0;
 			XML.prettyPrinting = false;
-//			var div:XML = <div/>
+			var html:XML = <html />;
+			var body:XML = <body />;
 			var children:XMLList = data.children();
-			var p:XML = children[0];
 			if( children.length() > 0 )
 			{
-//				var child:XML;
-//				for( var i:int = 0; i < children.length(); i++ )
-//				{
-//					child = children[i];
-//					div.appendChild( child );	
-//				}
+				var child:XML;
+				for( var i:int = 0; i < children.length(); i++ )
+				{
+					child = children[i];
+					body.appendChild( child );	
+				}
 			}
 			else 
 			{
-				p = <p />;
+				var p:XML = <p />;
 				var span:XML = <span></span>
 				p.appendChild( span );
-//				div.appendChild( p );
-				return p.toXMLString();
+				body.appendChild( p );
 			}
-			return p.toXMLString();
+			html.appendChild( body );
+//			trace( "HTML: " + html );
+			return html.toXMLString();
 		}
 		/**/
 		
