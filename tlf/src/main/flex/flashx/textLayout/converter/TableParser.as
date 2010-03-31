@@ -54,6 +54,104 @@ package flashx.textLayout.converter
 		/**
 		 * @private
 		 * 
+		 * Maps the table out into a 2-d row/column strcuture in order to properly fill the cell slots. 
+		 * @param rows Vector.<TableRow> The unstructured parsed rows of the table.
+		 * @param tableRows Vector.<TableRows> The empty list to populate a structured row/column based list of rows.
+		 */
+		protected function mapTable( rows:Vector.<TableRow>, tableRows:Vector.<TableRow> ):void
+		{
+			var i:int;
+			var j:int;
+			var rowData:Vector.<TableData>;
+			var tableData:TableData;
+			var attributes:*;
+			
+			var rowMap:Array = [];
+			// Cycle through data and register column and rows for each data.
+			for( i; i < rows.length; i++ )
+			{
+				rowData = rows[i].tableData;
+				for( j = 0; j < rowData.length; j++ )
+				{
+					tableData = ( rowData[j] as TableData );
+					attributes = tableData.attributes as Object;
+					// Update slot hash.
+					var colindex:int = j;
+					var colspanLength:int = attributes.colspan;
+					var rowindex:int = i;
+					var rowspanLength:int = attributes.rowspan;
+					registerRowColumnSlot( tableData, rowMap, colindex, colspanLength, rowindex, rowspanLength );
+				}
+			}
+			// With map set in place, parse map and asemble table rows.
+			i = 0;
+			var rowColumns:Array;
+			for( i = 0; i < rowMap.length; i++ )
+			{
+				rowColumns = rowMap[i];
+				j = 0;
+				rowData = new Vector.<TableData>();
+				for( j = 0; j < rowColumns.length; j++ )
+				{
+					rowData.push( rowColumns[j] as TableData );
+				}
+				tableRows.push( new TableRow( rowData ) );
+			}
+		}
+		
+		/**
+		 * @private
+		 * 
+		 * Determines the place of the TableData within a table based on rowspan and colspan of data with the table as a whole. 
+		 * @param tableData TableData
+		 * @param rowMap Array The 2d map to modify.
+		 * @param fromCol int
+		 * @param colLength int
+		 * @param fromRow int
+		 * @param rowLength int
+		 */
+		protected function registerRowColumnSlot( tableData:TableData, rowMap:Array, fromCol:int, colLength:int, fromRow:int, rowLength:int ):void
+		{
+			var x:int = fromCol;
+			var y:int = fromRow;
+			// if slot is filled move over horizontally. mainly to catch rowspan change.
+			if( rowMap.length - 1 < y )
+			{
+				rowMap[y] = [];
+			}
+			// If a cell is registered which may occus due to row and col span, bump up column position until we find an empty slot.
+			while( rowMap[y][x] )
+			{
+				x++;
+			}
+			
+			var colIndex:int = x;
+			var rowIndex:int = y;
+			// fill in map.
+			var i:int;
+			var j:int;
+			for( i = x; i < x + colLength; i++ )
+			{
+				j = fromRow;
+				for( j; j < y + rowLength; j++ )
+				{
+					if( rowMap.length - 1 < j ) rowMap[j] = [];
+					// Only register once. IF colspan or rowspan is set, push null for display.
+					if( colIndex == i && rowIndex == j )
+					{
+						rowMap[j][i] = tableData;
+					}
+					else
+					{
+						rowMap[j][i] = true;
+					}
+				}	
+			}
+		}
+		
+		/**
+		 * @private
+		 * 
 		 * Establishes iteration of elements that make up rows and data elements. 
 		 * @param list Vector.<TableRow>
 		 */
@@ -77,6 +175,8 @@ package flashx.textLayout.converter
 				for( j; j < row.tableData.length; j++ )
 				{
 					var data:TableData = row.tableData[j];
+					// May be null as cells can occupy row and col spans. If so, move on to real data.
+					if( data == null ) continue;
 					nextData = ( j == row.tableData.length - 1 ) ? null : row.tableData[j+1] as TableData;
 					data.previousTableData = prevData;
 					data.nextTableData = nextData;
@@ -130,18 +230,10 @@ package flashx.textLayout.converter
 		protected function recursivelyInsertIntoColumns( columns:Vector.<TableColumn>, row:TableRow, index:int = 0 ):void
 		{
 			var tableData:TableData = row.tableData[index] as TableData;
-			var span:int = tableData.attributes[TableDataAttribute.COLSPAN];
-			var colIndex:int = index + span;
-			// fill in column element at index.
-			if( columns.length < colIndex + 1 )
+			if( columns.length - 1 < index )
 			{
-				var i:int;
-				for( i = columns.length; i < colIndex + 1; i++ )
-				{
-					columns.push( new TableColumn() );
-				}
+				columns[index] = new TableColumn( new Vector.<TableData>() );
 			}
-			
 			var column:TableColumn = columns[index];
 			column.tableData.push( tableData );
 			// If we haven't reached the end of the column, do it again.
@@ -428,11 +520,14 @@ package flashx.textLayout.converter
 				var xml:XML = XML( fragment );
 				
 				// Establish vector of rows and columns.
-				var trArray:Vector.<TableRow>;
+				var trArray:Vector.<TableRow> = new Vector.<TableRow>();
 				var tcArray:Vector.<TableColumn> = new Vector.<TableColumn>();
 				
 				// parse into row array.
-				trArray = parseTableIntoSequenceRows( xml );
+				var rows:Vector.<TableRow> = parseTableIntoSequenceRows( xml );
+				// Map table into row and column slots.
+				// Pass the row vector to be filled.
+				mapTable( rows, trArray );
 				// use row array to create row iterator.
 				invalidateRowIteration( trArray );
 				// use row array to create column iterator.
