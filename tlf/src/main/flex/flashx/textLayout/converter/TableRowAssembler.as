@@ -36,7 +36,8 @@ package flashx.textLayout.converter
 			var i:int;
 			for( i = 0; i < cells.length; i++ )
 			{
-				fragment.appendChild( XML( cellAssembler.createFragment( cells[i] as TableData ) ) );
+				if( cells[i] as TableData )
+					fragment.appendChild( XML( cellAssembler.createFragment( cells[i] as TableData ) ) );
 			}
 			return fragment.toXMLString();
 		}
