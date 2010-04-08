@@ -13,6 +13,7 @@ package flashx.textLayout.container
 	import flashx.textLayout.elements.Configuration;
 	import flashx.textLayout.elements.FlowElement;
 	import flashx.textLayout.elements.InlineGraphicElement;
+	import flashx.textLayout.elements.InlineGraphicElementStatus;
 	import flashx.textLayout.elements.TextFlow;
 	import flashx.textLayout.events.AutosizableContainerControllerEvent;
 	import flashx.textLayout.events.StatusChangeEvent;
@@ -105,6 +106,23 @@ package flashx.textLayout.container
 				element = _processedElements.shift();
 				textFlow.addChildAt( element.index, element.element );
 			}
+			
+			// workaround for change introduced in 10.1 where graphics would be left on the other display list.
+			var index:int = 0;
+			while(index < textFlow.textLength)
+			{
+				var elem:FlowElement = textFlow.findLeaf(index);
+				index += elem.textLength;
+				if(elem is InlineGraphicElement)
+				{
+					var ige:InlineGraphicElement = InlineGraphicElement(elem);
+					if(ige.status == InlineGraphicElementStatus.READY)
+					{
+						ige.setGraphic(ige.graphic);
+					}
+				}
+			}
+			
 		}
 		
 		protected function containsElement( element:FlowElement ):Boolean

@@ -220,7 +220,7 @@ package flashx.textLayout.elements
 		{
 			return _graphic;
 		}
-		private function setGraphic(value:DisplayObject):void
+		public function setGraphic(value:DisplayObject):void
 		{
 			if (_blockElement)
 			{
