@@ -1,5 +1,7 @@
 package flashx.textLayout.container
 {
+	import flash.events.IEventDispatcher;
+
 	/**
 	 * ISizableContainer is an interface for custom controller containers that are used as displays for ContainerController.
 	 * They can report back size and position properties as they relate to runtime changes in the container controller.

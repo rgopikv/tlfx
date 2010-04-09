@@ -10,9 +10,6 @@ package flashx.textLayout.model.table
 	public class TableData extends TableBaseElement
 	{
 		public var data:XML;
-		public var nextTableData:TableData;
-		public var previousTableData:TableData;
-		
 		public static const CONTENT_PARENT_ID:String = "holder";
 		
 		/**

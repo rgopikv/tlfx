@@ -1,5 +1,6 @@
 package flashx.textLayout.container.table
 {
+	import flash.display.BlendMode;
 	import flash.display.DisplayObjectContainer;
 	import flash.display.Shape;
 	import flash.display.Sprite;
@@ -12,9 +13,11 @@ package flashx.textLayout.container.table
 	import flash.utils.Timer;
 	
 	import flashx.textLayout.container.ContainerController;
+	import flashx.textLayout.container.ISizableContainer;
 	import flashx.textLayout.conversion.TextConverter;
 	import flashx.textLayout.converter.IHTMLImporter;
 	import flashx.textLayout.converter.TableDataElementConverter;
+	import flashx.textLayout.edit.SelectionState;
 	import flashx.textLayout.elements.Configuration;
 	import flashx.textLayout.elements.DivElement;
 	import flashx.textLayout.elements.FlowElement;
@@ -42,7 +45,7 @@ package flashx.textLayout.container.table
 	 * TableCellContainer is an ICellContainer implemnetation that represents a single cell within a Table display. 
 	 * @author toddanderson
 	 */
-	public class TableCellContainer extends Sprite implements ICellContainer
+	public class TableCellContainer extends Sprite implements ICellContainer, ISizableContainer
 	{	
 		protected var background:Sprite;
 		protected var border:Shape;
@@ -73,6 +76,8 @@ package flashx.textLayout.container.table
 		protected var _elementList:Array; /* FlowElement[] */
 		
 		protected var _lineBreakIdentifier:String = TableCellContainer.INTERNAL_LINE_BREAK_IDENTIFIER;
+		protected var _selected:Boolean;
+		
 		protected var _numLines:int;
 		protected var _proposedHeight:Number;
 		protected var _previousHeight:Number;
@@ -111,7 +116,7 @@ package flashx.textLayout.container.table
 			addChild( border );
 			
 			// create the target display of the cell.
-			targetDisplay = new TableCellDisplay();
+			targetDisplay = new TableCellDisplay( this );
 			addChild( targetDisplay );
 			
 			// Set default values.
@@ -141,6 +146,57 @@ package flashx.textLayout.container.table
 			
 			_actualWidth = getTargetWidth() - getUnifiedPadding();
 			positionTarget();
+		}
+		
+		/**
+		 * @private 
+		 * 
+		 * Validates the state of selection.
+		 */
+		protected function invalidateSelection():void
+		{
+			background.graphics.clear();
+			background.graphics.beginFill( ( _selected ) ? 0xEE9A00 : 0xFFFFFF, 1 );
+			background.graphics.drawRect( 0, 0, _width, _height );
+			background.graphics.endFill();
+//			background.blendMode = ( _selected ) ? BlendMode.INVERT : BlendMode.NORMAL;
+			
+			// If we have multi-select than update selection to encompass the whole range of the cell.
+			if( _selected )
+			{
+				var start:int = getAbsoluteStart();
+				var end:int = getAbsoluteEnd();
+				var selectionState:SelectionState = controller.textFlow.interactionManager.getSelectionState();
+				var active:int = selectionState.activePosition;
+				var anchor:int = selectionState.anchorPosition;
+				if( anchor > active )
+				{
+					selectionState.anchorPosition = Math.max( anchor, end );
+					selectionState.activePosition = Math.min( active, start );
+				}
+				else
+				{
+					selectionState.anchorPosition = Math.min( anchor, start );
+					selectionState.activePosition = Math.max( active, end );
+				}
+				controller.textFlow.interactionManager.setSelectionState( selectionState );	
+			}
+		}
+		
+		protected function getAbsoluteStart():int
+		{
+			if( _elementList == null || _elementList.length == 0 ) return 0;
+			
+			var element:FlowElement = _elementList[0];
+			return element.getAbsoluteStart();
+		}
+		
+		protected function getAbsoluteEnd():int
+		{
+			if( _elementList == null || _elementList.length == 0 ) return 0;
+			
+			var element:FlowElement = _elementList[_elementList.length - 1];
+			return element.getAbsoluteStart() + element.textLength - 1;
 		}
 		
 		/**
@@ -804,6 +860,21 @@ package flashx.textLayout.container.table
 		public function set lineBreakIdentifier( value:String ):void
 		{
 			_lineBreakIdentifier = value;
+		}
+		
+		/**
+		 * Access/Modifier to denote selection of whole cell. This can hapen when a user selects more than one cell
+		 * and is used to determine if a whole cell can be deleted, not just its contents. 
+		 * @return Boolean
+		 */
+		public function get selected():Boolean
+		{
+			return _selected;
+		}
+		public function set selected( value:Boolean ):void
+		{
+			_selected = value;
+			invalidateSelection();
 		}
 	}
 }

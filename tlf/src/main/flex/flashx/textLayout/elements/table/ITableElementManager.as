@@ -3,6 +3,7 @@ package flashx.textLayout.elements.table
 	import flash.display.DisplayObjectContainer;
 	import flash.events.IEventDispatcher;
 	
+	import flashx.textLayout.container.IEditorDisplayContext;
 	import flashx.textLayout.container.table.ICellContainer;
 	import flashx.textLayout.elements.FlowElement;
 	import flashx.textLayout.model.table.Table;
@@ -22,6 +23,11 @@ package flashx.textLayout.elements.table
 		function create( element:TableElement, table:Table, targetContainer:DisplayObjectContainer ):void;
 		
 		/**
+		 * Composes the table for initial layout.
+		 */
+		function compose():void;
+		
+		/**
 		 * Returns the corresponding cell container related to the FlowElement. 
 		 * @param element FlowElement
 		 * @return ICellContainer
@@ -33,6 +39,12 @@ package flashx.textLayout.elements.table
 		 * @return TableElement
 		 */
 		function getManagedTableElement():TableElement;
+		
+		/**
+		 * Returns the display context for a managed table. 
+		 * @return IEditorDisplayContext
+		 */
+		function getDisplayContext():IEditorDisplayContext;
 		
 		/**
 		 * Runs a refresh command on the table element manager.

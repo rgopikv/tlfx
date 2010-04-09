@@ -4,16 +4,21 @@ package flashx.textLayout.elements.table
 	
 	import flashx.textLayout.container.table.ICellContainer;
 	import flashx.textLayout.container.table.TableCellContainer;
-	import flashx.textLayout.container.table.TableControllerContainer;
+	import flashx.textLayout.container.table.TableDisplayContainer;
 	import flashx.textLayout.converter.ITagAssembler;
 	import flashx.textLayout.converter.ITagParser;
 	import flashx.textLayout.elements.ContainerFormattedElement;
 	import flashx.textLayout.elements.FlowElement;
+	import flashx.textLayout.elements.ParagraphElement;
 	import flashx.textLayout.elements.TextFlow;
 	import flashx.textLayout.events.TagParserCleanCompleteEvent;
 	import flashx.textLayout.events.TagParserCleanProgressEvent;
 	import flashx.textLayout.model.table.Table;
-
+	import flashx.textLayout.model.table.TableData;
+	import flashx.textLayout.model.table.TableRow;
+	import flashx.textLayout.tlf_internal;
+	
+	use namespace tlf_internal;
 	/**
 	 * TableElement represents a table in the text flow. 
 	 * @author toddanderson
@@ -27,7 +32,7 @@ package flashx.textLayout.elements.table
 		
 		protected var _tableManager:ITableElementManager;
 		protected var _elementalIndex:int;
-		protected var _targetContainer:TableControllerContainer;
+		protected var _targetContainer:TableDisplayContainer;
 		
 		protected var _textFlow:TextFlow;
 		
@@ -102,7 +107,7 @@ package flashx.textLayout.elements.table
 		 * @param textFlow TextFlow
 		 * @param targetContainer DisplayObjectContainer
 		 */
-		public function initialize( textFlow:TextFlow, targetContainer:TableControllerContainer ):void
+		public function initialize( textFlow:TextFlow, targetContainer:TableDisplayContainer ):void
 		{
 			_textFlow = textFlow;
 			_targetContainer = targetContainer;
@@ -161,7 +166,7 @@ package flashx.textLayout.elements.table
 		 * Returns reference to target container that cells are placed on. 
 		 * @return DisplayObjectContainer
 		 */
-		public function getTargetContainer():TableControllerContainer
+		public function getTargetContainer():TableDisplayContainer
 		{
 			return _targetContainer;
 		}

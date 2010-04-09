@@ -25,6 +25,15 @@ package flashx.textLayout.container
 		}
 		
 		/**
+		 * Returns reference to the container controller that manages this dispay. 
+		 * @return AutosizableContainerController
+		 */
+		public function get controller():AutosizableContainerController
+		{
+			return _controller;
+		}
+		
+		/**
 		 * Returns the height defined by AutosizableContainerController. 
 		 * @return Number
 		 */

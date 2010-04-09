@@ -2576,6 +2576,14 @@ package flashx.textLayout.container
 				// however must stick to the end of the last line
 				if (lineIdx == flowComposer.numLines)
 					lineIdx--;
+				// [TA] 04-07-2010 Limiting access.
+				lineIdx = Math.max( 0, lineIdx );
+				if( flowComposer.getLineAt( lineIdx ) == null ) 
+				{
+					trace( "[TA] Entered Possible Missing Line clause" );
+					return;	
+				}
+				// End [TA]
 				if (flowComposer.getLineAt(lineIdx).controller == this)
 				{
 					prevLine = lineIdx != 0 ? flowComposer.getLineAt(lineIdx-1) : null;

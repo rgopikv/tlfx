@@ -5,6 +5,7 @@ package flashx.textLayout.container.table
 	import flash.events.IEventDispatcher;
 	
 	import flashx.textLayout.container.ContainerController;
+	import flashx.textLayout.container.ISizableContainer;
 	import flashx.textLayout.model.table.TableData;
 
 	/**
@@ -152,6 +153,14 @@ package flashx.textLayout.container.table
 		 * @param value String
 		 */
 		function set lineBreakIdentifier( value:String ):void;
+		
+		/**
+		 * Access/Modifier to denote selection of whole cell. This can hapen when a user selects more than one cell
+		 * and is used to determine if a whole cell can be deleted, not just its contents. 
+		 * @return Boolean
+		 */
+		function get selected():Boolean;
+		function set selected( value:Boolean ):void;
 		
 		/* Standard DisplayObject properties. */
 		function get x():Number;

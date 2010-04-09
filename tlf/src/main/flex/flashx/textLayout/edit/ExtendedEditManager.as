@@ -7,7 +7,9 @@ package flashx.textLayout.edit
 	import flash.ui.Keyboard;
 	
 	import flashx.textLayout.container.AutosizableContainerController;
+	import flashx.textLayout.container.TableCellContainerController;
 	import flashx.textLayout.container.table.ICellContainer;
+	import flashx.textLayout.container.table.TableDisplayContainer;
 	import flashx.textLayout.conversion.ConversionType;
 	import flashx.textLayout.conversion.TextConverter;
 	import flashx.textLayout.converter.IHTMLImporter;
@@ -48,7 +50,7 @@ package flashx.textLayout.edit
 		}
 		
 		// TODO: Hack to ensure won't throw error on delete including table cells.
-		protected function tableIsInDeletionRange():Boolean
+		protected function getTableCellControllersInRange():Array
 		{
 			var selectionState:SelectionState = this.getSelectionState();
 			var anchor:int = selectionState.anchorPosition;
@@ -58,19 +60,16 @@ package flashx.textLayout.edit
 			var start:int = textFlow.flowComposer.findControllerIndexAtPosition( anchorIndex );
 			var end:int = textFlow.flowComposer.findControllerIndexAtPosition( activeIndex );
 			// Allow for delete in single cell for table.
-			if( start == end ) return false;
-			var hasTable:Boolean;
+			if( start == end ) return [];
+			var controllers:Array = [];
 			for( var i:int = start; i < end + 1; i++ )
 			{
-				if( textFlow.flowComposer.getControllerAt( i ) is AutosizableContainerController )
-					continue;
-				else
+				if( textFlow.flowComposer.getControllerAt( i ) is TableCellContainerController )
 				{
-					hasTable = true;
-					break;
+					controllers.push( textFlow.flowComposer.getControllerAt( i ) );
 				}
 			}
-			return hasTable;
+			return controllers;
 		}
 		
 		override public function keyDownHandler(event:KeyboardEvent) : void
@@ -103,11 +102,7 @@ package flashx.textLayout.edit
 					}
 					break;
 				case Keyboard.BACKSPACE:
-					if( tableIsInDeletionRange() )
-					{
-						event.preventDefault();
-					}
-					else if ( this.hasSelection() )
+					if ( this.hasSelection() )
 					{
 						var previousElement:FlowLeafElement = this.textFlow.findLeaf( startElement.getElementRelativeStart( this.textFlow ) - 1 );
 						
@@ -140,14 +135,7 @@ package flashx.textLayout.edit
 					}
 					break;
 				case Keyboard.DELETE: //del
-					if( !tableIsInDeletionRange() )
-					{
-						super.keyDownHandler( event );
-					}
-					else
-					{
-						trace( "Can;t DELETE A TABL>E" );
-					}
+					super.keyDownHandler( event );
 					event.preventDefault();
 				break;
 				default:

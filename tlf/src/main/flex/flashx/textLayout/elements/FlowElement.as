@@ -2496,6 +2496,9 @@ package flashx.textLayout.elements
 				curItem = curItem.parent;
 			}
 			
+			// [TA] 04-07-2010 :: Added null check fot curItem that may have been removed before reaching this method. RACE CONDITION.
+			if( !curItem ) return null;
+			
 			var flowComposer:IFlowComposer = ContainerFormattedElement(curItem).flowComposer;
 			if (!flowComposer)
 				return null;

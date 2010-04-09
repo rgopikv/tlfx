@@ -100,6 +100,8 @@ package flashx.textLayout.container
 		
 		protected function returnMonitoredElements():void
 		{
+			if( _processedElements.length == 0 ) return;
+			
 			var element:MonitoredElementContent;
 			while( _processedElements.length > 0 )
 			{
