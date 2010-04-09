@@ -305,7 +305,10 @@ package flashx.textLayout.compose
 			var leaf:FlowLeafElement = textFlow.findLeaf(startPosition);
 			if (leaf && lineIndex > 0 && leaf.getParagraph().getAbsoluteStart() != startPosition)
 				lineIndex--;
-
+			
+			// [TA] 04-08-2010 Was returning overdraft of index for lines. Need to pass back length-1 to get last line.
+			if( lineIndex == _lines.length ) lineIndex--;
+			// end [TA]
 			if (lines[lineIndex].absoluteStart < _damageAbsoluteStart)
 				_damageAbsoluteStart = _lines[lineIndex].absoluteStart;
 				
