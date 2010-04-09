@@ -3,6 +3,7 @@ package flashx.textLayout.container.table
 	import flash.display.Sprite;
 	import flash.events.Event;
 	
+	import flashx.textLayout.container.ContainerController;
 	import flashx.textLayout.container.ISizableContainer;
 	import flashx.textLayout.elements.table.TableElement;
 	import flashx.textLayout.model.table.Table;
@@ -55,6 +56,15 @@ package flashx.textLayout.container.table
 		public function setStartControllerIndex( index:int ):void
 		{
 			_tableElement.elementalIndex = index;
+		}
+		
+		/**
+		 * Returns the elemental index within the flow that the references table element should work from when composing container. 
+		 * @return int
+		 */
+		public function getStartControllerIndex():int
+		{
+			return _tableElement.elementalIndex;
 		}
 		
 		/**

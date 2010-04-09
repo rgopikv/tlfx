@@ -7,7 +7,7 @@ package flashx.textLayout.container
 	 * They can report back size and position properties as they relate to runtime changes in the container controller.
 	 * @author toddanderson
 	 */
-	public interface ISizableContainer
+	public interface ISizableContainer extends IEventDispatcher
 	{
 		function get actualHeight():Number;
 		

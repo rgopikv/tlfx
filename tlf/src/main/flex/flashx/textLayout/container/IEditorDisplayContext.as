@@ -24,7 +24,5 @@ package flashx.textLayout.container
 		function updateContainerOffsetFromIndex( offset:Number, index:int ):void;
 		function updateContainerOffsetFromContainer( container:ISizableContainer, index:int ):void;
 		function get targetDisplay():DisplayObjectContainer;
-		
-		function showAlert( message:String ):void;
 	}
 }

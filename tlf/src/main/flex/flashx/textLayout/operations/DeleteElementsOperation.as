@@ -165,8 +165,8 @@ package flashx.textLayout.operations
 					if( tableIndexes.length > 0 )
 					{
 						elements.push( new FlowElementMark( element, element.getAbsoluteStart() ) );
+						elemIndex++;
 					}
-					elemIndex++;
 				}
 				
 				var controllerIndex:int;
@@ -196,8 +196,6 @@ package flashx.textLayout.operations
 				{
 					// We need to chop out any incompassing tables and autosize container controllers.
 					var affectedElements:Vector.<FlowElementMark> = elements.slice( 0, tableIndexes.pop() + 1 );
-//					var len:int = tableIndexes.pop() - tableIndexes.shift();
-//					var affectedElements:Vector.<FlowElementMark> = elements.slice( 0, len );
 					var markedAutosizableController:AutosizableContainerController;
 					for( i = 0; i < affectedElements.length; i++ )
 					{
@@ -269,13 +267,10 @@ package flashx.textLayout.operations
 						--i;
 					}
 				}
-				
-				// Now update the major display.
-//				_displayContext.updateDisplay();
 			}
 			catch( e:Error )
 			{
-				_displayContext.showAlert( "That feature is not supported" );
+				// what now?
 			}
 		}
 		

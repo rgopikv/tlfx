@@ -8,10 +8,10 @@ package flashx.textLayout.events
 	 * AutosizableContainerControllerEvent is an event corresponding to the resize of an autosizable container controller. 
 	 * @author toddanderson
 	 */
-	public class AutosizableContainerControllerEvent extends Event
+	public class AutosizableContainerEvent extends Event
 	{
-		public var offset:Number;
-		public var controller:AutosizableContainerController;
+		public var newHeight:Number;
+		public var oldHeight:Number;
 		public static const RESIZE_COMPLETE:String = "resizeComplete";
 		/**
 		 * Constructor. 
@@ -19,11 +19,11 @@ package flashx.textLayout.events
 		 * @param controller AutosizableContainerController The dispatching instance.
 		 * @param offset Number The offset in height after a resize operation.
 		 */
-		public function AutosizableContainerControllerEvent( type:String, controller:AutosizableContainerController, offset:Number )
+		public function AutosizableContainerEvent( type:String, newHeight:Number, oldHeight:Number )
 		{
 			super( type );
-			this.offset = offset;
-			this.controller = controller;
+			this.newHeight = newHeight;
+			this.oldHeight = oldHeight;
 		}
 		
 		/**
@@ -31,7 +31,7 @@ package flashx.textLayout.events
 		 */
 		override public function clone():Event
 		{
-			return new AutosizableContainerControllerEvent( type, controller, offset );
+			return new AutosizableContainerEvent( type, newHeight, oldHeight );
 		}
 	}
 }

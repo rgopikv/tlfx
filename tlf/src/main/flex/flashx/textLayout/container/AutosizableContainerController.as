@@ -15,7 +15,7 @@ package flashx.textLayout.container
 	import flashx.textLayout.elements.InlineGraphicElement;
 	import flashx.textLayout.elements.InlineGraphicElementStatus;
 	import flashx.textLayout.elements.TextFlow;
-	import flashx.textLayout.events.AutosizableContainerControllerEvent;
+	import flashx.textLayout.events.AutosizableContainerEvent;
 	import flashx.textLayout.events.StatusChangeEvent;
 	import flashx.textLayout.factory.TextFlowTextLineFactory;
 	import flashx.textLayout.formats.ITextLayoutFormat;
@@ -23,7 +23,6 @@ package flashx.textLayout.container
 	
 	use namespace tlf_internal;
 	
-	[Event(name="resizeComplete", type="flashx.textLayout.events.AutosizableContainerControllerEvent")]
 	public class AutosizableContainerController extends ContainerController
 	{	
 		protected var _uid:String;
@@ -42,7 +41,7 @@ package flashx.textLayout.container
 		
 		protected static var UID:int;
 		
-		public function AutosizableContainerController( container:AutosizableControllerContainer, compositionWidth:Number=100, compositionHeight:Number=100 )
+		public function AutosizableContainerController( container:AutosizableDisplayContainer, compositionWidth:Number=100, compositionHeight:Number=100 )
 		{
 			super(container, compositionWidth, compositionHeight);
 			
@@ -220,7 +219,8 @@ package flashx.textLayout.container
 			var offset:Number = _actualHeight - _previousHeight;
 			if( offset != 0 )
 			{
-				container.dispatchEvent( new AutosizableContainerControllerEvent( AutosizableContainerControllerEvent.RESIZE_COMPLETE, this, offset ) );
+				// notify of change through container.
+				container.dispatchEvent( new AutosizableContainerEvent( AutosizableContainerEvent.RESIZE_COMPLETE, _actualHeight, _previousHeight ) );
 			}
 		}
 		

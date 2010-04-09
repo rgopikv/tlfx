@@ -2,18 +2,19 @@ package flashx.textLayout.container
 {
 	import flash.display.Sprite;
 	
+	[Event(name="resizeComplete", type="flashx.textLayout.events.AutosizableContainerEvent")]
 	/**
-	 * AutoSizableControllerContainer is the display Sprite used for a AutosizableContainerController. 
+	 * AutoSizableDisplayContainer is the display Sprite used for a AutosizableContainerController. 
 	 * @author toddanderson
 	 */
-	public class AutosizableControllerContainer extends Sprite implements ISizableContainer
+	public class AutosizableDisplayContainer extends Sprite implements ISizableContainer
 	{
 		protected var _controller:AutosizableContainerController;
 		
 		/**
 		 * Constructor.
 		 */
-		public function AutosizableControllerContainer() { super(); }
+		public function AutosizableDisplayContainer() { super(); }
 		
 		/**
 		 * Initializes container with a reference to controller. 
@@ -28,9 +29,17 @@ package flashx.textLayout.container
 		 * Returns reference to the container controller that manages this dispay. 
 		 * @return AutosizableContainerController
 		 */
-		public function get controller():AutosizableContainerController
+		public function get controller():ContainerController
 		{
 			return _controller;
+		}
+		/**
+		 * Sets reference to the container controller that manages this display. 
+		 * @param value ContainerController
+		 */
+		public function set controller( value:ContainerController ):void
+		{
+			_controller = value as AutosizableContainerController;
 		}
 		
 		/**
