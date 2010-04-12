@@ -37,14 +37,17 @@ package flashx.textLayout.operations
 	 */
 	public class InsertTextOperation extends FlowTextOperation
 	{
-		private var _deleteSelectionState:SelectionState;
-		private var delSelOp:DeleteTextOperation = null; 
-		/** @private - this should be private but too late for code changes on Labs */
-		public var _text:String;
+		// [TA] 04-12-2010 :: Change the following to protected to be used by extended class.
+		protected var _deleteSelectionState:SelectionState;
+		protected var delSelOp:FlowTextOperation = null;
+		protected var _characterFormat:ITextLayoutFormat;
+		// end [TA]
+		
 		private var adjustedForInsert:Boolean = false;
 		
-		private var _characterFormat:ITextLayoutFormat;
-			
+		/** @private - this should be private but too late for code changes on Labs */
+		public var _text:String;
+		
 		/** 
 		 * Creates an InsertTextOperation object.
 		 * 
@@ -67,7 +70,8 @@ package flashx.textLayout.operations
 			initialize(deleteSelectionState);
 		}
 		
-		private function initialize(deleteSelectionState:SelectionState):void
+		// [TA] 04-12-2010 :: Change method to protected to be used by extended class.
+		protected function initialize(deleteSelectionState:SelectionState):void
 		{	
 			if (deleteSelectionState == null)
 				deleteSelectionState = originalSelectionState;

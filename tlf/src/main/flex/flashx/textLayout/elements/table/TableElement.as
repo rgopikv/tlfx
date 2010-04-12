@@ -141,6 +141,16 @@ package flashx.textLayout.elements.table
 			return null;
 		}
 		
+//		override tlf_internal function canOwnFlowElement(elem:FlowElement):Boolean
+//		{
+//			return ( elem is TableRowElement );
+//		}
+//		
+//		override public function removeChild(child:FlowElement):FlowElement
+//		{
+//			return super.removeChild( child );
+//		}
+		
 		/**
 		 * Returns the held TetFlow instance. 
 		 * @return TextFlow

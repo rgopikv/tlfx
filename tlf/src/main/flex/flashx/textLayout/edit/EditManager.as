@@ -23,8 +23,8 @@ package flashx.textLayout.edit
 	
 	import flashx.textLayout.compose.IFlowComposer;
 	import flashx.textLayout.container.ContainerController;
-	import flashx.textLayout.debug.assert;
 	import flashx.textLayout.debug.Debugging;
+	import flashx.textLayout.debug.assert;
 	import flashx.textLayout.elements.Configuration;
 	import flashx.textLayout.elements.FlowElement;
 	import flashx.textLayout.elements.FlowLeafElement;
@@ -43,6 +43,7 @@ package flashx.textLayout.edit
 	import flashx.textLayout.operations.ClearFormatOperation;
 	import flashx.textLayout.operations.CompositeOperation;
 	import flashx.textLayout.operations.CutOperation;
+	import flashx.textLayout.operations.DeleteAndInsertTextOperation;
 	import flashx.textLayout.operations.DeleteTextOperation;
 	import flashx.textLayout.operations.FlowOperation;
 	import flashx.textLayout.operations.InsertInlineGraphicOperation;
@@ -1137,7 +1138,7 @@ package flashx.textLayout.edit
 				// rather than execute the insert immediately, create
 				// it and wait for the next frame, in order to batch
 				// keystrokes.
-				pendingInsert = new InsertTextOperation(operationState, text);
+				pendingInsert = getInsertOperation(operationState, text);
 				
 				var controller:ContainerController = textFlow.flowComposer.getControllerAt(0);
 				if (captureLevel == 0 && origOperationState == null && controller && controller.container)
@@ -1149,8 +1150,21 @@ package flashx.textLayout.edit
 					flushPendingOperations();
 			}
 		}
-				
-
+		
+		// [TA] 04-12-2010 :: Added factory method to get custom insert operation
+		/**
+		 * @private
+		 * 
+		 * Factory method to return related insert operation for inserting text into the flow. 
+		 * @param operationState SelectionState
+		 * @param text String
+		 * @return  InsertTextOperation
+		 */
+		protected function getInsertOperation( operationState:SelectionState, text:String, deleteSelectionState:SelectionState = null ):InsertTextOperation
+		{
+			return new InsertTextOperation( operationState, text, deleteSelectionState );
+		}
+		// end [TA]
 		
 		/** 
 		 * @copy IEditManager#overwriteText()
@@ -1168,7 +1182,8 @@ package flashx.textLayout.edit
 				return;
 			var selState:SelectionState = getSelectionState();
 			NavigationUtil.nextCharacter(selState,true);
-			doOperation(new InsertTextOperation(operationState, text, selState));
+			// [TA] 04-12-2010 :: Using factory method to get appropriate insert operation.
+			doOperation( getInsertOperation(operationState, text, selState) );
 		}
 
 		/** 
