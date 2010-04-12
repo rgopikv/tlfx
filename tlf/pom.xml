@@ -20,7 +20,7 @@
 
 
   <groupId>com.tlfx</groupId>
-  <artifactId>swc</artifactId>
+  <artifactId>text-layout-frameworkX</artifactId>
   <version>0.1-SNAPSHOT</version>
   <packaging>swc</packaging>
 
@@ -33,15 +33,24 @@
       <plugin>
         <groupId>org.sonatype.flexmojos</groupId>
         <artifactId>flexmojos-maven-plugin</artifactId>
+
         <dependencies>
-        <dependency>
-          <groupId>com.adobe.flex</groupId>
-          <artifactId>compiler</artifactId>
-          <version>4.0.0.8811</version>
-          <type>pom</type>
-        </dependency>
-      </dependencies>
-        <version>3.4.2</version>
+            <dependency>
+                <groupId>com.adobe.flex</groupId>
+                <artifactId>compiler</artifactId>
+                <version>4.0.0.14159</version>
+                <type>pom</type>
+            </dependency>
+            <dependency>
+                <groupId>com.adobe.flex.compiler</groupId>
+                <artifactId>asdoc</artifactId>
+                <version>4.0.0.14159</version>
+                <classifier>template</classifier>
+                <type>zip</type>
+            </dependency>
+        </dependencies>    
+
+        <version>3.6-SNAPSHOT</version>
         <extensions>true</extensions>
         <configuration>
           <configFile>src/resources/myapp-config.xml</configFile>
@@ -54,8 +63,14 @@
     <dependency>
       <groupId>com.adobe.flex.framework</groupId>
       <artifactId>flex-framework</artifactId>
-      <version>4.0.0.8811</version>
+      <version>4.0.0.14159</version>
       <type>pom</type>
+      <exclusions>
+        <exclusion>
+            <groupId>com.adobe.flex.framework</groupId>
+            <artifactId>text-layout</artifactId>
+        </exclusion>
+      </exclusions> 
     </dependency>
 
     <dependency>
