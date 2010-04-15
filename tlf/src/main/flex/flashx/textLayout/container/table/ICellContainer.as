@@ -6,7 +6,7 @@ package flashx.textLayout.container.table
 	
 	import flashx.textLayout.container.ContainerController;
 	import flashx.textLayout.container.ISizableContainer;
-	import flashx.textLayout.model.table.TableData;
+	import flashx.textLayout.elements.table.TableDataElement;
 
 	/**
 	 * ICellContainer is an interface representing a cell of a Table. 
@@ -23,29 +23,18 @@ package flashx.textLayout.container.table
 		 * Process container properties based on supplied data.
 		 */
 		function process( notify:Boolean = true ):void;
-		/**
-		 * Updates container properties based on elements.
-		 * @param elements Array Array of FlowElement
-		 * @param position int
-		 */
-		function update( elements:Array /* FlowElement[] */ ):void;
 		
 		/**
-		 * Appends elements to the current list of elements and runs an update refresh. 
-		 * @param elements Array
+		 * Forces a refresh on display.
 		 */
-		function appendAndUpdate( elements:Array /* FlowElement[] */ ):void;
+		function update():void;
 		
 		/**
 		 * Returns target display for the cell. 
 		 * @return Sprite
 		 */
 		function getDisplay():Sprite;
-		/**
-		 * Returns elemental content of cell model. 
-		 * @return Array
-		 */
-		function getContent():Array;
+		
 		/**
 		 * Returns unique id for the cell. 
 		 * @return String
@@ -56,7 +45,7 @@ package flashx.textLayout.container.table
 		 * Returns the model for the cell. 
 		 * @return TableData
 		 */
-		function getData():TableData;
+		function getData():TableDataElement;
 		
 		/**
 		 * Reference to the master display on which the display is added. 

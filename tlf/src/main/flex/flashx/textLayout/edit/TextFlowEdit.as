@@ -22,6 +22,9 @@ package flashx.textLayout.edit
 	import flashx.textLayout.elements.SubParagraphGroupElement;
 	import flashx.textLayout.elements.TCYElement;
 	import flashx.textLayout.elements.TextFlow;
+	import flashx.textLayout.elements.table.TableDataElement;
+	import flashx.textLayout.elements.table.TableElement;
+	import flashx.textLayout.elements.table.TableRowElement;
 	import flashx.textLayout.tlf_internal;
 
 	use namespace tlf_internal;
@@ -959,7 +962,8 @@ package flashx.textLayout.edit
 			var curEl:FlowElement;
 			
 			//walk through the elements
-			while (curPos < endPos)
+			// [TA] 04-14-2010 :: Added <= in order to remove empty elements as well.
+			while (curPos <= endPos)
 			{
 				var containerFBE:FlowGroupElement = theFlow.findAbsoluteFlowGroupElement(curPos);
 				
@@ -1064,6 +1068,37 @@ package flashx.textLayout.edit
 			
 			return true;
 		}
+		
+		// [TA] 04-14-2010 :: Added following methods to handle removal of table, row and data elements.
+		tlf_internal static function findAndRemoveTableElement( tableElement:TableElement ):void
+		{
+			var textFlow:TextFlow = tableElement.parent as TextFlow;
+			if( textFlow )
+			{
+				textFlow.removeChild( tableElement );
+			}
+		}
+		tlf_internal static function findAndRemoveTableDataElement( tableDataElement:TableDataElement ):void
+		{
+			var rowElement:TableRowElement = tableDataElement.parent as TableRowElement;
+			if( rowElement )
+			{
+				rowElement.removeChild( tableDataElement );
+				if( !rowElement.mxmlChildren || rowElement.mxmlChildren.length <= 0 )
+				{
+					TextFlowEdit.findAndRemoveTableRowElement( rowElement );
+				}
+			}
+		}
+		tlf_internal static function findAndRemoveTableRowElement( tableRowElement:TableRowElement ):void
+		{
+			var tableElement:TableElement = tableRowElement.parent as TableElement;
+			if( tableElement )
+			{
+				tableElement.removeChild( tableRowElement );
+			}
+		}
+		// [END TA]
 		
 		/**
 		 * @private

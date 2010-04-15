@@ -1,7 +1,7 @@
 package flashx.textLayout.converter
 {
-	import flashx.textLayout.model.table.TableData;
-	import flashx.textLayout.model.table.TableRow;
+	import flashx.textLayout.elements.table.TableDataElement;
+	import flashx.textLayout.elements.table.TableRowElement;
 	import flashx.textLayout.utils.FragmentAttributeUtil;
 
 	/**
@@ -29,15 +29,15 @@ package flashx.textLayout.converter
 		public function createFragment( value:* ):String
 		{
 			var fragment:XML = <tr />;
-			var tr:TableRow = value as TableRow;
+			var tr:TableRowElement = value as TableRowElement;
 			FragmentAttributeUtil.assignAttributes( fragment, tr.attributes.getStrippedAttributes() );
 			
-			var cells:Vector.<TableData> = tr.tableData;
+			var cells:Vector.<TableDataElement> = tr.children();
 			var i:int;
 			for( i = 0; i < cells.length; i++ )
 			{
-				if( cells[i] as TableData )
-					fragment.appendChild( XML( cellAssembler.createFragment( cells[i] as TableData ) ) );
+				if( cells[i] as TableDataElement )
+					fragment.appendChild( XML( cellAssembler.createFragment( cells[i] as TableDataElement ) ) );
 			}
 			return fragment.toXMLString();
 		}

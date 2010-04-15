@@ -1,7 +1,9 @@
 package flashx.textLayout.container.table
 {
 	import flash.display.BlendMode;
+	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
+	import flash.display.Loader;
 	import flash.display.Shape;
 	import flash.display.Sprite;
 	import flash.events.Event;
@@ -26,6 +28,8 @@ package flashx.textLayout.container.table
 	import flashx.textLayout.elements.ParagraphElement;
 	import flashx.textLayout.elements.SpanElement;
 	import flashx.textLayout.elements.TextFlow;
+	import flashx.textLayout.elements.table.TableDataElement;
+	import flashx.textLayout.elements.table.TableHeadingElement;
 	import flashx.textLayout.events.table.TableCellContainerEvent;
 	import flashx.textLayout.events.table.TableCellFocusEvent;
 	import flashx.textLayout.factory.TextFlowTextLineFactory;
@@ -33,8 +37,7 @@ package flashx.textLayout.container.table
 	import flashx.textLayout.model.attribute.IAttribute;
 	import flashx.textLayout.model.attribute.TableAttribute;
 	import flashx.textLayout.model.attribute.TableDataAttribute;
-	import flashx.textLayout.model.table.TableData;
-	import flashx.textLayout.model.table.TableHeading;
+	import flashx.textLayout.tlf_internal;
 	import flashx.textLayout.utils.FragmentAttributeUtil;
 	import flashx.textLayout.utils.StyleAttributeUtil;
 	import flashx.textLayout.utils.TextLayoutFormatUtils;
@@ -69,11 +72,10 @@ package flashx.textLayout.container.table
 		protected var _ascent:Number = 0;
 		protected var _descent:Number = 0;
 		
-		protected var _data:TableData;
+		protected var _data:TableDataElement;
 		protected var _htmlConverter:IHTMLImporter;
 		protected var _tableAttributes:IAttribute;
 		protected var _textFlow:TextFlow;
-		protected var _elementList:Array; /* FlowElement[] */
 		
 		protected var _lineBreakIdentifier:String = TableCellContainer.INTERNAL_LINE_BREAK_IDENTIFIER;
 		protected var _selected:Boolean;
@@ -94,7 +96,7 @@ package flashx.textLayout.container.table
 		 *  
 		 * @param data The HTML table data to be presented.
 		 */
-		public function TableCellContainer( data:TableData, tableAttributes:IAttribute, htmlImporter:IHTMLImporter )
+		public function TableCellContainer( data:TableDataElement, tableAttributes:IAttribute, htmlImporter:IHTMLImporter )
 		{
 			_data = data;
 			_tableAttributes = tableAttributes;
@@ -129,6 +131,8 @@ package flashx.textLayout.container.table
 			// Set Unique ID associated with this cell container.
 			_uid = TableCellContainer.UID_PREFIX + TableCellContainer.ID;
 			TableCellContainer.ID++;
+			
+			_data.uid = _uid;
 		}
 		
 		/**
@@ -183,30 +187,26 @@ package flashx.textLayout.container.table
 			}
 		}
 		
+		/**
+		 * @private
+		 * 
+		 * Returns the absolute start of content. 
+		 * @return int
+		 */
 		protected function getAbsoluteStart():int
 		{
-			if( _elementList == null || _elementList.length == 0 ) return 0;
-			
-			var element:FlowElement = _elementList[0];
-			return element.getAbsoluteStart();
-		}
-		
-		protected function getAbsoluteEnd():int
-		{
-			if( _elementList == null || _elementList.length == 0 ) return 0;
-			
-			var element:FlowElement = _elementList[_elementList.length - 1];
-			return element.getAbsoluteStart() + element.textLength - 1;
+			return _data.getAbsoluteStart();
 		}
 		
 		/**
-		 * @private 
+		 * @private
 		 * 
-		 * Clears element list.
+		 * Returns the absolute end of content. 
+		 * @return int
 		 */
-		protected function cleanElementList():void
+		protected function getAbsoluteEnd():int
 		{
-			_elementList = [];
+			return getAbsoluteStart() + _data.textLength - 1;
 		}
 		
 		/**
@@ -222,20 +222,6 @@ package flashx.textLayout.container.table
 			{
 				_textFlow.removeChildAt( 0 );
 			}
-		}
-		
-		/**
-		 * @private
-		 * 
-		 * Updates held TableData instance with new value based on supplied FlowElement list. 
-		 * @param elements Array An array of FlowElements.
-		 */
-		protected function updateData( elements:Array /* FlowElement[] */ ):void
-		{
-			var node:XML = ( _data is TableHeading ) ? <th /> : <td />;
-			var fragment:XML = XML( TableDataElementConverter.createFragmentFromElements( node, elements ) );
-			FragmentAttributeUtil.assignAttributes( fragment, _data.attributes );
-			_data.data = fragment;
 		}
 		
 		/**
@@ -295,14 +281,7 @@ package flashx.textLayout.container.table
 			// TODO: Apply format from Style of Table.
 			var config:IConfiguration = getDefaultConfiguration();
 			// Create textflow and import data as HTML.
-			
-			// TODO: For custom html importer.
-//			var composedFlow:TextFlow = _htmlConverter.importToFlow( _data.content );
-//			determineCellSize( composedFlow.mxmlChildren, toWidth, notify );
-			var composedFlow:TextFlow = TextConverter.importToFlow( _data.content, TextConverter.TEXT_LAYOUT_FORMAT );
-			var div:DivElement = composedFlow.getElementByID( TableData.CONTENT_PARENT_ID ) as DivElement;
-//			// Update cell size container bounds based on composed children.
-			determineCellSize( div.mxmlChildren, toWidth, notify );
+			determineCellSize( _data.mxmlChildren, toWidth, notify );
 		}
 		
 		/**
@@ -322,8 +301,6 @@ package flashx.textLayout.container.table
 			{
 				elements = resolvePossibleBreaks( elements );	
 			}
-			// Update table data element.
-			updateData( elements );
 			
 			var unifiedPadding:Number = getUnifiedPadding();
 			// If we are rerendering based on setting explicit values.
@@ -339,9 +316,9 @@ package flashx.textLayout.container.table
 			// Create TextFlow to be passed to factory.
 			var config:IConfiguration = ( _textFlow != null ) ? _textFlow.configuration : getDefaultConfiguration();
 			
-			cleanElementList();
 			cleanTextFlow();
 			var element:FlowElement;
+			var elementList:Array = []; // FlowElement[]
 			// Loop through elements and pop from Array and place on TextFlow instance.
 			while( elements.length > 0 )
 			{
@@ -350,7 +327,7 @@ package flashx.textLayout.container.table
 //				StyleAttributeUtil.applyUserStyles( element );
 				element.uid = _uid;
 				// Add to held list of elements.
-				_elementList.push( element );
+				elementList.push( element );
 				// Push to stack of TextFlow
 				_textFlow.addChild( element );
 			}
@@ -360,30 +337,26 @@ package flashx.textLayout.container.table
 			factory.compositionBounds = new Rectangle( 0, 0, fixedWidth, 1000000 );
 			factory.createTextLines( updateActualBounds, _textFlow );
 			
-			// Redfine height on updated values.
-			var predefinedHeight:Number = getDefinedHeight();
-			if( predefinedHeight != 0 )
+			var elementLength:int = elementList.length;
+			// Add back to element.
+			while( elementList.length > 0 )
 			{
-				explicitHeight = Math.max( predefinedHeight, _actualHeight + unifiedPadding );
-				_height = explicitHeight;
-			}
-			else
-			{
-				_height = _actualHeight + unifiedPadding;
+				_data.addChild( elementList.shift() as FlowElement );
 			}
 			
+			updateMeasuredBounds();
 			// Reposition inner cell.
 			positionTarget();
 			// Notify listening clients.
 			_previousHeight = tempHeight;
 			_proposedHeight = _actualHeight + getUnifiedPadding();
 			// If we want to notify and the elements weren;t reassmebled due to line breaks, notify.
-			if( notify && original.length == _elementList.length )
+			if( notify && original.length == elementLength )
 			{
 				notifyOfChange();
 			}
 			// Else elements were reassembled due to line breaks. Wait a frame.
-			else if( notify && original.length != _elementList.length )
+			else if( notify && original.length != elementLength )
 			{
 				addEventListener( Event.ENTER_FRAME, handleDelayedNotification, false, 0, true );
 			}
@@ -430,6 +403,37 @@ package flashx.textLayout.container.table
 //			border.graphics.clear();
 //			border.graphics.lineStyle( 1 );
 //			border.graphics.drawRect( targetDisplay.x, targetDisplay.y, _actualWidth, _actualHeight );
+		}
+		
+		/**
+		 * @private 
+		 * 
+		 * Updates the dimensions based on new values determined from factory completion.
+		 */
+		protected function updateMeasuredBounds():void
+		{
+			var unifiedPadding:Number = getUnifiedPadding();
+			// Redfine height on updated values.
+			var predefinedHeight:Number = getDefinedHeight();
+			if( predefinedHeight != 0 )
+			{
+				explicitHeight = Math.max( predefinedHeight, _actualHeight + unifiedPadding );
+				_height = explicitHeight;
+			}
+			else
+			{
+				_height = _actualHeight + unifiedPadding;
+			}
+			// Redefin width on updated values.
+			var predefinedWidth:Number = getDefinedWidth();
+			if( predefinedWidth != 0 )
+			{
+				_width = explicitWidth;
+			}
+			else
+			{
+				_width = _actualWidth + unifiedPadding;
+			}
 		}
 		
 		/**
@@ -539,6 +543,7 @@ package flashx.textLayout.container.table
 		 */
 		public function process( notify:Boolean = true ):void
 		{
+			_actualWidth = 0;
 			_actualHeight = 0;
 			
 			// Compose cell based on determined width.
@@ -557,23 +562,12 @@ package flashx.textLayout.container.table
 		}
 		
 		/**
-		 * Updates the rendered content display based on a deepcopy of the supplied paragraph element. 
-		 * @param elements Array An Array of FlowElements
+		 * Updates held TableData instance with new value based on supplied FlowElement list. 
+		 * @param elements Array An array of FlowElements.
 		 */
-		public function update( elements:Array /* FlowElement */ ):void
+		public function update():void
 		{
-			// Update content size using factory.
-			determineCellSize( elements, getTargetWidth() - getUnifiedPadding() );
-		}
-		
-		/**
-		 * Appends elements to the list and runs a refresh operation. 
-		 * @param elements Array An Array of FlowElements
-		 */
-		public function appendAndUpdate( elements:Array /* FlowElement */ ):void
-		{
-			_elementList = _elementList.concat( elements );
-//			update( _elementList );
+			composeCell( getTargetWidth() - getUnifiedPadding() );
 		}
 		
 		/**
@@ -630,15 +624,6 @@ package flashx.textLayout.container.table
 		}
 		
 		/**
-		 * Retruns derived list of elements associated with TableData. 
-		 * @return Array Array of FlowElement
-		 */
-		public function getContent():Array /* FlowElement[] */
-		{
-			return _elementList;//_textFlow.mxmlChildren;
-		}
-		
-		/**
 		 * Returns the unique id of the container.
 		 * @return String
 		 */
@@ -651,7 +636,7 @@ package flashx.textLayout.container.table
 		 * Returns the target model for this cell. 
 		 * @return TableData
 		 */
-		public function getData():TableData
+		public function getData():TableDataElement
 		{
 			return _data;
 		}

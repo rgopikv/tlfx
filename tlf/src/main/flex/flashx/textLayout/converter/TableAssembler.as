@@ -1,5 +1,7 @@
 package flashx.textLayout.converter
 {
+	import flashx.textLayout.elements.table.TableElement;
+	import flashx.textLayout.elements.table.TableRowElement;
 	import flashx.textLayout.model.table.Table;
 	import flashx.textLayout.model.table.TableRow;
 	import flashx.textLayout.utils.FragmentAttributeUtil;
@@ -30,9 +32,9 @@ package flashx.textLayout.converter
 		 * @param vector Vector.<TableRow>
 		 * @return Boolean
 		 */
-		protected function itemIsHead( item:*, index:int, vector:Vector.<TableRow> ):Boolean
+		protected function itemIsHead( item:*, index:int, vector:Vector.<TableRowElement> ):Boolean
 		{
-			return ( item as TableRow ).isHeader;
+			return ( item as TableRowElement ).isHeader;
 		}
 		
 		/**
@@ -44,9 +46,9 @@ package flashx.textLayout.converter
 		 * @param vector Vector.<TableRow>
 		 * @return Boolean
 		 */
-		protected function itemIsBody( item:*, index:int, vector:Vector.<TableRow> ):Boolean
+		protected function itemIsBody( item:*, index:int, vector:Vector.<TableRowElement> ):Boolean
 		{
-			return ( item as TableRow ).isBody;
+			return ( item as TableRowElement ).isBody;
 		}
 		
 		/**
@@ -58,9 +60,9 @@ package flashx.textLayout.converter
 		 * @param vector Vector.<TableRow>
 		 * @return Boolean
 		 */
-		protected function itemIsFoot( item:*, index:int, vector:Vector.<TableRow> ):Boolean
+		protected function itemIsFoot( item:*, index:int, vector:Vector.<TableRowElement> ):Boolean
 		{
-			return ( item as TableRow ).isFooter;
+			return ( item as TableRowElement ).isFooter;
 		}
 		
 		/**
@@ -70,7 +72,7 @@ package flashx.textLayout.converter
 		 * @param row TableRow
 		 * @return Boolean
 		 */
-		protected function isBasicRow( row:TableRow ):Boolean
+		protected function isBasicRow( row:TableRowElement ):Boolean
 		{
 			return !row.isBody && !row.isFooter && !row.isHeader;
 		}
@@ -84,23 +86,24 @@ package flashx.textLayout.converter
 		public function createFragment( value:* ):String
 		{
 			var fragment:XML = <table />;
-			var table:Table = value as Table;
+			var tableElement:TableElement = value as TableElement;
+			var table:Table = tableElement.getTableModel();
 			FragmentAttributeUtil.assignAttributes( fragment, table.attributes.getStrippedAttributes() );
 			
-			var tableRows:Vector.<TableRow> = table.rows;
-			var assembledRows:Vector.<TableRow> = new Vector.<TableRow>();
+			var tableRows:Vector.<TableRowElement> = tableElement.children();
+			var assembledRows:Vector.<TableRowElement> = new Vector.<TableRowElement>();
 			// For optional table construction.
 			// Turn optional table into standard tr/td
 			assembledRows = assembledRows.concat( tableRows.filter( itemIsHead, tableRows ) );
 			assembledRows = assembledRows.concat( tableRows.filter( itemIsBody, tableRows ) );
 			assembledRows = assembledRows.concat( tableRows.filter( itemIsFoot, tableRows ) );
-			var rowList:Vector.<TableRow> = new Vector.<TableRow>();
+			var rowList:Vector.<TableRowElement> = new Vector.<TableRowElement>();
 			// Run through and add basic rows.
 			var i:int;
-			var row:TableRow;
+			var row:TableRowElement;
 			for( i = 0; i < tableRows.length; i++ )
 			{
-				row = tableRows[i] as TableRow;
+				row = tableRows[i] as TableRowElement;
 				if( isBasicRow( row ) ) rowList.push( row );
 			}
 			assembledRows = assembledRows.concat( rowList );
@@ -108,7 +111,7 @@ package flashx.textLayout.converter
 			// Append each insertion to the fragment.
 			for( i = 0; i < assembledRows.length; i++ )
 			{
-				fragment.appendChild( XML( rowAssembler.createFragment( assembledRows[i] as TableRow ) ) );
+				fragment.appendChild( XML( rowAssembler.createFragment( assembledRows[i] as TableRowElement ) ) );
 			}
 			return fragment.toXMLString();
 		}

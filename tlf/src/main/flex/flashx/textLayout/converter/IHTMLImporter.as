@@ -1,5 +1,6 @@
 package flashx.textLayout.converter
 {
+	import flashx.textLayout.elements.FlowElement;
 	import flashx.textLayout.elements.TextFlow;
 
 	/**
@@ -14,5 +15,12 @@ package flashx.textLayout.converter
 		 * @return TextFlow
 		 */
 		function importToFlow( source:String ):TextFlow;
+		
+		/**
+		 * Creates a FlowElement based on fragment. 
+		 * @param fragment String
+		 * @return FlowElement
+		 */
+		function parseFragment( fragment:String ):FlowElement;
 	}
 }

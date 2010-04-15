@@ -75,29 +75,27 @@ package flashx.textLayout.converter
 				cleanXML = XML( fragment );
 				
 				// run through <img /> tags and drop into queue.
-				var imageList:XMLList = cleanXML..img;
-				var imgFragment:XML;
-				for( var i:int = 0; i < imageList.length(); i++ )
-				{
-					imgFragment = imageList[i] as XML;
-					// grab and update correct property on image that TLF recognizes.
-					// TLF recognizes 'source' not 'src'.
-					var imgSource:String = imgFragment.@src;
-					if ( imgSource.length > 0 )
-					{
-						delete imgFragment.@src;
-						imgFragment.@source = imageProxy + imgSource;
-					}
-					// only send it to queue if dimensions aren't set.
-					if( !FragmentAttributeUtil.exists( imgFragment, "width" ) || !FragmentAttributeUtil.exists( imgFragment, "height" ) )
-					{
-						queue.addImage( new PendingImageFragment( imgFragment ) );
-					}
-				}
-				// Store original length for notification.
-				originalTotal = queue.length();
-				// Start the queue.
-				queue.load();
+//				var imageList:XMLList = cleanXML..img;
+//				var imgFragment:XML;
+//				for( var i:int = 0; i < imageList.length(); i++ )
+//				{
+//					imgFragment = imageList[i] as XML;
+//					// grab and update correct property on image that TLF recognizes.
+//					// TLF recognizes 'source' not 'src'.
+//					var imgSource:String = imgFragment.@src;
+//					if ( imgSource.length > 0 )
+//					{
+//						delete imgFragment.@src;
+//						imgFragment.@source = imageProxy + imgSource;
+//					}
+//					// only send it to queue if dimensions aren't set.
+//					queue.addImage( new PendingImageFragment( imgFragment ) );
+//				}
+//				// Store original length for notification.
+//				originalTotal = queue.length();
+//				// Start the queue.
+//				queue.load();
+				handlePendingQueueComplete( null );
 			}
 			catch( e:Error )
 			{

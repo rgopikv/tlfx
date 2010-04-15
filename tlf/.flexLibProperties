@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <flexLibProperties includeAllClasses="false" version="3">
   <includeClasses>
     <classEntry path="flash.text.ime.CompositionAttributeRange"/>
@@ -125,7 +125,10 @@
     <classEntry path="flashx.textLayout.elements.TextFlow"/>
     <classEntry path="flashx.textLayout.elements.TextRange"/>
     <classEntry path="flashx.textLayout.elements.table.ITableElementManager"/>
+    <classEntry path="flashx.textLayout.elements.table.TableDataElement"/>
     <classEntry path="flashx.textLayout.elements.table.TableElement"/>
+    <classEntry path="flashx.textLayout.elements.table.TableHeadingElement"/>
+    <classEntry path="flashx.textLayout.elements.table.TableRowElement"/>
     <classEntry path="flashx.textLayout.events.AutosizableContainerEvent"/>
     <classEntry path="flashx.textLayout.events.CompositionCompleteEvent"/>
     <classEntry path="flashx.textLayout.events.DamageEvent"/>
@@ -134,6 +137,7 @@
     <classEntry path="flashx.textLayout.events.ModelChange"/>
     <classEntry path="flashx.textLayout.events.SelectionEvent"/>
     <classEntry path="flashx.textLayout.events.StatusChangeEvent"/>
+    <classEntry path="flashx.textLayout.events.TableElementStatusEvent"/>
     <classEntry path="flashx.textLayout.events.TagParserCleanCompleteEvent"/>
     <classEntry path="flashx.textLayout.events.TagParserCleanProgressEvent"/>
     <classEntry path="flashx.textLayout.events.TextLayoutEvent"/>
@@ -180,8 +184,6 @@
     <classEntry path="flashx.textLayout.model.table.Table"/>
     <classEntry path="flashx.textLayout.model.table.TableBaseElement"/>
     <classEntry path="flashx.textLayout.model.table.TableColumn"/>
-    <classEntry path="flashx.textLayout.model.table.TableData"/>
-    <classEntry path="flashx.textLayout.model.table.TableHeading"/>
     <classEntry path="flashx.textLayout.model.table.TableRow"/>
     <classEntry path="flashx.textLayout.operations.ApplyElementIDOperation"/>
     <classEntry path="flashx.textLayout.operations.ApplyElementStyleNameOperation"/>

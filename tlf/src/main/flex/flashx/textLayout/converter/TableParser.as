@@ -3,6 +3,12 @@ package flashx.textLayout.converter
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
 	
+	import flashx.textLayout.elements.FlowElement;
+	import flashx.textLayout.elements.TextFlow;
+	import flashx.textLayout.elements.table.TableDataElement;
+	import flashx.textLayout.elements.table.TableElement;
+	import flashx.textLayout.elements.table.TableHeadingElement;
+	import flashx.textLayout.elements.table.TableRowElement;
 	import flashx.textLayout.events.TagParserCleanCompleteEvent;
 	import flashx.textLayout.events.TagParserCleanProgressEvent;
 	import flashx.textLayout.format.IStyle;
@@ -10,8 +16,6 @@ package flashx.textLayout.converter
 	import flashx.textLayout.model.attribute.TableDataAttribute;
 	import flashx.textLayout.model.table.Table;
 	import flashx.textLayout.model.table.TableColumn;
-	import flashx.textLayout.model.table.TableData;
-	import flashx.textLayout.model.table.TableHeading;
 	import flashx.textLayout.model.table.TableRow;
 
 	[Event(name="cleanComplete", type="flashx.textLayout.events.TagParserCleanCompleteEvent")]
@@ -21,6 +25,7 @@ package flashx.textLayout.converter
 	 */
 	public class TableParser extends EventDispatcher implements ITagParser
 	{
+		protected var _htmlImporter:IHTMLImporter;
 		protected var _cleaner:ITagCleaner;
 		public static const TAG_TD:String = "td";
 		public static const TAG_TH:String = "th";
@@ -28,8 +33,9 @@ package flashx.textLayout.converter
 		/**
 		 * Constructor.
 		 */
-		public function TableParser( imageProxy:String = "" ) 
+		public function TableParser( importer:IHTMLImporter, imageProxy:String = "" ) 
 		{
+			_htmlImporter = importer;
 			_cleaner = new TableCleaner( imageProxy );
 			_cleaner.addEventListener( TagParserCleanCompleteEvent.CLEAN_COMPLETE, handleCleanComplete, false, 0, true );
 			_cleaner.addEventListener( TagParserCleanProgressEvent.CLEAN_PROGRESS, handleCleanProgress, false, 0, true );
@@ -74,14 +80,40 @@ package flashx.textLayout.converter
 		/**
 		 * @private
 		 * 
+		 * Parses list of xml content into a TextFlow instance using the IHTMLImporter implementation. 
+		 * @param list XMLList
+		 * @return TextFlow
+		 */
+		protected function parseToFlow( list:XMLList ):TextFlow
+		{
+			var source:XML = <html />;
+			var body:XML = <body />;
+			var i:int;
+			for( i = 0; i < list.length(); i++ )
+			{
+				body.appendChild( list[i] as XML );
+			}
+			source.appendChild( body );
+			return _htmlImporter.importToFlow( source.toXMLString() );
+		}
+		
+		/**
+		 * @private
+		 * 
 		 * Parses each Table Data in a given Table Row. 
 		 * @param td XML The markup representing a table cell.
 		 * @param parentingAttributes Object The parenting attibutes of the Row.
-		 * @return TableData
+		 * @return TableDataElement
 		 */
-		protected function parseTableData( td:XML, parentingAttributes:Object ):TableData
+		protected function parseTableData( td:XML, parentingAttributes:Object ):TableDataElement
 		{
-			var cell:TableData = new TableData( td );
+			var cell:TableDataElement = new TableDataElement();
+			var content:Array = parseToFlow( td.children() ).mxmlChildren;
+			var i:int;
+			for( i = 0; i < content.length; i++ )
+			{
+				cell.addChild( content[i] as FlowElement );
+			}
 			cell.attributes.modifyAttributes( parentingAttributes );
 			cell.attributes.modifyAttributes( parseAttributes( td ) );
 			return cell;
@@ -93,11 +125,17 @@ package flashx.textLayout.converter
 		 * Parses and returns a TableHeading. 
 		 * @param th XML The markup represeting a table heading.
 		 * @param parentingAttributes Object The parenting attibutes of the Row.
-		 * @return TableData
+		 * @return TableDataElement
 		 */
-		protected function parseTableHeading( th:XML, parentingAttributes:Object ):TableData
+		protected function parseTableHeading( th:XML, parentingAttributes:Object ):TableDataElement
 		{
-			var cell:TableData = new TableHeading( th );
+			var cell:TableDataElement = new TableHeadingElement();
+			var content:Array = parseToFlow( th.children() ).mxmlChildren;
+			var i:int;
+			for( i = 0; i < content.length; i++ )
+			{
+				cell.addChild( content[i] as FlowElement );
+			}
 			cell.attributes.modifyAttributes( parentingAttributes );
 			cell.attributes.modifyAttributes( parseAttributes( th ) );
 			return cell;
@@ -108,17 +146,17 @@ package flashx.textLayout.converter
 		 * 
 		 * Parses each row in the Table. 
 		 * @param tr XML XML fragment related to a single Table Row.
-		 * @return Array An array of Table Data information.
+		 * @return TableRowElement
 		 */
-		protected function parseTableRow( tr:XML ):TableRow
+		protected function parseTableRow( tr:XML ):TableRowElement
 		{
+			var row:TableRowElement = new TableRowElement();
 			var attributes:Object = parseAttributes( tr );
-			var tdArray:Vector.<TableData> = new Vector.<TableData>();
 			var i:int = 0;
 		
 			var children:XMLList = tr.children();
 			var child:XML;
-			var tableData:TableData;
+			var tableData:TableDataElement;
 			for( i = 0; i < children.length(); i++ )
 			{
 				child = children[i] as XML;
@@ -131,11 +169,9 @@ package flashx.textLayout.converter
 					tableData = parseTableHeading( child, attributes );
 				}	
 					
-				if( tableData ) tdArray.push( tableData );
+				if( tableData ) row.addChild( tableData );
 				tableData = null;
 			}
-			
-			var row:TableRow = new TableRow( tdArray );
 			row.attributes.modifyAttributes( attributes );
 			return row;
 		}
@@ -145,11 +181,11 @@ package flashx.textLayout.converter
 		 * 
 		 * Parses the table (whether created generically or using thead, tfoot and tbody) into a constructed top-down sequence of rows. 
 		 * @param xml XML
-		 * @return Vector.<TableRow>
+		 * @return Vector.<TableRowElement>
 		 */
-		protected function parseTableIntoSequenceRows( xml:XML ):Vector.<TableRow>
+		protected function parseTableIntoSequenceRows( xml:XML ):Vector.<TableRowElement>
 		{
-			var rows:Vector.<TableRow> = new Vector.<TableRow>();
+			var rows:Vector.<TableRowElement> = new Vector.<TableRowElement>();
 			
 			// straight up list of normal constructed table.
 			var trList:XMLList = xml.tr;
@@ -191,13 +227,13 @@ package flashx.textLayout.converter
 		 * 
 		 * Parses a list of <thead /> tags into a list of TableRow. 
 		 * @param head XMLList A List of <thead />
-		 * @return Vector.<TableRow>
+		 * @return Vector.<TableRowElement>
 		 */
-		protected function parseHead( head:XMLList ):Vector.<TableRow>
+		protected function parseHead( head:XMLList ):Vector.<TableRowElement>
 		{
-			var list:Vector.<TableRow> = new Vector.<TableRow>();
+			var list:Vector.<TableRowElement> = new Vector.<TableRowElement>();
 			var th:XMLList;
-			var row:TableRow;
+			var row:TableRowElement;
 			var i:int;
 			for( i = 0; i < head.length(); i++ )
 			{
@@ -214,13 +250,13 @@ package flashx.textLayout.converter
 		 * 
 		 * Parses a list of <tbody /> tags into a list of TableRow. 
 		 * @param body XMLList A List of <tbody />
-		 * @return Vector.<TableRow>
+		 * @return Vector.<TableRowElement>
 		 */
-		protected function parseBody( body:XMLList ):Vector.<TableRow>
+		protected function parseBody( body:XMLList ):Vector.<TableRowElement>
 		{
-			var list:Vector.<TableRow> = new Vector.<TableRow>();
+			var list:Vector.<TableRowElement> = new Vector.<TableRowElement>();
 			var tr:XMLList;
-			var row:TableRow;
+			var row:TableRowElement;
 			var i:int;
 			var j:int;
 			for( i = 0; i < body.length(); i++ )
@@ -241,13 +277,13 @@ package flashx.textLayout.converter
 		 * 
 		 * Parses a list of <tfoot /> tags into TableRow list. 
 		 * @param foot XMLList A list of <tfoot />
-		 * @return Vector.<TableRow>
+		 * @return Vector.<TableRowElement>
 		 */
-		protected function parseFoot( foot:XMLList ):Vector.<TableRow>
+		protected function parseFoot( foot:XMLList ):Vector.<TableRowElement>
 		{
-			var list:Vector.<TableRow> = new Vector.<TableRow>();
+			var list:Vector.<TableRowElement> = new Vector.<TableRowElement>();
 			var tr:XMLList;
-			var row:TableRow;
+			var row:TableRowElement;
 			var i:int;
 			var j:int;
 			for( i = 0; i < foot.length(); i++ )
@@ -316,7 +352,7 @@ package flashx.textLayout.converter
 		 * Parses HTML <table> element. 
 		 * @param fragment String
 		 */
-		public function parse( fragment:String ):*
+		public function parse( fragment:String, tableElement:TableElement ):*
 		{
 			var table:Table;
 			try
@@ -326,12 +362,16 @@ package flashx.textLayout.converter
 				XML.prettyPrinting = false;
 				XML.prettyIndent = 0;
 				var xml:XML = XML( fragment );
-				
 				// parse into flat row array.
-				var rows:Vector.<TableRow> = parseTableIntoSequenceRows( xml );
+				var rows:Vector.<TableRowElement> = parseTableIntoSequenceRows( xml );
+				var i:int;
+				for( i = 0; i < rows.length; i++ )
+				{
+					tableElement.addChild( rows[i] );
+				}
 				
 				// instantiate a new Table instance.
-				table = new Table( rows, getStyle( xml ) );
+				table = new Table( getStyle( xml ) );
 				table.attributes.modifyAttributes( parseAttributes( xml ) );
 			}
 			catch( e:Error )

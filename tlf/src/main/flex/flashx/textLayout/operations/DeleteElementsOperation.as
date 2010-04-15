@@ -17,10 +17,15 @@ package flashx.textLayout.operations
 	import flashx.textLayout.elements.FlowElement;
 	import flashx.textLayout.elements.FlowGroupElement;
 	import flashx.textLayout.elements.FlowLeafElement;
+	import flashx.textLayout.elements.ParagraphElement;
+	import flashx.textLayout.elements.SpanElement;
 	import flashx.textLayout.elements.TextFlow;
 	import flashx.textLayout.elements.table.ITableElementManager;
+	import flashx.textLayout.elements.table.TableDataElement;
 	import flashx.textLayout.elements.table.TableElement;
+	import flashx.textLayout.elements.table.TableRowElement;
 	import flashx.textLayout.model.table.Table;
+	import flashx.textLayout.model.table.TableRow;
 	import flashx.textLayout.tlf_internal;
 	
 	/**
@@ -35,7 +40,10 @@ package flashx.textLayout.operations
 		protected var _deleteSelectionOperation:DeleteTextOperation;
 		protected var _containerMarks:Vector.<ContainerMark>;
 		protected var _controllerMarks:Vector.<ContainerControllerMark>;
-		protected var _tablesToDelete:Vector.<TableElement>;
+		
+		protected var _tableDataElementsToDelete:Vector.<TableDataElement>;
+		protected var _tableElementsToDelete:Vector.<TableElement>;
+		protected var _tableElementsToUpdate:Vector.<TableElement>;
 		
 		protected var _operationHasDeletedCells:Boolean;
 		
@@ -51,7 +59,10 @@ package flashx.textLayout.operations
 			_displayContext = displayContext;
 			_containerMarks = new Vector.<ContainerMark>();
 			_controllerMarks = new Vector.<ContainerControllerMark>();
-			_tablesToDelete = new Vector.<TableElement>();
+			
+			_tableDataElementsToDelete = new Vector.<TableDataElement>();
+			_tableElementsToDelete = new Vector.<TableElement>();
+			_tableElementsToUpdate = new Vector.<TableElement>();
 		}
 		
 		/**
@@ -111,7 +122,13 @@ package flashx.textLayout.operations
 				{
 					deleteElements( startParentIndex, endParentIndex );
 				}
-				// Else run regular operation.
+				// Else run regular operation within TableElement.
+				else if( ( (startParent is TableElement) && (endParent is TableElement) ) && startParent == endParent )
+				{
+					emptyCells( startParent as TableElement, absoluteStart, absoluteEnd );
+					updateSelectionState();
+				}
+				// Else handle as would normally.
 				else
 				{
 					deleteSelectedText();
@@ -139,139 +156,228 @@ package flashx.textLayout.operations
 			}
 		}
 		
+		/**
+		 * @private 
+		 * 
+		 * Removes special elements related to tables from the flow. This is needed due to row, data and table elements being ContainerFormattedElement extensions.
+		 * As such, TextFlowEdit only removes children from these elements in deleteRange() rather than recognizing that the whole element should be removed.
+		 * Cycle through any marked elements and remove using TextFlowEdit:findAndRemoveFlowGroupElement.
+		 */
+		protected function deleteGroupElements():void
+		{
+			use namespace tlf_internal;
+			
+			var i:int;
+			var tableElement:TableElement;
+			var tableRowElement:TableRowElement;
+			var tableDataElement:TableDataElement;
+			
+			for( i = 0; i < _tableDataElementsToDelete.length; i++ )
+			{
+				tableDataElement = _tableDataElementsToDelete[i];
+				TextFlowEdit.findAndRemoveTableDataElement( tableDataElement );
+			}
+			
+			// IF whole tables are marked fro removal, kill them.
+			for( i = 0; i < _tableElementsToDelete.length; i++ )
+			{
+				tableElement =  _tableElementsToDelete[i];
+				// If table element is still held on text flow model, remove it.
+				if( textFlow.mxmlChildren.indexOf( tableElement ) > -1 )
+				{
+					
+					TextFlowEdit.findAndRemoveTableElement( tableElement );	
+				}
+					// Else pop it from held list of deleted tables.
+				else
+				{
+					_tableElementsToDelete.shift();
+					--i;
+				}
+			}
+			textFlow.flowComposer.updateAllControllers();
+		}
+		
+		/**
+		 * @private 
+		 * 
+		 * Runs a refresh on listed table elements marked for damage.
+		 */
+		protected function updateTableElements():void
+		{
+			var i:int;
+			for( i = 0; i < _tableElementsToUpdate.length; i++ )
+			{
+				_tableElementsToUpdate[i].refesh();
+			}
+		}
+		
+		/**
+		 * @private 
+		 * 
+		 * updates the selection state of flow.
+		 */
+		protected function updateSelectionState():void
+		{
+			if (textFlow.interactionManager)
+			{
+				textFlow.interactionManager.notifyInsertOrDelete(absoluteStart, -(absoluteEnd - absoluteStart));
+			}
+			
+			if( textFlow.interactionManager )
+			{
+				// set pointFormat from leafFormat
+				var state:SelectionState = textFlow.interactionManager.getSelectionState();
+				state.activePosition = absoluteStart;
+				state.anchorPosition = state.activePosition;
+				textFlow.interactionManager.setSelectionState( state );
+			}
+		}
+		
+		/**
+		 * Clears out and resolves to empty data for TableDataElements within the range. 
+		 * @param tableElement TableElement
+		 * @param startIndex int
+		 * @param endIndex int
+		 */
+		protected function emptyCells( tableElement:TableElement, startIndex:int, endIndex:int ):void
+		{
+			var anchor:int = ( startIndex > endIndex ) ? endIndex : startIndex;
+			var active:int = ( startIndex > endIndex ) ? startIndex : endIndex;
+			var anchorIndex:int = textFlow.flowComposer.findControllerIndexAtPosition( anchor );
+			var activeIndex:int = textFlow.flowComposer.findControllerIndexAtPosition( active );
+			
+			var i:int;
+			var cellController:ContainerController;
+			var cellDisplay:TableCellDisplay;
+			var cellContainer:TableCellContainer;
+			var tableData:TableDataElement;
+			for( i = anchorIndex; i < activeIndex + 1; i++ )
+			{
+				cellController = textFlow.flowComposer.getControllerAt( i );
+				cellDisplay = cellController.container as TableCellDisplay;
+				cellContainer = cellDisplay.getDisplayContainer() as TableCellContainer;
+				tableData = cellContainer.getData() as TableDataElement;
+				tableData.replaceChildren( 0, tableData.mxmlChildren.length, TableDataElement.getDefaultContent() );
+			}
+		}
+		
+		/**
+		 * @private
+		 * 
+		 * Smartle determines the encompassing elements to work on, uch as tables and sandhiched auto containers. 
+		 * @param startParentIndex int
+		 * @param endParentIndex int
+		 */
 		protected function deleteElements( startParentIndex:int, endParentIndex:int ):void
 		{
-			try
+			// Flip flag to recognize that cells are deleted.
+			_operationHasDeletedCells = true;
+			
+			// Group affected elements together as requiring operation.
+			var i:int;
+			var elemIndex:int;
+			var elements:Vector.<FlowElementMark> = new Vector.<FlowElementMark>();
+			var tableIndexes:Array = [];
+			var element:FlowElement;
+			for( i = startParentIndex; i < endParentIndex + 1; i++ )
 			{
-				// Flip flag to recognize that cells are deleted.
-				_operationHasDeletedCells = true;
-				
-				// Group affected elements together as requiring operation.
-				var i:int;
-				var elemIndex:int;
-				var elements:Vector.<FlowElementMark> = new Vector.<FlowElementMark>();
-				var tableIndexes:Array = [];
-				var element:FlowElement;
-				for( i = startParentIndex; i < endParentIndex + 1; i++ )
+				element = textFlow.getChildAt( i );
+				// Found index of table.
+				if( element is TableElement )
 				{
-					element = textFlow.getChildAt( i );
-					// Found index of table.
-					if( element is TableElement )
+					tableIndexes.push( elemIndex );
+				}
+				// If we are finding TableElements, start pushing any affected non table elements 
+				// (those contained in an autosize container) into the list of affection.
+				if( tableIndexes.length > 0 )
+				{
+					elements.push( new FlowElementMark( element, element.getAbsoluteStart() ) );
+					elemIndex++;
+				}
+			}
+			
+			var controllerIndex:int;
+			var controller:ContainerController;
+			var container:ISizableContainer;
+			var affectedElement:FlowElementMark;
+			var tableElement:TableElement;
+			var anchor:int;
+			var active:int;
+			var anchorIndex:int;
+			var activeIndex:int;
+			// If we are only operating on a single table, we will not have to manage any sandwiched autosize container controllers.
+			if( tableIndexes.length == 1 )
+			{
+				// It is determined that it would be the first in the list based on the aggregate of elements from previous loop.
+				affectedElement = elements.shift();
+				tableElement = affectedElement.element as TableElement;
+				anchor = Math.max( absoluteStart, affectedElement.position );
+				active = Math.min( absoluteEnd, affectedElement.position + tableElement.textLength );
+				anchorIndex = textFlow.flowComposer.findControllerIndexAtPosition( anchor );
+				activeIndex = textFlow.flowComposer.findControllerIndexAtPosition( active );
+				activeIndex = Math.min( activeIndex, tableElement.elementalIndex + tableElement.getTableModel().cellAmount - 1 );
+				controller = textFlow.flowComposer.getControllerAt( anchorIndex );
+				operateOnTable( controller as TableCellContainerController, anchorIndex, activeIndex );
+			}
+			else if( tableIndexes.length > 1 )
+			{
+				// We need to chop out any incompassing tables and autosize container controllers.
+				var affectedElements:Vector.<FlowElementMark> = elements.slice( 0, tableIndexes.pop() + 1 );
+				var markedAutosizableController:AutosizableContainerController;
+				for( i = 0; i < affectedElements.length; i++ )
+				{
+					affectedElement = affectedElements[i];
+					// Find the associated controller and container for the autosizable display.
+					controllerIndex = textFlow.flowComposer.findControllerIndexAtPosition( affectedElement.position );
+					controller = textFlow.flowComposer.getControllerAt( controllerIndex );
+					// If we have an autosizableContainerController that it is sandwhich between two tables.
+					// We need to stip it out any any display objects related to it.
+					if( controller is AutosizableContainerController )
 					{
-						tableIndexes.push( elemIndex );
+						// If we haven't already marked a controller for removal...
+						if( controller != markedAutosizableController )
+							markAutosizableController( controller as AutosizableContainerController );
+						// Update reference.
+						markedAutosizableController = controller as AutosizableContainerController;
 					}
-					// If we are finding TableElements, start pushing any affected non table elements 
-					// (those contained in an autosize container) into the list of affection.
-					if( tableIndexes.length > 0 )
+					else if( controller is TableCellContainerController )
 					{
-						elements.push( new FlowElementMark( element, element.getAbsoluteStart() ) );
-						elemIndex++;
-					}
-				}
-				
-				var controllerIndex:int;
-				var controller:ContainerController;
-				var container:ISizableContainer;
-				var affectedElement:FlowElementMark;
-				var tableElement:TableElement;
-				var anchor:int;
-				var active:int;
-				var anchorIndex:int;
-				var activeIndex:int;
-				// If we are only operating on a single table, we will not have to manage any sandwiched autosize container controllers.
-				if( tableIndexes.length == 1 )
-				{
-					// It is determined that it would be the first in the list based on the aggregate of elements from previous loop.
-					affectedElement = elements.shift();
-					tableElement = affectedElement.element as TableElement;
-					anchor = Math.max( absoluteStart, affectedElement.position );
-					active = Math.min( absoluteEnd, affectedElement.position + tableElement.textLength );
-					anchorIndex = textFlow.flowComposer.findControllerIndexAtPosition( anchor );
-					activeIndex = textFlow.flowComposer.findControllerIndexAtPosition( active );
-					activeIndex = Math.min( activeIndex, tableElement.elementalIndex + tableElement.getTableModel().cellAmount - 1 );
-					controller = textFlow.flowComposer.getControllerAt( anchorIndex );
-					operateOnTable( controller as TableCellContainerController, anchorIndex, activeIndex );
-				}
-				else if( tableIndexes.length > 1 )
-				{
-					// We need to chop out any incompassing tables and autosize container controllers.
-					var affectedElements:Vector.<FlowElementMark> = elements.slice( 0, tableIndexes.pop() + 1 );
-					var markedAutosizableController:AutosizableContainerController;
-					for( i = 0; i < affectedElements.length; i++ )
-					{
-						affectedElement = affectedElements[i];
-						// Find the associated controller and container for the autosizable display.
-						controllerIndex = textFlow.flowComposer.findControllerIndexAtPosition( affectedElement.position );
-						controller = textFlow.flowComposer.getControllerAt( controllerIndex );
-						// If we have an autosizableContainerController that it is sandwhich between two tables.
-						// We need to stip it out any any display objects related to it.
-						if( controller is AutosizableContainerController )
-						{
-							// If we haven't already marked a controller for removal...
-							if( controller != markedAutosizableController )
-								markAutosizableController( controller as AutosizableContainerController );
-							// Update reference.
-							markedAutosizableController = controller as AutosizableContainerController;
-						}
-						else if( controller is TableCellContainerController )
-						{
-							// If the controller is a TableCellContainerController
-							//	we know that it is related to a Table.
-							// 	We'll need to operate on the Table to remove associated
-							//	cell displays and controllers related to selection.
-							tableElement = affectedElement.element as TableElement;
-							anchor = Math.max( absoluteStart, affectedElement.position );
-							active = Math.min( absoluteEnd, affectedElement.position + tableElement.textLength );
-							anchorIndex = textFlow.flowComposer.findControllerIndexAtPosition( anchor );
-							activeIndex = textFlow.flowComposer.findControllerIndexAtPosition( active );
-							activeIndex = Math.min( activeIndex, tableElement.elementalIndex + tableElement.getTableModel().cellAmount - 1 );
-							operateOnTable( controller as TableCellContainerController, anchorIndex, activeIndex );
-						}
-					}
-				}
-				
-				// Now go through marked controllers and remove them from the text flow.
-				var controllerMark:ContainerControllerMark;
-				for( i = 0; i < _controllerMarks.length; i++ )
-				{
-					controllerMark = _controllerMarks[i];
-					textFlow.flowComposer.removeController( controllerMark.controller );
-				}
-				// Now go through marked displays and remove from display context.
-				var containerMark:ContainerMark;
-				for( i = 0; i < _containerMarks.length; i++ )
-				{
-					containerMark = _containerMarks[i];
-					containerMark.displayContext.removeContainer( containerMark.container );
-				}
-				
-				// Move on as we normally would with a DeleteTextOperation.
-				// Finally remove elements from model.
-				deleteSelectedText();
-				
-				// IF whole tables are marked fro removal, kill them.
-				for( i = 0; i < _tablesToDelete.length; i++ )
-				{
-					use namespace tlf_internal;
-					tableElement =  _tablesToDelete[i];
-					// If table element is still held on text flow model, remove it.
-					if( textFlow.mxmlChildren.indexOf( tableElement ) > -1 )
-					{
-					
-						TextFlowEdit.findAndRemoveFlowGroupElement( textFlow, tableElement.getAbsoluteStart(), tableElement.getAbsoluteStart() + tableElement.textLength, TableElement );	
-					}
-					// Else pop it from held list of deleted tables.
-					else
-					{
-						_tablesToDelete.shift();
-						--i;
+						// If the controller is a TableCellContainerController
+						//	we know that it is related to a Table.
+						// 	We'll need to operate on the Table to remove associated
+						//	cell displays and controllers related to selection.
+						tableElement = affectedElement.element as TableElement;
+						anchor = Math.max( absoluteStart, affectedElement.position );
+						active = Math.min( absoluteEnd, affectedElement.position + tableElement.textLength );
+						anchorIndex = textFlow.flowComposer.findControllerIndexAtPosition( anchor );
+						activeIndex = textFlow.flowComposer.findControllerIndexAtPosition( active );
+						activeIndex = Math.min( activeIndex, tableElement.elementalIndex + tableElement.getTableModel().cellAmount - 1 );
+						operateOnTable( controller as TableCellContainerController, anchorIndex, activeIndex );
 					}
 				}
 			}
-			catch( e:Error )
+			
+			// Now go through marked controllers and remove them from the text flow.
+			var controllerMark:ContainerControllerMark;
+			for( i = 0; i < _controllerMarks.length; i++ )
 			{
-				// what now?
+				controllerMark = _controllerMarks[i];
+				textFlow.flowComposer.removeController( controllerMark.controller );
 			}
+			// Now go through marked displays and remove from display context.
+			var containerMark:ContainerMark;
+			for( i = 0; i < _containerMarks.length; i++ )
+			{
+				containerMark = _containerMarks[i];
+				containerMark.displayContext.removeContainer( containerMark.container );
+			}
+			
+			// Move on as we normally would with a DeleteTextOperation.
+			// Finally remove elements from model.
+			deleteSelectedText();
+			deleteGroupElements();
+			updateTableElements();
 		}
 		
 		/**
@@ -336,13 +442,15 @@ package flashx.textLayout.operations
 			var cellDisplay:TableCellDisplay;
 			var cellContainer:TableCellContainer;
 			var cellCount:int;
+			var tableData:TableDataElement;
 			for( i = anchorIndex; i < activeIndex + 1; i++ )
 			{
 				cellController = textFlow.flowComposer.getControllerAt( i );
 				cellDisplay = cellController.container as TableCellDisplay;
 				cellContainer = cellDisplay.getDisplayContainer() as TableCellContainer;
 				// Remove the table data model from the table model.
-				table.removeTableData( cellContainer.getData() );
+				tableData = cellContainer.getData() as TableDataElement;
+				_tableDataElementsToDelete.push( tableData );
 				// Push proper displays and controllers for removal.
 				_containerMarks.push( new ContainerMark( cellContainer, displayContext ) );
 				_controllerMarks.push( new ContainerControllerMark( cellController, i ) );
@@ -350,13 +458,17 @@ package flashx.textLayout.operations
 				++cellCount;
 			}
 			table.cellAmount -= cellCount;
-			table.updateMap();
 			
 			// If anchor to active encompasses the whole context of a table, push whole table container for removal.
 			if( cellCount == displayContext.getContainerLength() )
 			{
-				_tablesToDelete.push( tableElement );
+				_tableElementsToDelete.push( tableElement );
 				_containerMarks.push( new ContainerMark( container, _displayContext ) );
+			}
+			// Else store to run a refresh.
+			else
+			{
+				_tableElementsToUpdate.push( tableElement );
 			}
 		}
 		

@@ -1,6 +1,9 @@
 package flashx.textLayout.converter
 {
-	import flashx.textLayout.model.table.TableData;
+	import flashx.textLayout.elements.table.TableDataElement;
+	import flashx.textLayout.elements.table.TableHeadingElement;
+	import flashx.textLayout.model.attribute.TableHeadingAttribute;
+	import flashx.textLayout.model.table.Table;
 	import flashx.textLayout.utils.FragmentAttributeUtil;
 	import flashx.textLayout.utils.StyleAttributeUtil;
 
@@ -11,13 +14,15 @@ package flashx.textLayout.converter
 	public class TableDataAssembler implements ITagAssembler
 	{
 		protected var imageProxy:String = "";
+		protected var htmlExporter:IHTMLExporter;
 		
 		/**
 		 * Constructor.
 		 */		
-		public function TableDataAssembler( imageProxy:String = "" ) 
+		public function TableDataAssembler( htmlExporter:IHTMLExporter, imageProxy:String = "" ) 
 		{
 			this.imageProxy = imageProxy;
+			this.htmlExporter = htmlExporter;
 		}
 		
 		/**
@@ -71,8 +76,9 @@ package flashx.textLayout.converter
 		 */
 		public function createFragment(value:*):String
 		{
-			var td:TableData = value as TableData;
-			var fragment:XML = XML(td.data.toXMLString());
+			var td:TableDataElement = value as TableDataElement;
+			var fragment:XML = ( td is TableHeadingElement ) ? <th /> : <td />;
+			htmlExporter.exportElementsToFragment( fragment, td.mxmlChildren );
 			replaceImageSourceAttribute( fragment );
 			assignAttributesAsStyle( fragment );
 			FragmentAttributeUtil.removeAttributesFromFragment( fragment, td.attributes.getStrippedAttributes() );

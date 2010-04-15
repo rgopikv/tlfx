@@ -17,10 +17,9 @@ package flashx.textLayout.elements.table
 		/**
 		 * Starts the management process with necessary targets. 
 		 * @param element TableElement
-		 * @param table Table
 		 * @param targetContainer DisplayObjectContainer
 		 */
-		function create( element:TableElement, table:Table, targetContainer:DisplayObjectContainer ):void;
+		function create( element:TableElement, targetContainer:DisplayObjectContainer ):void;
 		
 		/**
 		 * Composes the table for initial layout.

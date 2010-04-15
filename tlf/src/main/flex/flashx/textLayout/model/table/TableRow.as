@@ -1,5 +1,6 @@
 package flashx.textLayout.model.table
 {
+	import flashx.textLayout.elements.table.TableDataElement;
 	import flashx.textLayout.model.attribute.TableRowAttribute;
 
 	/**
@@ -8,7 +9,7 @@ package flashx.textLayout.model.table
 	 */
 	public class TableRow extends TableBaseElement
 	{
-		public var tableData:Vector.<TableData>;
+		public var tableData:Vector.<TableDataElement>;
 		public var nextRow:TableRow;
 		public var previousRow:TableRow;
 		
@@ -24,7 +25,7 @@ package flashx.textLayout.model.table
 		 * Constuctor. 
 		 * @param tableData Vector.<TableData> The list of TableData (cells) related to this row.
 		 */
-		public function TableRow( tableData:Vector.<TableData> )
+		public function TableRow( tableData:Vector.<TableDataElement> )
 		{
 			super();
 			this.tableData = tableData;

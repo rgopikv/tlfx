@@ -755,6 +755,8 @@ package flashx.textLayout.elements
 					else if (source is DisplayObject)
 					{
 						elem = DisplayObject(source);
+						elementWidth = DisplayObject(source).width;
+						elementHeight = DisplayObject(source).height;
 						changeGraphicStatus(DISPLAY_OBJECT);
 					}
 					else

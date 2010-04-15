@@ -1,6 +1,8 @@
 package flashx.textLayout.converter
 {
 	import flash.events.IEventDispatcher;
+	
+	import flashx.textLayout.elements.table.TableElement;
 
 	/**
 	 * ITagParser parses a valid HTML markup into a model representation. 
@@ -12,6 +14,6 @@ package flashx.textLayout.converter
 		 * Parses specific fragment of HTML based on implementations specification. 
 		 * @param fragment String
 		 */
-		function parse( fragment:String ):*;
+		function parse( fragment:String, tableElement:TableElement ):*;
 	}
 }

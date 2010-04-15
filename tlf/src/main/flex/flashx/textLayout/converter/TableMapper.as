@@ -1,8 +1,10 @@
 package flashx.textLayout.converter
 {
+	import flashx.textLayout.elements.table.TableDataElement;
+	import flashx.textLayout.elements.table.TableElement;
+	import flashx.textLayout.elements.table.TableRowElement;
 	import flashx.textLayout.model.table.Table;
 	import flashx.textLayout.model.table.TableColumn;
-	import flashx.textLayout.model.table.TableData;
 	import flashx.textLayout.model.table.TableRow;
 
 	/**
@@ -11,15 +13,15 @@ package flashx.textLayout.converter
 	 */
 	public class TableMapper
 	{
-		protected var _table:Table;
+		protected var _tableElement:TableElement;
 		
 		/**
 		 * Constructor. 
 		 * @param table Table The model to map rows and columns to.
 		 */
-		public function TableMapper( table:Table )
+		public function TableMapper( tableElement:TableElement )
 		{
-			_table = table;
+			_tableElement = tableElement;
 		}
 		
 		/**
@@ -29,22 +31,24 @@ package flashx.textLayout.converter
 		 * @param rows Vector.<TableRow> The unstructured parsed rows of the table.
 		 * @param tableRows Vector.<TableRows> The empty list to populate a structured row/column based list of rows.
 		 */
-		protected function mapTable( rows:Vector.<TableRow>, tableRows:Vector.<TableRow> ):void
+		protected function mapTable( rows:Vector.<TableRowElement>, tableRows:Vector.<TableRow> ):void
 		{
 			var i:int;
 			var j:int;
-			var rowData:Vector.<TableData>;
-			var tableData:TableData;
+			var rowData:Vector.<TableDataElement>;
+			var tableData:TableDataElement;
 			var attributes:*;
 			
 			var rowMap:Array = [];
 			// Cycle through data and register column and rows for each data.
 			for( i; i < rows.length; i++ )
 			{
-				rowData = rows[i].tableData;
+				rowData = rows[i].children();
+				if( rowData == null ) continue;
+				
 				for( j = 0; j < rowData.length; j++ )
 				{
-					tableData = ( rowData[j] as TableData );
+					tableData = ( rowData[j] as TableDataElement );
 					attributes = tableData.attributes as Object;
 					// Update slot hash.
 					var colindex:int = j;
@@ -61,10 +65,10 @@ package flashx.textLayout.converter
 			{
 				rowColumns = rowMap[i];
 				j = 0;
-				rowData = new Vector.<TableData>();
+				rowData = new Vector.<TableDataElement>();
 				for( j = 0; j < rowColumns.length; j++ )
 				{
-					rowData.push( rowColumns[j] as TableData );
+					rowData.push( rowColumns[j] as TableDataElement );
 				}
 				tableRows.push( new TableRow( rowData ) );
 			}
@@ -81,7 +85,7 @@ package flashx.textLayout.converter
 		 * @param fromRow int
 		 * @param rowLength int
 		 */
-		protected function registerRowColumnSlot( tableData:TableData, rowMap:Array, fromCol:int, colLength:int, fromRow:int, rowLength:int ):void
+		protected function registerRowColumnSlot( tableData:TableDataElement, rowMap:Array, fromCol:int, colLength:int, fromRow:int, rowLength:int ):void
 		{
 			var x:int = fromCol;
 			var y:int = fromRow;
@@ -132,8 +136,6 @@ package flashx.textLayout.converter
 			var j:int = 0;
 			var nextRow:TableRow;
 			var prevRow:TableRow;
-			var nextData:TableData;
-			var prevData:TableData;
 			for( i = 0; i < list.length; i++ )
 			{
 				var row:TableRow = list[i] as TableRow;
@@ -186,10 +188,10 @@ package flashx.textLayout.converter
 		 */
 		protected function recursivelyInsertIntoColumns( columns:Vector.<TableColumn>, row:TableRow, index:int = 0 ):void
 		{
-			var tableData:TableData = row.tableData[index] as TableData;
+			var tableData:TableDataElement = row.tableData[index] as TableDataElement;
 			if( columns.length - 1 < index )
 			{
-				columns[index] = new TableColumn( new Vector.<TableData>() );
+				columns[index] = new TableColumn( new Vector.<TableDataElement>() );
 			}
 			var column:TableColumn = columns[index];
 			column.tableData.push( tableData );
@@ -204,23 +206,25 @@ package flashx.textLayout.converter
 		 * Composes proper row and columns based on flat list of row data. 
 		 * @param precomposedRows Vector.<TableRow>
 		 */
-		public function map( precomposedRows:Vector.<TableRow> ):void
+		public function map( rows:Vector.<TableRowElement> ):void
 		{	
+			var table:Table = _tableElement.getTableModel();
+			
 			// Establish vector of rows and columns.
 			var trArray:Vector.<TableRow> = new Vector.<TableRow>();
 			var tcArray:Vector.<TableColumn> = new Vector.<TableColumn>();
 			
 			// Map table into row and column slots.
 			// Pass the row vector to be filled.
-			mapTable( precomposedRows, trArray );
+			mapTable( rows, trArray );
 			// use row array to create row iterator.
 			invalidateRowIteration( trArray );
 			// use row array to create column iterator.
 			invalidateColumnIteration( tcArray, trArray );
 			
 			// Set mapped rows and columns on the Table reference.
-			_table.rows = trArray;
-			_table.columns = tcArray;
+			table.rows = trArray;
+			table.columns = tcArray;
 		}
 	}
 }
