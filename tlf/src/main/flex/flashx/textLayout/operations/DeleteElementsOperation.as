@@ -1,6 +1,5 @@
 package flashx.textLayout.operations
 {
-	import flash.text.TextField;
 	import flash.ui.Keyboard;
 	
 	import flashx.textLayout.container.AutosizableContainerController;
@@ -8,7 +7,6 @@ package flashx.textLayout.operations
 	import flashx.textLayout.container.IEditorDisplayContext;
 	import flashx.textLayout.container.ISizableContainer;
 	import flashx.textLayout.container.TableCellContainerController;
-	import flashx.textLayout.container.table.ICellContainer;
 	import flashx.textLayout.container.table.TableCellContainer;
 	import flashx.textLayout.container.table.TableCellDisplay;
 	import flashx.textLayout.container.table.TableDisplayContainer;
@@ -17,17 +15,15 @@ package flashx.textLayout.operations
 	import flashx.textLayout.elements.FlowElement;
 	import flashx.textLayout.elements.FlowGroupElement;
 	import flashx.textLayout.elements.FlowLeafElement;
-	import flashx.textLayout.elements.ParagraphElement;
-	import flashx.textLayout.elements.SpanElement;
 	import flashx.textLayout.elements.TextFlow;
 	import flashx.textLayout.elements.table.ITableElementManager;
 	import flashx.textLayout.elements.table.TableDataElement;
 	import flashx.textLayout.elements.table.TableElement;
 	import flashx.textLayout.elements.table.TableRowElement;
 	import flashx.textLayout.model.table.Table;
-	import flashx.textLayout.model.table.TableRow;
 	import flashx.textLayout.tlf_internal;
 	
+	use namespace tlf_internal;
 	/**
 	 * DeleteElementsOperation is an extension to DeleteTextOperation in order to properly maintain the display list of flow composition with the context
 	 * of haing autosizable container controllers and tables. 
@@ -165,8 +161,6 @@ package flashx.textLayout.operations
 		 */
 		protected function deleteGroupElements():void
 		{
-			use namespace tlf_internal;
-			
 			var i:int;
 			var tableElement:TableElement;
 			var tableRowElement:TableRowElement;
