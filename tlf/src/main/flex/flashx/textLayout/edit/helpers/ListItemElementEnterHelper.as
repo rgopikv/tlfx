@@ -4,9 +4,11 @@ package flashx.textLayout.edit.helpers
 	import flashx.textLayout.edit.IEditManager;
 	import flashx.textLayout.edit.SelectionState;
 	import flashx.textLayout.elements.FlowElement;
+	import flashx.textLayout.elements.FlowLeafElement;
 	import flashx.textLayout.elements.LinkElement;
 	import flashx.textLayout.elements.ListElement;
 	import flashx.textLayout.elements.ListItemElement;
+	import flashx.textLayout.elements.ParagraphElement;
 	import flashx.textLayout.elements.SpanElement;
 	import flashx.textLayout.elements.TextFlow;
 	
@@ -22,329 +24,219 @@ package flashx.textLayout.edit.helpers
 			var i:int = number;
 			while( i > 0 )
 			{
-				from.removeChildAt( startingAt + i );
+				try {
+					from.removeChildAt( startingAt + i );
+				} catch ( e:* ) {
+					trace('Couldn\'t remove child at ' + int(startingAt + i) + ' from ' + from);
+				}
 				i--;
 			}
 		}
 		
 		public static function processDeleteKey( tf:TextFlow ):void
-		{			
-			var selection:SelectionState = IEditManager(tf.interactionManager).getSelectionState();
+		{
+			/*
+			KK
+			This needs to be fixed.
+			The endIndex being received doesn't always match up with what it should be, causing in deletion of extra items.
+			*/
 			
-			var selectedLists:Array = ListHelper.getSelectedListElements(tf);
-			var newSelection:SelectionState;
+			var editManager:IEditManager = tf.interactionManager as IEditManager;
+			var selectionState:SelectionState = editManager.getSelectionState();
 			
-			var selectionStart:int = selection.absoluteStart;
-			var selectionEnd:int = selection.absoluteEnd;
+			var startElem:FlowLeafElement = tf.findLeaf( editManager.absoluteStart );
+			var endElem:FlowLeafElement = tf.findLeaf( editManager.absoluteEnd );
 			
-			for each (var list:ListElement in selectedLists)
-			{				
-				var selectedItems:Array = ListHelper.getSelectedListItemsInList(list, selection);
-				
-				// if the selection doesn't contain any chars...
-				if (selection.absoluteStart == selection.absoluteEnd)
-				{						
-					var li:ListItemElement = ListItemElement(selectedItems[0]);
+			var startItem:ListItemElement = startElem.getParentByType( ListItemElement ) as ListItemElement;
+			var endItem:ListItemElement = endElem.getParentByType( ListItemElement ) as ListItemElement;
+			
+			var startList:ListElement = startItem ? startItem.getParentByType( ListElement ) as ListElement : null;
+			var endList:ListElement = endItem ? endItem.getParentByType( ListElement ) as ListElement : null;
+			
+			var lists:Array = SelectionHelper.getSelectedLists( tf );
+			var listItems:Array = [];
+			
+			for ( var i:int = 0; i < lists.length; i++ )
+			{
+				listItems = listItems.concat( ListHelper.getSelectedListItemsInList( lists[i] as ListElement, selectionState ) );
+			}
+			
+			//	Make sure list exists
+			if ( startList )
+			{
+				//	Make sure there is a start item
+				if ( startItem )
+				{
+					var startIndex:int = startList.getChildIndex( startItem );
+					var startText:String = startItem.text;
+					var startRel:int = editManager.absoluteStart - startItem.span.getElementRelativeStart( tf ) - startItem.seperatorLength;
 					
-					// Check if we're ahead of the first character of raw text - after the bullet.
-					// If so just delete as normal.
-					if (selection.absoluteStart > li.getAbsoluteStart() + 2)
+					//	Make sure there is an end item
+					if ( endItem )
 					{
-						IEditManager(tf.interactionManager).deletePreviousCharacter();
-					}
-					// Otherwise we need to remove the whole list item.
-					else
-					{						
-						newSelection = new SelectionState(tf, li.getAbsoluteStart() - 1, li.getAbsoluteStart() - 1);
-						tf.interactionManager.setSelectionState(newSelection);
+						var endIndex:int = endList.getChildIndex( endItem );
+						var endText:String = endItem.text;
+						var endRel:int = editManager.absoluteEnd - endItem.span.getElementRelativeStart( tf ) - endItem.seperatorLength;
 						
-						list.removeChild(li);
-
-						// If that was the only item in the list then
-						// get rid of the whole list, too.
-						// Otherwise just update to ensure the numbers match etc.
-						if (list.numListElements > 0)
+						// At least 1 whole character selected
+						if ( editManager.isRangeSelection() )
 						{
-							list.updateList();
+							//	Multiline selection
+							if ( startItem != endItem )
+							{
+								if ( endList )
+								{
+									//	Multiple lists selected
+									if ( startList != endList )
+									{
+										//	TODO:	Fix
+										//		ListElements can be held by things OTHER than the TextFlow, meaning that the following will not work
+										
+										//	Get indexes of lists in order to determine how many lists should be edited
+										var startListIndex:int = tf.getChildIndex( startList );
+										var endListIndex:int = tf.getChildIndex( endList );
+										
+										var j:int = 0;
+										for ( i = startListIndex; i <= endListIndex; i++ )
+										{
+											//	If same as start, start at first selected item
+											if ( i == startListIndex )
+											{
+												for ( j = startIndex; j < startList.numListElements; j++ )
+												{
+													startList.removeChildAt(j);
+												}
+												//ListItemElementEnterHelper.deleteItems( startList, startIndex, (startList.numChildren-1)-startIndex );
+											}
+											//	If same as end, end at last selected item
+											else if ( i == endListIndex )
+											{
+												for ( j = 0; j <= endIndex; j++ )
+													endList.removeChildAt(j);
+												//ListItemElementEnterHelper.deleteItems( endList, 0, endIndex );
+											}
+											//	Delete all others
+											else
+											{
+												tf.removeChild( tf.getChildAt(i) );
+											}
+										}
+									}
+									//	Single list selected
+									else
+									{
+										for ( i = 1; i < listItems.length; i++ )
+										{
+											( listItems[i] as ListItemElement ).parent.removeChild( listItems[i] as ListItemElement );
+										}
+									}
+								}
+								else
+								{
+									//	Should never happen, error prevention
+									if ( endIndex >= startList.numChildren )
+									{
+										ListItemElementEnterHelper.deleteItems( startList, startIndex, (startList.numChildren-1)-startIndex );
+									}
+									else
+									{
+										ListItemElementEnterHelper.deleteItems( startList, startIndex, endIndex-startIndex );
+									}
+								}
+//								ListItemElementEnterHelper.deleteItems( list, startIndex, endIndex-startIndex );
+								startItem.text = startText.substring(0, startRel) + endText.substring(endRel, endText.length);
+							}
+							//	Single line selection
+							else
+							{
+								editManager.deleteText( new SelectionState( tf, editManager.absoluteStart, editManager.absoluteEnd, tf.format ) );
+								startItem.text = startText.substring(0, startRel) + endText.substring(endRel, endText.length);
+							}
+						}
+						//	Single point of contact
+						else
+						{
+							//	Backspace 1 char
+							editManager.deletePreviousCharacter( new SelectionState( tf, editManager.absoluteStart, editManager.absoluteEnd, tf.format ) );
+						}
+					}
+					//	Just a start item
+					else
+					{
+						if ( editManager.isRangeSelection() )
+						{
+							editManager.deleteText( new SelectionState( tf, editManager.absoluteStart, editManager.absoluteEnd, tf.format ) );
+							startItem.text = startText.substring(0, startRel);
 						}
 						else
 						{
-							list.parent.removeChild(list);
+							editManager.deletePreviousCharacter( new SelectionState( tf, editManager.absoluteStart, editManager.absoluteEnd, tf.format ) );
 						}
 					}
-					
-					tf.flowComposer.updateAllControllers();
 				}
-				else
-				{										
-					// If the whole list (including all items in sub-lists)
-					// is contained within the selection we can just get rid of the list.
-					if (ListHelper.isEveryItemInListCompletelySelected(tf, list))
-					{
-						list.parent.removeChild(list);
-					}
-					// Otherwise we need to look at the list items.
-					else
-					{						
-						var item:ListItemElement;
-						var completeItemsRemoved:int;
-						var previousItem:ListItemElement;
-						var nudge:int;
-						var itemStart:int;
-						
-						// Check if all the item has been selected.
-						// If it has get rid of it from the list and the selectedItems array.
-						for (var i:int = 0; i < selectedItems.length; i++)
-						{							
-							item = ListItemElement(selectedItems[i]);
-							
-							nudge = (item.mode == ListElement.ORDERED) ? 3 : 2;
-							var sStart:int = selection.absoluteStart;
-							var sEnd:int = selection.absoluteEnd;
-							itemStart = item.getAbsoluteStart() + nudge;
-							var itemEnd:int = item.getAbsoluteStart() + item.textLength - 1;
-
-							if ((selectionStart <= itemStart) && (selectionEnd >= itemEnd))
-							{
-								selectedItems.splice(i, 1);
-								i--;
-								
-								item.list.removeChild(item);
-								
-								selectionEnd -= item.textLength;
-								selection = new SelectionState(tf, selectionStart, selectionEnd);
-								tf.interactionManager.setSelectionState(selection);
-								
-							}
-						}
-
-						for each (item in selectedItems)
-						{	
-							trace("ITEM: " + item.getAbsoluteStart() + " " + (item.getAbsoluteStart() + item.textLength)); 
-
-							var deleteSelection:SelectionState;
-							var deleteStart:int;
-							var deleteEnd:int;
-							var previousSelectionWidth:int;
-							nudge = item.mode == ListElement.ORDERED ? 3 : 2;
-							
-							itemStart = item.getElementRelativeStart(tf);
-							
-							// If the entire selection is contained within a single list item...
-							if (item.getAbsoluteStart() + 2 < selection.absoluteStart &&
-								item.getAbsoluteStart() + item.textLength > selection.absoluteEnd)
-							{
-								//trace("removing the middle of a list item " + nudge);
-								
-								deleteStart = (selection.absoluteStart - itemStart) - nudge;
-								deleteEnd = (selection.absoluteEnd - itemStart) - nudge;
-								
-								var first:String = item.text.substr(0, deleteStart);//rawText.substr(0, deleteStart);
-								var last:String = item.text.substr(deleteEnd, (item.getAbsoluteStart() + item.textLength) - itemStart);//rawText.substr(deleteEnd, (item.getAbsoluteStart() + item.textLength) - itemStart);
-
-								item.text = first + last;
-							}
-							// Otherwise the selection either starts or ends in this list item...
-							else
-							{
-								//trace("numbers: " + item.getAbsoluteStart() + " " + nudge + " " + selection.absoluteEnd);
-								
-								if (item.getAbsoluteStart() + nudge > selection.absoluteStart)
-								{
-									//trace("Start with the selection end " + selection.absoluteEnd + " " + selectionEnd + " " + itemStart + " " + nudge + " " + previousSelectionWidth);	
-
-									deleteStart = ((selectionEnd - itemStart) - nudge);// - completeItemsRemoved;
-								}
-								else
-								{
-									//trace("start with the item start");
-									deleteStart = 0;
-								}
-
-								if ((item.getAbsoluteStart() + item.textLength) + previousSelectionWidth < selection.absoluteEnd)
-								{
-									//trace("ending with the selection start");
-									deleteEnd = (selection.absoluteStart - itemStart) - nudge;
-								}
-								else
-								{									
-									//trace("ending with the item end " + item.getText().length + " " + nudge);
-									deleteEnd = item.textLength;
-								}
-								
-								previousSelectionWidth = (item.getText().length - nudge) - deleteEnd;
-								var newStr:String = item.text.substr(deleteStart, deleteEnd);//rawText.substr(deleteStart, deleteEnd);
-								
-								//trace(deleteStart + " " + deleteEnd + " " + previousSelectionWidth + " == " + newStr);
-								
-								if (previousItem)
-								{
-									previousItem.text = previousItem.text + newStr;//rawText + newStr;
-									list.removeChild(item);
-									list.updateList();
-								}
-								else
-								{
-									item.text = newStr;
-									previousItem = item;
-								}
-								
-								selectionEnd -= previousSelectionWidth;
-							}
-							
-							//tf.flowComposer.updateAllControllers();
-						}	
-					}
-					
-					newSelection = new SelectionState(tf, selection.absoluteStart, selection.absoluteStart);
-					tf.interactionManager.setSelectionState(newSelection);
-					tf.flowComposer.updateAllControllers();
-				}
-			}		
+			}	
 		}
 		
 		public static function processReturnKey( extendedEditManager:ExtendedEditManager, startItem:ListItemElement ):void
 		{
 			var endElem:FlowElement = extendedEditManager.textFlow.findLeaf( extendedEditManager.absoluteEnd );
-			var endItem:ListItemElement = endElem is ListItemElement ? endElem as ListItemElement : null;
+			var endItem:ListItemElement = endElem.getParentByType( ListItemElement ) as ListItemElement;
 			
-			if ( startItem.parent )
+			if ( startItem.getParentByType( ListElement ) )
 			{
-				var list:ListElement = startItem.parent as ListElement;
+				var list:ListElement = startItem.getParentByType( ListElement ) as ListElement;
 				
-				var startTextPosition:uint = startItem.getElementRelativeStart( extendedEditManager.textFlow );
-				//	End position based on either the ListItem or FlowLeafElement representation of the item at the end of the selection
-				var endTextPosition:uint =	endItem ?
-					endItem.getElementRelativeStart( extendedEditManager.textFlow )
-					:
-					endElem.getElementRelativeStart( extendedEditManager.textFlow );
+				//	Keep track of initial text values
+				var startText:String = startItem.text;
+				var endText:String = endItem ? endItem.text : '';
 				
-				var startRel:uint = extendedEditManager.absoluteStart - startTextPosition;	//	absolute start minus item's start provides offset
-				var endRel:uint = extendedEditManager.absoluteEnd - endTextPosition;		//	absolute end minus item's end
+				//	Find the relative start and end positions of the absoluteStart and absoluteEnd positions
+				var relStart:int = extendedEditManager.absoluteStart - startItem.span.getElementRelativeStart( extendedEditManager.textFlow ) - startItem.seperatorLength;
+				var relEnd:int = extendedEditManager.absoluteEnd - endItem.span.getElementRelativeStart( extendedEditManager.textFlow ) - endItem.seperatorLength;
 				
-				var adjustOffset:uint = startItem.mode == ListElement.UNORDERED ? 3 : 4;
+				//	Child indexes
+				var startIndex:int = list.getChildIndex(startItem);
+				var endIndex:int = list.getChildIndex(endItem);
 				
-				startRel -= adjustOffset;
-				endRel -= adjustOffset;
+				//	Instantiate new list item element
+				var newListItem:ListItemElement = new ListItemElement();
+				newListItem.mode = startItem.mode;
+				newListItem.paragraphStartIndent = startItem.paragraphStartIndent;
 				
-				var newStr:String = '';
-				
-				var startText:String = startItem.text;//rawText;
-				var endText:String = new String();
-				
-				if ( endItem )
-				{
-					endText = endItem.text;//rawText;
-				}
-				else
-				{
-					if ( endElem is SpanElement )
-					{
-						endText = ( endElem as SpanElement ).text
-					}
-					else if ( endElem is LinkElement )
-					{
-						endText = ( endElem as LinkElement ).href;
-					}
-					
-					//	can't do ParagraphElements or DivElements as they have no text
-				}
-				
-				var startPos:int = list.getChildIndex( startItem );
-				var endPos:int = list.getChildIndex( endItem ? endItem : endElem );
-				
-				var newElement:ListItemElement = new ListItemElement();
-				newElement.paragraphStartIndent = startItem.paragraphStartIndent;
-				var strStart:int = startRel;
-				
-				//	At least 1 whole character is selected (i.e. end of selection != start of selection)
+				//	If there is an actual selection
 				if ( extendedEditManager.isRangeSelection() )
 				{
 					//	Multiple lines
-					if ( startItem != endElem )
+					if ( endItem && startItem != endItem )
 					{
-						var numToDelete:int;
-						//	All ListItemElements
-						if ( endItem )
-						{
-							startItem.text = startText.substring( 0, startRel-1 );
-							
-							ListItemElementEnterHelper.deleteItems( list, startPos, (endPos - startPos) );
-							
-							endItem.text = startText.substring( 0, startRel-1 );
-							
-							newStr = endText.substring( endRel, endText.length );
-						}
-						//	Multiple types
-						else
-						{
-							//	Reset the text for the items beyond the list elements
-							var newSelectionState:SelectionState = new SelectionState( extendedEditManager.textFlow, extendedEditManager.absoluteStart, extendedEditManager.absoluteEnd, extendedEditManager.textFlow.format);
-							extendedEditManager.deleteText( newSelectionState );
-							
-							//	Reset the starting element's text
-							startItem.text = startText.substring( 0, startRel-1 );
-						}
+						//	Change start item's text to be 0 - start of selection
+						startItem.text = startText.substring(0, relStart);
+						//	Delete all items UP TO the end of selection INCLUDING the item containing the selection
+						ListItemElementEnterHelper.deleteItems(list, startIndex, endIndex-startIndex);
+						//	Set the text of the new item to be end of selection - end of end text
+						newListItem.text = endText.substring(relEnd, endText.length);
+						//	Add new child after start item
+						list.addChildAt(startIndex+1, newListItem);
 					}
 					//	Single line
 					else
 					{
-						startItem.text = startText.substring( 0, startRel );
-						
-						newStr = endText.substring( endRel, endText.length );
+						startItem.text = startText.substring(0, relStart);
+						newListItem.text = endText.substring(relEnd, endText.length);
+						list.addChildAt( startIndex+1, newListItem );
 					}
 				}
-				//	No selection
+				//	No selection, just single anchor / active position
 				else
 				{
-					var currChar:String = extendedEditManager.textFlow.getText( extendedEditManager.absoluteStart, extendedEditManager.absoluteEnd + 1 );
-					var prevChar:String = extendedEditManager.textFlow.getText( extendedEditManager.absoluteStart - 1, extendedEditManager.absoluteEnd );
-					
-					// TODO: Still need to strip whitespace from the start of newElement.text.
-					// Currently, if a new list item is created by breaking a previous list element
-					// after a space the new line item starts with a space. 
-					var strEnd:int = startRel;
-					
-					if ( currChar == ' ' )
-					{
-						strStart = strEnd = startRel + 1;
-					}
-					else
-					{
-						if ( prevChar == ' ' ) 
-						{
-							if (startRel > startText.length)
-							{
-								strStart = strEnd = 0;
-							}
-						}
-						else
-						{
-							strStart = strEnd = startRel + 1;
-						}
-					}
-
-					startItem.text = startText.substring( 0, strEnd );
+					startItem.text = startText.substring(0, relStart);
+					newListItem.text = endText.substring(relEnd, endText.length);
+					list.addChildAt( startIndex+1, newListItem );
 				}
 				
-				newElement.text = startText.substring( strStart, startText.length );
+				var anchorPos:int = newListItem.span.getElementRelativeStart( extendedEditManager.textFlow ) + newListItem.span.text.length;
 				
-				//	Last child
-				if ( startPos == list.numChildren-1 )
-				{
-					list.addChild( newElement );
-				}
-				else
-				{
-					list.addChildAt( startPos+1, newElement );
-				}
-				
-				extendedEditManager.notifyInsertOrDelete( extendedEditManager.absoluteStart, extendedEditManager.absoluteEnd-extendedEditManager.absoluteStart );
-				
-				var newAnchorPosition:int = newElement.getElementRelativeStart( extendedEditManager.textFlow ) + newElement.text.length;
-				extendedEditManager.setSelectionState( new SelectionState( extendedEditManager.textFlow, newAnchorPosition, newAnchorPosition, extendedEditManager.textFlow.format ) );
-				
-				extendedEditManager.textFlow.flowComposer.updateAllControllers();
+				extendedEditManager.setSelectionState( new SelectionState( extendedEditManager.textFlow, anchorPos, anchorPos, extendedEditManager.textFlow.format ) );
 			}
 		}
 	}

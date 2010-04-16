@@ -1,6 +1,7 @@
 package flashx.textLayout.edit
 {
 	import flash.desktop.ClipboardFormats;
+	import flash.display.BlendMode;
 	import flash.events.Event;
 	import flash.events.KeyboardEvent;
 	import flash.events.TextEvent;
@@ -14,10 +15,14 @@ package flashx.textLayout.edit
 	import flashx.textLayout.conversion.TextConverter;
 	import flashx.textLayout.converter.IHTMLImporter;
 	import flashx.textLayout.edit.helpers.ListItemElementEnterHelper;
+	import flashx.textLayout.elements.BreakElement;
+	import flashx.textLayout.elements.DivElement;
 	import flashx.textLayout.elements.FlowElement;
+	import flashx.textLayout.elements.FlowGroupElement;
 	import flashx.textLayout.elements.FlowLeafElement;
 	import flashx.textLayout.elements.ListElement;
 	import flashx.textLayout.elements.ListItemElement;
+	import flashx.textLayout.elements.SpanElement;
 	import flashx.textLayout.elements.TextFlow;
 	import flashx.textLayout.elements.table.TableElement;
 	import flashx.textLayout.operations.PasteOperation;
@@ -74,30 +79,112 @@ package flashx.textLayout.edit
 		
 		override public function keyDownHandler(event:KeyboardEvent) : void
 		{
-//			trace('key down handler');
-			
 			var startElement:FlowLeafElement = this.textFlow.findLeaf( this.absoluteStart );
 			var endElement:FlowLeafElement = this.textFlow.findLeaf( this.absoluteEnd );
 			
 			switch ( event.keyCode )
 			{
 				case Keyboard.TAB:
-					this.insertText( '\t' );
+
+					var item:ListItemElement = startElement.getParentByType( ListItemElement ) as ListItemElement;
+					if ( item )
+					{
+//						var list:ListElement = item.parent as ListElement;
+//						var mode:String = item.mode;
+						var indent:int = int( item.paragraphStartIndent );
+//						
+//						var itemCopy:ListItemElement;
+						
+						//	Apply tabbing
+						if ( event.shiftKey )
+						{
+							indent = Math.max( indent - 24, 0 );
+//							
+//							if ( list.getParentByType( ListItemElement ) )
+//							{
+//								var parentItem:ListItemElement = list.getParentByType( ListItemElement ) as ListItemElement;
+//								
+//								var textCopy:String = item.text;
+//								
+//								parentItem.removeChild( list );
+//								
+//								parentItem.mode = mode;
+//								parentItem.paragraphStartIndent = indent;
+//								parentItem.text = textCopy;
+//							}
+//							else
+//								item.paragraphStartIndent = indent;
+						}
+						else
+						{
+							indent = Math.min( indent + 24, 240 );
+//							
+//							//	Clone item
+//							itemCopy = new ListItemElement();
+//							itemCopy.mode = mode;
+//							itemCopy.paragraphStartIndent = indent;
+//							itemCopy.text = item.text;
+//							
+//							//	Replace current item with new list
+//							var newList:ListElement = new ListElement();
+//							newList.mode = mode;
+//							newList.addChild( itemCopy );
+//							
+//							item.text = '';
+//							
+//							item.addChild( newList );
+						}
+						
+						item.paragraphStartIndent = indent;
+					}
+					else
+					{
+						this.insertText( '\t' );
+					}
 					break;
 				case Keyboard.ENTER:
 //					trace('enter pressed');
 					if ( this.hasSelection() )
 					{
 //						trace('startElement:', startElement);
-						if ( startElement.parent is ListItemElement )
+						if ( startElement.getParentByType(ListItemElement) )// startElement.parent.parent is ListItemElement )
 						{
-							ListItemElementEnterHelper.processReturnKey( this, startElement.parent as ListItemElement );
+							ListItemElementEnterHelper.processReturnKey( this, startElement.getParentByType( ListItemElement ) as ListItemElement );
 						}
 						else
 						{
 							// [TA] :: 03/16/10 -> entering a line character would not properly perform a Split paragraph operation.
-							//this.insertText( '\n' );
-							super.keyDownHandler( event );
+//							super.keyDownHandler( event );
+							
+							if ( startElement is FlowGroupElement )
+							{
+								( startElement as FlowGroupElement ).addChildAt( startElement.parent.getChildIndex(startElement)+1, new BreakElement() );
+							}
+							else
+							{
+								if ( startElement is SpanElement )
+								{
+									var span1:SpanElement = startElement as SpanElement;
+									var span2:SpanElement = new SpanElement();
+									
+									var index:int = span1.getParagraph().getChildIndex( span1 );
+									
+									var span1Start:int = this.absoluteStart - span1.getElementRelativeStart( this.textFlow );
+									var span2Text:String = span1.text.substring( span1Start, span1.textLength );
+									span1.text = span1.text.substring( 0, span1Start );
+									
+									span2.text = span2Text;
+									
+									span1.getParagraph().addChildAt( index+1, new BreakElement() );
+									span1.getParagraph().addChildAt( index+2, span2 );
+									
+									this.selectRange( this.absoluteStart+1, this.absoluteStart+1 );
+								}
+								else
+								{
+									trace('not a span element!');
+								}
+							}
 						}
 					}
 					break;
@@ -106,7 +193,7 @@ package flashx.textLayout.edit
 					{
 						var previousElement:FlowLeafElement = this.textFlow.findLeaf( startElement.getElementRelativeStart( this.textFlow ) - 1 );
 						
-						if ( (startElement.parent is ListItemElement) || (endElement.parent is ListItemElement) )
+						if ( startElement.getParentByType( ListItemElement ) )// (startElement.parent is ListItemElement) || (endElement.parent is ListItemElement) )
 						{
 							ListItemElementEnterHelper.processDeleteKey( textFlow );
 						}
@@ -143,13 +230,13 @@ package flashx.textLayout.edit
 					var regEx:RegExp = /\w/;
 					if ( regEx.test( char ) )
 					{
-						if ( startElement is ListItemElement )
+						if ( startElement.getParentByType( ListItemElement ) )
 						{
 							event.stopImmediatePropagation();
 							event.preventDefault();
 							
 							//	Insert text being entered into position it's being entered
-							var startItem:ListItemElement = startElement as ListItemElement;
+							var startItem:ListItemElement = startElement.getParentByType( ListItemElement ) as ListItemElement;
 							var list:ListElement = startItem.parent as ListElement;
 							var offset:int = startItem.mode == ListElement.UNORDERED ? 3 : 4;
 							var relativeStart:int = this.absoluteStart - startItem.getElementRelativeStart( this.textFlow ) - offset;
@@ -223,6 +310,8 @@ package flashx.textLayout.edit
 					}
 					break;
 			}
+			
+			this.textFlow.flowComposer.updateAllControllers();
 		}
 		
 		/**

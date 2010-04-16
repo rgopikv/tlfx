@@ -99,6 +99,10 @@ package flashx.textLayout.elements
 				
 				return p;
 			}
+			else if ( child is ListElement )
+			{
+				return super.addChild( child as ListElement );
+			}
 			else
 			{
 				return p.addChild( child );
@@ -145,12 +149,12 @@ package flashx.textLayout.elements
 			return '\u25A0 ';
 		}
 		
-		public override function set paragraphStartIndent(paragraphStartIndentValue:*):void
-		{
-			super.paragraphStartIndent = paragraphStartIndentValue;
-			
-			this.text = this.text;//rawText;
-		}
+//		public override function set paragraphStartIndent(paragraphStartIndentValue:*):void
+//		{
+//			super.paragraphStartIndent = paragraphStartIndentValue;
+//			
+//			this.text = this.text;//rawText;
+//		}
 		
 		override tlf_internal function canReleaseContentElement() : Boolean
 		{
@@ -229,6 +233,11 @@ package flashx.textLayout.elements
 			return _baseText;//span.text;
 		}
 		
+		public function get seperatorLength():int
+		{
+			return getSeparator().length;
+		}
+		
 //		public function get rawText() : String
 //		{
 //			return _baseText;
@@ -237,6 +246,16 @@ package flashx.textLayout.elements
 		override protected function get abstract() : Boolean
 		{
 			return false;
+		}
+		
+		override public function set paragraphStartIndent( value:* ):void
+		{
+			p.paragraphStartIndent = value;
+			this.text = this.text;
+		}
+		override public function get paragraphStartIndent():*
+		{
+			return p.paragraphStartIndent;
 		}
 	}
 }

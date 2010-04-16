@@ -11,6 +11,7 @@ package flashx.textLayout.edit.helpers
 	import flashx.textLayout.elements.FlowGroupElement;
 	import flashx.textLayout.elements.ListElement;
 	import flashx.textLayout.elements.ParagraphElement;
+	import flashx.textLayout.elements.SpanElement;
 	import flashx.textLayout.elements.TextFlow;
 
 	/**
@@ -66,6 +67,15 @@ package flashx.textLayout.edit.helpers
 		public static function getSelectedLists(tf:TextFlow, recurse:Boolean = true):Array 
 		{
 			return getSelectedElements(tf, null, [ListElement], recurse);
+		}
+		
+		/**
+		 * Returns an Array containing all ListElements that are at least 
+		 * partially contained within the TextFlow's current selection state.
+		 */
+		public static function getSelectedSpans(tf:TextFlow, recurse:Boolean = true):Array 
+		{
+			return getSelectedElements(tf, null, [SpanElement], recurse);
 		}
 		
 		/**
