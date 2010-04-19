@@ -191,5 +191,48 @@ package flashx.textLayout.utils
 			delete tag.@fontSize;
 			delete tag.@textAlign;
 		}
+		
+		static public function assignAttributesAsStyleFromTag( tag:XML, element:XML ):void
+		{
+			var fontFamily:String = tag.@fontFamily;
+			var fontWeight:String = tag.@fontWeight;
+			var fontStyle:String = tag.@fontStyle;
+			var textDecoration:String = tag.@textDecoration;
+			var color:String = tag.@color;
+			var fontSize:Number = Number( String( tag.@fontSize ).replace( "px", "" ) );
+			var textAlign:String = tag.@textAlign;
+			var letterSpacing:Number = Number( tag.@letterspacing );
+			var kerning:Number = Number( tag.@kerning );
+			
+			var styles:Array = [];
+			if( isValidStyleString( fontFamily ) )
+				styles.push( "font-family:" + fontFamily );
+			if( isValidStyleString( fontWeight ) )
+				styles.push( "font-weight:" + fontWeight );
+			if( isValidStyleString( fontStyle ) )
+				styles.push( "font-style:" + fontStyle );
+			if( isValidStyleString( textDecoration ) )
+				styles.push( "text-decoration:" + textDecoration );
+			if( isValidStyleString( color ) )
+				styles.push( "color:" + color );
+			if( isValidFontSize( fontSize ) )
+				styles.push( "font-size:" + fontSize + "px" );
+			if( isValidStyleString( textAlign ) )
+				styles.push( "text-align:" + textAlign );
+			if( isValidStyleNumber( letterSpacing ) )
+				styles.push( "letterspacing: " + letterSpacing );
+			if( isValidStyleNumber( kerning ) )
+				styles.push( "kerning: " + kerning );
+			
+			if( styles.length > 0 )
+			{
+				var style:String = styles.join(StyleAttributeUtil.STYLE_DELIMITER);
+				if( isValidStyleString( tag.@style ) )
+				{
+					style = tag.@style + StyleAttributeUtil.STYLE_DELIMITER + style;
+				}
+				element.@style = style;
+			}
+		}
 	}
 }

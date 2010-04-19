@@ -281,7 +281,7 @@ package flashx.textLayout.container.table
 			// TODO: Apply format from Style of Table.
 			var config:IConfiguration = getDefaultConfiguration();
 			// Create textflow and import data as HTML.
-			determineCellSize( _data.mxmlChildren, toWidth, notify );
+			if( _data.mxmlChildren ) determineCellSize( _data.mxmlChildren, toWidth, notify );
 		}
 		
 		/**
