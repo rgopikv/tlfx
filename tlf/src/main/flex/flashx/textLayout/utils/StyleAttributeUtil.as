@@ -1,32 +1,59 @@
 package flashx.textLayout.utils
 {
+	import flash.utils.describeType;
 	import flash.utils.getQualifiedClassName;
 	
+	import flashx.textLayout.elements.DivElement;
 	import flashx.textLayout.elements.FlowElement;
 	import flashx.textLayout.elements.FlowGroupElement;
 	import flashx.textLayout.elements.FlowValueHolder;
+	import flashx.textLayout.elements.LinkElement;
+	import flashx.textLayout.elements.ParagraphElement;
+	import flashx.textLayout.elements.SpanElement;
+	import flashx.textLayout.elements.TextFlow;
+	import flashx.textLayout.formats.ITextLayoutFormat;
 	import flashx.textLayout.formats.TextLayoutFormat;
 	import flashx.textLayout.tlf_internal;
 
+	/**
+	 * StyleAttributeUtil is a utility class to work with style attribute on HTML fragments. 
+	 * @author toddanderson
+	 * 
+	 */
 	public class StyleAttributeUtil
 	{
 		public static const DASH:String = "-";
 		public static const STYLE_DELIMITER:String = ";";
 		public static const STYLE_PROPERTY_DELIMITER:String = ":";
 		
-		static protected function isValidStyleString( value:String ):Boolean
+		/**
+		 * Determines the validity of a style property value. 
+		 * @param value String
+		 * @return Boolean
+		 */
+		static public function isValidStyleString( value:String ):Boolean
 		{
-			return value != null && value != "" && value != "undefined";
+			return value != null && value != "" && value != "undefined" && value.length > 0;
 		}
 		
-		static protected function isValidStyleNumber( value:Number ):Boolean
+		/**
+		 * Determines the validity of a style proerty value as a Number. 
+		 * @param value String
+		 * @return Boolean
+		 */
+		static public function isValidStyleNumber( value:String ):Boolean
 		{
-			return !isNaN(value);
+			return value.length > 0 && !isNaN(Number(value));
 		}
 		
-		static protected function isValidFontSize( value:Number ):Boolean
+		/**
+		 * Determines the validity of a style property as a valid font size. 
+		 * @param value String
+		 * @return Boolean
+		 */
+		static public function isValidFontSize( value:String ):Boolean
 		{
-			return !isNaN(value) && value != 0;
+			return StyleAttributeUtil.isValidStyleNumber(value) && Number(value) != 0;
 		}
 			
 		/**
@@ -47,61 +74,81 @@ package flashx.textLayout.utils
 			return value;
 		}
 		
+		/**
+		 * Turns camelCap into dashed properties. 
+		 * @param value String
+		 * @return String
+		 */
 		public static function dasherize( value:String ):String
 		{
-			var match:* = value.match( /[A-Z]/ig );
+			var match:Array = value.match( /[A-Z]/g );
+			var parts:Array = [];
+			var index:int = 0;
+			while( match.length > 0 )
+			{
+				var end:int = value.indexOf(match.shift(), index);
+				parts.push( value.substring( index, end ) );
+				index = end;
+			}
+			parts.push( value.substring( index, value.length ) );
+			if( parts.length > 0 ) value = parts.join(StyleAttributeUtil.DASH);
+			value = value.toLowerCase();
 			return value;
 		}
 		
+		/**
+		 * Strips pre and post white spaces from value. 
+		 * @param value String
+		 * @return String
+		 */
+		static public function stripWhitespaces( value:String ):String
+		{
+			var char:String = value.charAt(0);
+			while( char == " " )
+			{
+				value = value.substr( 1, value.length );
+				char = value.charAt( 0 );
+			}
+			char = value.charAt(value.length - 1);
+			while( char == " " )
+			{
+				value = value.substr( 0, value.length - 1 );
+				char = value.charAt(value.length - 1);
+			}
+			return value;
+		}
+		
+		/**
+		 * Parses a style property into a generic key-value object. 
+		 * @param style String
+		 * @return Object
+		 */
 		public static function parseStyles( style:String ):Object
 		{
 			var styleObj:Object = {};
-			var styles:Array = style.split(";");
+			var styles:Array = style.split(StyleAttributeUtil.STYLE_DELIMITER);
 			var i:int;
 			var keyValue:Array;
 			for( i = 0; i < styles.length; i++ )
 			{
-				keyValue = styles[i].split( ":" );
-				styleObj[keyValue[0]] = keyValue[1];
+				if( styles[i].indexOf(StyleAttributeUtil.STYLE_PROPERTY_DELIMITER) != -1 )
+				{
+					keyValue = styles[i].split( ":" );
+					styleObj[keyValue[0]] = keyValue[1];
+				}
 			}
 			return styleObj;
 		}
 		
-		public static function assignFormatFromStyles( tag:XML, element:FlowElement ):void
+		/**
+		 * Does a quick and easy assembly of a style property with proper character formats. 
+		 * @param name String
+		 * @param value *
+		 * @return String
+		 */
+		public static function assembleStyleProperty( name:String, value:* ):String
 		{
-			var format:TextLayoutFormat = new TextLayoutFormat( element.format );
-			var style:String = tag.@style;
-			if( style.length > 0 )
-			{
-				var styles:Object = StyleAttributeUtil.parseStyles( style );
-				var property:String;
-				for( property in styles )
-				{
-					try
-					{
-						format[StyleAttributeUtil.camelize(property)] = styles[property];
-					}
-					catch( e:Error )
-					{
-						trace( "[StyleAttributeUtil] :: Syle property not supported: " + property );
-					}
-				}
-			}
-			element.format = format;
-		}
-		
-		public static function applyUserStyles( element:FlowElement ):void
-		{
-			if( element is FlowGroupElement )
-			{
-				var children:Array = ( element as FlowGroupElement ).mxmlChildren;
-				var i:int;
-				for( i = 0; i < children.length; i++ )
-				{
-					applyUserStyles( children[i] as FlowElement );
-				}
-			}
-			if( element.format ) TextLayoutFormatUtils.applyUserStyles( element );
+			return StyleAttributeUtil.dasherize(name) + StyleAttributeUtil.STYLE_PROPERTY_DELIMITER + value + StyleAttributeUtil.STYLE_DELIMITER;
 		}
 		
 		/**
@@ -154,7 +201,7 @@ package flashx.textLayout.utils
 			var fontStyle:String = tag.@fontStyle;
 			var textDecoration:String = tag.@textDecoration;
 			var color:String = tag.@color;
-			var fontSize:Number = Number( String( tag.@fontSize ).replace( "px", "" ) );
+			var fontSize:String = String( tag.@fontSize ).replace( "px", "" );
 			var textAlign:String = tag.@textAlign;
 			
 			var styles:Array = [];
@@ -190,49 +237,6 @@ package flashx.textLayout.utils
 			delete tag.@color;
 			delete tag.@fontSize;
 			delete tag.@textAlign;
-		}
-		
-		static public function assignAttributesAsStyleFromTag( tag:XML, element:XML ):void
-		{
-			var fontFamily:String = tag.@fontFamily;
-			var fontWeight:String = tag.@fontWeight;
-			var fontStyle:String = tag.@fontStyle;
-			var textDecoration:String = tag.@textDecoration;
-			var color:String = tag.@color;
-			var fontSize:Number = Number( String( tag.@fontSize ).replace( "px", "" ) );
-			var textAlign:String = tag.@textAlign;
-			var letterSpacing:Number = Number( tag.@letterspacing );
-			var kerning:Number = Number( tag.@kerning );
-			
-			var styles:Array = [];
-			if( isValidStyleString( fontFamily ) )
-				styles.push( "font-family:" + fontFamily );
-			if( isValidStyleString( fontWeight ) )
-				styles.push( "font-weight:" + fontWeight );
-			if( isValidStyleString( fontStyle ) )
-				styles.push( "font-style:" + fontStyle );
-			if( isValidStyleString( textDecoration ) )
-				styles.push( "text-decoration:" + textDecoration );
-			if( isValidStyleString( color ) )
-				styles.push( "color:" + color );
-			if( isValidFontSize( fontSize ) )
-				styles.push( "font-size:" + fontSize + "px" );
-			if( isValidStyleString( textAlign ) )
-				styles.push( "text-align:" + textAlign );
-			if( isValidStyleNumber( letterSpacing ) )
-				styles.push( "letterspacing: " + letterSpacing );
-			if( isValidStyleNumber( kerning ) )
-				styles.push( "kerning: " + kerning );
-			
-			if( styles.length > 0 )
-			{
-				var style:String = styles.join(StyleAttributeUtil.STYLE_DELIMITER);
-				if( isValidStyleString( tag.@style ) )
-				{
-					style = tag.@style + StyleAttributeUtil.STYLE_DELIMITER + style;
-				}
-				element.@style = style;
-			}
 		}
 	}
 }

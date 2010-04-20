@@ -62,22 +62,5 @@ package flashx.textLayout.utils
 				}
 			}
 		}
-		
-		static public function stripWhitespaces( value:String ):String
-		{
-			var char:String = value.charAt(0);
-			while( char == " " )
-			{
-				value = value.substr( 1, value.length );
-				char = value.charAt( 0 );
-			}
-			char = value.charAt(value.length - 1);
-			while( char == " " )
-			{
-				value = value.substr( 0, value.length - 1 );
-				char = value.charAt(value.length - 1);
-			}
-			return value;
-		}
 	}
 }
