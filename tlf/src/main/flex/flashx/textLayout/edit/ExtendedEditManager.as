@@ -214,37 +214,7 @@ package flashx.textLayout.edit
 						else
 						{
 							// [TA] :: 03/16/10 -> entering a line character would not properly perform a Split paragraph operation.
-//							super.keyDownHandler( event );
-							
-							if ( startElement is FlowGroupElement )
-							{
-								( startElement as FlowGroupElement ).addChildAt( startElement.parent.getChildIndex(startElement)+1, new BreakElement() );
-							}
-							else
-							{
-								if ( startElement is SpanElement )
-								{
-									var span1:SpanElement = startElement as SpanElement;
-									var span2:SpanElement = new SpanElement();
-									
-									var index:int = span1.getParagraph().getChildIndex( span1 );
-									
-									var span1Start:int = this.absoluteStart - span1.getElementRelativeStart( this.textFlow );
-									var span2Text:String = span1.text.substring( span1Start, span1.textLength );
-									span1.text = span1.text.substring( 0, span1Start );
-									
-									span2.text = span2Text;
-									
-									span1.getParagraph().addChildAt( index+1, new BreakElement() );
-									span1.getParagraph().addChildAt( index+2, span2 );
-									
-									this.selectRange( this.absoluteStart+1, this.absoluteStart+1 );
-								}
-								else
-								{
-									trace('not a span element!');
-								}
-							}
+							super.keyDownHandler( event );
 						}
 					}
 					break;
