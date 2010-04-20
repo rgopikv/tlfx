@@ -258,6 +258,7 @@ package flashx.textLayout.elements
 						( getChildAt(i) as ListItemElement ).mode = _mode;
 					}
 				}
+				updateList();
 				updateFlow();
 			}
 			else
@@ -290,7 +291,7 @@ package flashx.textLayout.elements
 			var group:ListGroup = _groups;
 			group.startIndex = 0;
 			group.indent = 0;
-			group.listMode = baseMode;
+			group.listMode = this.mode;//baseMode;
 			
 			var previousElement:ListItemElement;
 
