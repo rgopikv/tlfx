@@ -50,7 +50,7 @@
             </dependency>
         </dependencies>    
 
-        <version>3.6-SNAPSHOT</version>
+        <version>3.6</version>
         <extensions>true</extensions>
         <configuration>
           <configFile>src/resources/myapp-config.xml</configFile>
