@@ -409,6 +409,12 @@ package flashx.textLayout.elements
 				} while (!found && !child.textLength);
 				
 			}
+			// [TA] 04-21-2010 - Add check if looking for the last index within the group for a child.
+			//						This gets over looked within the findChildindexAtPosition() method.
+			else if( relativePosition == this.getAbsoluteStart() + textLength )
+			{
+				return findLeaf( relativePosition - 1 );
+			}
 			return found;
 		}
 		
