@@ -6,7 +6,6 @@ package flashx.textLayout.elements.table
 	import flashx.textLayout.elements.FlowGroupElement;
 	import flashx.textLayout.elements.ParagraphElement;
 	import flashx.textLayout.elements.SpanElement;
-	import flashx.textLayout.format.IStyle;
 	import flashx.textLayout.model.attribute.IAttribute;
 	import flashx.textLayout.model.attribute.TableRowAttribute;
 	import flashx.textLayout.tlf_internal;
@@ -16,7 +15,6 @@ package flashx.textLayout.elements.table
 	public class TableRowElement extends ContainerFormattedElement
 	{
 		public var attributes:IAttribute;
-		public var styles:IStyle;
 		
 		// Flags for row pertaining to <thead />, <tfoot /> and <tbody />
 		public var isHeader:Boolean;

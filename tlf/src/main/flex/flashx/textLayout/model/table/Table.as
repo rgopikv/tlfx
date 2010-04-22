@@ -30,7 +30,6 @@ package flashx.textLayout.model.table
 		{
 			super();
 			this.styles = style;
-			
 		}
 		
 		/**

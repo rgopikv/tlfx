@@ -8,7 +8,6 @@ package flashx.textLayout.elements.table
 	import flashx.textLayout.elements.SpanElement;
 	import flashx.textLayout.elements.SubParagraphGroupElement;
 	import flashx.textLayout.elements.TextFlow;
-	import flashx.textLayout.format.IStyle;
 	import flashx.textLayout.model.attribute.IAttribute;
 	import flashx.textLayout.model.attribute.TableDataAttribute;
 	import flashx.textLayout.tlf_internal;
@@ -17,7 +16,6 @@ package flashx.textLayout.elements.table
 	public class TableDataElement extends ContainerFormattedElement
 	{
 		public var attributes:IAttribute;
-		public var styles:IStyle;
 		
 		public function TableDataElement()
 		{
