@@ -14,7 +14,9 @@ package flashx.textLayout.edit
 	import flashx.textLayout.conversion.ConversionType;
 	import flashx.textLayout.conversion.TextConverter;
 	import flashx.textLayout.converter.IHTMLImporter;
+	import flashx.textLayout.edit.helpers.ListHelper;
 	import flashx.textLayout.edit.helpers.ListItemElementEnterHelper;
+	import flashx.textLayout.edit.helpers.SelectionHelper;
 	import flashx.textLayout.elements.BreakElement;
 	import flashx.textLayout.elements.DivElement;
 	import flashx.textLayout.elements.FlowElement;
@@ -82,6 +84,8 @@ package flashx.textLayout.edit
 			var startElement:FlowLeafElement = this.textFlow.findLeaf( this.absoluteStart );
 			var endElement:FlowLeafElement = this.textFlow.findLeaf( this.absoluteEnd );
 			
+			var i:int;
+			
 			switch ( event.keyCode )
 			{
 				case Keyboard.TAB:
@@ -89,53 +93,109 @@ package flashx.textLayout.edit
 					var item:ListItemElement = startElement.getParentByType( ListItemElement ) as ListItemElement;
 					if ( item )
 					{
-//						var list:ListElement = item.parent as ListElement;
-//						var mode:String = item.mode;
+						var selectedItems:Array = ListHelper.getSelectedListItemElements( this.textFlow );
+						
+						var tabList:ListElement = item.parent as ListElement;
+						var mode:String = item.mode;
 						var indent:int = int( item.paragraphStartIndent );
-//						
-//						var itemCopy:ListItemElement;
+						
+						var parentListIndex:int;
+						
+						var selectedItem:ListItemElement;
+						var itemParent:ListElement;
 						
 						//	Apply tabbing
 						if ( event.shiftKey )
 						{
 							indent = Math.max( indent - 24, 0 );
-//							
-//							if ( list.getParentByType( ListItemElement ) )
-//							{
-//								var parentItem:ListItemElement = list.getParentByType( ListItemElement ) as ListItemElement;
-//								
-//								var textCopy:String = item.text;
-//								
-//								parentItem.removeChild( list );
-//								
-//								parentItem.mode = mode;
-//								parentItem.paragraphStartIndent = indent;
-//								parentItem.text = textCopy;
-//							}
-//							else
-//								item.paragraphStartIndent = indent;
+							
+							for ( i = 0; i < selectedItems.length; i++ )
+							{
+								//	A	<----
+								//	->	B	|
+								//		->	C
+								
+								selectedItem = selectedItems[i] as ListItemElement;
+								itemParent = selectedItem.parent as ListElement;
+								var itemParent2:FlowGroupElement = itemParent.parent;
+								var itemParent3:FlowGroupElement = itemParent2.parent;
+								
+								if ( itemParent2 is ListElement )
+								{
+									//	Nested
+									if ( itemParent3 )
+									{
+										if ( itemParent3 is ListElement )
+										{
+											//	Nested twice or more
+											parentListIndex = ( itemParent3 as ListElement ).getChildIndex( itemParent2 );
+											itemParent2.removeChild( itemParent );
+											itemParent3.addChildAt( parentListIndex+1, itemParent );
+											itemParent.paragraphStartIndent = indent;
+										}
+										else
+										{
+											//	Nested only once
+											parentListIndex = ( itemParent2 as ListElement ).parent.getChildIndex( itemParent2 );
+											itemParent2.removeChild( itemParent );
+											( itemParent2 as ListElement ).parent.addChildAt( parentListIndex+1, itemParent );
+											itemParent.paragraphStartIndent = indent;
+										}
+									}
+									else
+									{
+										//	Nested only once
+										parentListIndex = ( itemParent2 as ListElement ).parent.getChildIndex( itemParent2 );
+										itemParent2.removeChild( itemParent );
+										( itemParent2 as ListElement ).parent.addChildAt( parentListIndex+1, itemParent );
+										itemParent.paragraphStartIndent = indent;
+									}
+								}
+								else
+								{
+									//	Not nested
+								}
+							}
 						}
 						else
 						{
 							indent = Math.min( indent + 24, 240 );
-//							
-//							//	Clone item
-//							itemCopy = new ListItemElement();
-//							itemCopy.mode = mode;
-//							itemCopy.paragraphStartIndent = indent;
-//							itemCopy.text = item.text;
-//							
-//							//	Replace current item with new list
-//							var newList:ListElement = new ListElement();
-//							newList.mode = mode;
-//							newList.addChild( itemCopy );
-//							
-//							item.text = '';
-//							
-//							item.addChild( newList );
+							
+							var prevList:ListElement;
+							var newList:ListElement;
+							
+							for ( i = 0; i < selectedItems.length; i++ )
+							{
+								selectedItem = selectedItems[i] as ListItemElement;
+								itemParent = selectedItem.parent as ListElement;
+								
+								//	Figure out if current parent is the same as last parent
+								
+								var clonedItem:ListItemElement = new ListItemElement();
+								clonedItem.mode = selectedItem.mode;
+								clonedItem.text = selectedItem.text;
+								clonedItem.paragraphStartIndent = indent;
+								
+								if ( prevList != itemParent )
+								{
+									newList = new ListElement();
+									newList.mode = itemParent.mode;
+									newList.paragraphStartIndent = indent;
+									
+									var selectedItemIndex:int = itemParent.getChildIndex( selectedItem );
+									if ( selectedItemIndex < itemParent.numChildren/2 )
+										itemParent.addChildAt( selectedItemIndex, newList );
+									else
+										itemParent.addChildAt( selectedItemIndex+1, newList );
+									
+									itemParent.removeChild( selectedItem );
+								}
+								
+								newList.addChild( clonedItem );
+							}
 						}
 						
-						item.paragraphStartIndent = indent;
+						//item.paragraphStartIndent = indent;
 					}
 					else
 					{
@@ -154,37 +214,7 @@ package flashx.textLayout.edit
 						else
 						{
 							// [TA] :: 03/16/10 -> entering a line character would not properly perform a Split paragraph operation.
-//							super.keyDownHandler( event );
-							
-							if ( startElement is FlowGroupElement )
-							{
-								( startElement as FlowGroupElement ).addChildAt( startElement.parent.getChildIndex(startElement)+1, new BreakElement() );
-							}
-							else
-							{
-								if ( startElement is SpanElement )
-								{
-									var span1:SpanElement = startElement as SpanElement;
-									var span2:SpanElement = new SpanElement();
-									
-									var index:int = span1.getParagraph().getChildIndex( span1 );
-									
-									var span1Start:int = this.absoluteStart - span1.getElementRelativeStart( this.textFlow );
-									var span2Text:String = span1.text.substring( span1Start, span1.textLength );
-									span1.text = span1.text.substring( 0, span1Start );
-									
-									span2.text = span2Text;
-									
-									span1.getParagraph().addChildAt( index+1, new BreakElement() );
-									span1.getParagraph().addChildAt( index+2, span2 );
-									
-									this.selectRange( this.absoluteStart+1, this.absoluteStart+1 );
-								}
-								else
-								{
-									trace('not a span element!');
-								}
-							}
+							super.keyDownHandler( event );
 						}
 					}
 					break;
@@ -246,7 +276,6 @@ package flashx.textLayout.edit
 							
 							var deleteState:SelectionState;
 							var startPos:int = list.getChildIndex( startItem);
-							var i:int;
 							
 							if ( this.isRangeSelection() )
 							{

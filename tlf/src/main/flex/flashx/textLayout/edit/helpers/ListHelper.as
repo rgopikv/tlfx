@@ -101,8 +101,23 @@ package flashx.textLayout.edit.helpers
 		public static function isEveryItemInListCompletelySelected(tf:TextFlow, list:ListElement):Boolean 
 		{			
 			var selection:SelectionState = IEditManager(tf.interactionManager).getSelectionState();
+			var realStart:int;
+			var realEnd:int;
+			
+			var i:int = list.numChildren;
+			while (--i > -1)
+			{
+				var item:ListItemElement = list.getChildAt(i) as ListItemElement;
+				if ( item.text != '' )
+				{
+					realStart = item.getAbsoluteStart();
+					if ( !realEnd )
+						realEnd = realStart + item.span.textLength;
 						
-			return (selection.absoluteStart < list.getAbsoluteStart()) && (selection.absoluteEnd > list.getAbsoluteStart() + list.textLength);
+				}
+			}
+						
+			return (selection.absoluteStart <= realStart ) && ( selection.absoluteEnd >= realEnd );//list.getAbsoluteStart()) && (selection.absoluteEnd > list.getAbsoluteStart() + list.textLength);
 		}
 		
 		public static function isListItemCompletelySelected(selection:SelectionState, listItem:ListItemElement):Boolean 

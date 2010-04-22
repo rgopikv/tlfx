@@ -189,6 +189,8 @@ package flashx.textLayout.operations
 					--i;
 				}
 			}
+
+//			textFlow.interactionManager.notifyInsertOrDelete( absoluteStart, absoluteEnd - absoluteStart );
 			textFlow.flowComposer.updateAllControllers();
 		}
 		

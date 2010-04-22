@@ -8,13 +8,33 @@ package flashx.textLayout.format
 	import flashx.textLayout.model.style.InlineStyles;
 	import flashx.textLayout.utils.StyleAttributeUtil;
 
+	/**
+	 * ImportStyleHelper is a helper class for applying inline styles to an elements format. 
+	 * @author toddanderson
+	 */
 	public class ImportStyleHelper
 	{
 		// TODO: Use text flow to traverse for stylesheets?
 		// TODO: Store stylesheets here?
 		
-		public function ImportStyleHelper() {}
+		protected var _pendingStyledElements:Vector.<PendingStyleElement>;
 		
+		/**
+		 * Constrcutor.
+		 */
+		public function ImportStyleHelper() 
+		{
+			_pendingStyledElements = new Vector.<PendingStyleElement>();
+		}
+		
+		/**
+		 * @private
+		 * 
+		 * Determines the validitiy of the style and its relation to TLF formatting. Returns the correct value.
+		 * @param property String
+		 * @param value *
+		 * @return *
+		 */
 		protected function normalizeFormatValue( property:String, value:* ):*
 		{
 			switch( property )
@@ -39,9 +59,16 @@ package flashx.textLayout.format
 			return value;
 		}
 		
+		/**
+		 * @private
+		 * 
+		 * Applies the style property to the format if defined on the format class.
+		 * @param format ITextLAyoutFormat
+		 * @param property String
+		 * @param value *
+		 */
 		protected function setStylePropertyValue( format:ITextLayoutFormat, property:String, value:* ):void
 		{
-			//format.fontSize  * 72 / 96
 			try
 			{
 				format[property] = normalizeFormatValue( property, value );
@@ -52,6 +79,13 @@ package flashx.textLayout.format
 			}
 		}
 		
+		/**
+		 * @private
+		 * 
+		 * Applies the inline style attirbute to the flow element. 
+		 * @param styleAttribute String The full inline @style attribute.
+		 * @param element FlowElement
+		 */
 		protected function applyStylesToElement( styleAttribute:String, element:FlowElement ):void
 		{
 			// TODO: Do lookup on style sheets and apply styles to element.
@@ -68,13 +102,53 @@ package flashx.textLayout.format
 			}
 		}
 		
+		/**
+		 * Marks element as pending style application based on inline @style attirbute from node XML. 
+		 * @param node XML
+		 * @param element FlowElement
+		 */
 		public function assignInlineStyle( node:XML, element:FlowElement ):void
 		{
 			var userStyles:Object = ( element.userStyles ) ? element.userStyles : {};
 			userStyles.inline = new InlineStyles( node );
 			element.userStyles = userStyles;
-			
-			applyStylesToElement( node.@style.toString(), element );
+			// Push to queue for pending.
+			_pendingStyledElements.push( new PendingStyleElement( node, element ) );
+		}
+		
+		/**
+		 * Cycles through pending elements that need to styles applied and updates their formats.
+		 */
+		public function apply():void
+		{
+			var styleElement:PendingStyleElement;
+			while( _pendingStyledElements.length > 0 )
+			{
+				styleElement = _pendingStyledElements.shift();
+				applyStylesToElement( styleElement.node.@style.toString(), styleElement.element );
+			}
 		}
 	}
+}
+
+import flashx.textLayout.elements.FlowElement;
+/**
+ * PendingStyleElement is an internal model to mark elements pending style application based on inline @style attribute. 
+ * @author toddanderson
+ */
+class PendingStyleElement
+{
+	public var node:XML;
+	public var element:FlowElement;
+	
+	/**
+	 * Constrctor. 
+	 * @param node XML
+	 * @param element FlowElement
+	 */
+	public function PendingStyleElement( node:XML, element:FlowElement )
+	{
+		this.node = node;
+		this.element = element;
+}
 }

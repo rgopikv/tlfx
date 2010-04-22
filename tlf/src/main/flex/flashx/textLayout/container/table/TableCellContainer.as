@@ -53,6 +53,7 @@ package flashx.textLayout.container.table
 		protected var background:Sprite;
 		protected var border:Shape;
 		protected var targetDisplay:TableCellDisplay;
+		protected var _defaultConfiguration:Configuration;
 		protected var _controller:ContainerController;
 		
 		protected var _width:Number = 0;
@@ -96,10 +97,11 @@ package flashx.textLayout.container.table
 		 *  
 		 * @param data The HTML table data to be presented.
 		 */
-		public function TableCellContainer( data:TableDataElement, tableAttributes:IAttribute, htmlImporter:IHTMLImporter )
+		public function TableCellContainer( data:TableDataElement, tableAttributes:IAttribute, defaultConfiguration:Configuration, htmlImporter:IHTMLImporter )
 		{
 			_data = data;
 			_tableAttributes = tableAttributes;
+			_defaultConfiguration = defaultConfiguration;
 			_htmlConverter = htmlImporter;
 			
 			// Create text flow.
@@ -324,7 +326,6 @@ package flashx.textLayout.container.table
 			{
 				element = elements.shift() as FlowElement;
 				element.format = ( element.format ) ? TextLayoutFormatUtils.mergeFormats( config.textFlowInitialFormat, element.format ) : config.textFlowInitialFormat;
-//				StyleAttributeUtil.applyUserStyles( element );
 				element.uid = _uid;
 				// Add to held list of elements.
 				elementList.push( element );
@@ -576,16 +577,7 @@ package flashx.textLayout.container.table
 		 */
 		public function getDefaultConfiguration():IConfiguration
 		{
-			var format:TextLayoutFormat = new TextLayoutFormat();
-			// TODO: Pull font treatments form outside source.
-			format.fontFamily = "Arial";
-			format.fontSize = 12;
-			format.whiteSpaceCollapse = "preserve";
-			_data.attributes.applyAttributesToFormat( format );
-			
-			var config:Configuration = new Configuration();
-			config.textFlowInitialFormat = format;
-			return config;
+			return _defaultConfiguration;
 		}
 		
 		/**

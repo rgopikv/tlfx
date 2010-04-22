@@ -89,38 +89,46 @@ package flashx.textLayout.edit.helpers
 									//	Multiple lists selected
 									if ( startList != endList )
 									{
-										//	TODO:	Fix
-										//		ListElements can be held by things OTHER than the TextFlow, meaning that the following will not work
-										
-										//	Get indexes of lists in order to determine how many lists should be edited
-										var startListIndex:int = tf.getChildIndex( startList );
-										var endListIndex:int = tf.getChildIndex( endList );
-										
-										var j:int = 0;
-										for ( i = startListIndex; i <= endListIndex; i++ )
-										{
-											//	If same as start, start at first selected item
-											if ( i == startListIndex )
-											{
-												for ( j = startIndex; j < startList.numListElements; j++ )
-												{
-													startList.removeChildAt(j);
-												}
-												//ListItemElementEnterHelper.deleteItems( startList, startIndex, (startList.numChildren-1)-startIndex );
-											}
-											//	If same as end, end at last selected item
-											else if ( i == endListIndex )
-											{
-												for ( j = 0; j <= endIndex; j++ )
-													endList.removeChildAt(j);
-												//ListItemElementEnterHelper.deleteItems( endList, 0, endIndex );
-											}
-											//	Delete all others
-											else
-											{
-												tf.removeChild( tf.getChildAt(i) );
-											}
-										}
+										//	No Alert
+										return;
+//										//	TODO:	Fix
+//										//		ListElements can be held by things OTHER than the TextFlow, meaning that the following will not work
+//										
+//										try {
+//											//	Get indexes of lists in order to determine how many lists should be edited
+//											var startListIndex:int = tf.getChildIndex( startList );
+//											var endListIndex:int = tf.getChildIndex( endList );
+//											
+//											var j:int = 0;
+//											for ( i = startListIndex; i <= endListIndex; i++ )
+//											{
+//												//	If same as start, start at first selected item
+//												if ( i == startListIndex )
+//												{
+//													for ( j = startIndex; j < startList.numListElements; j++ )
+//													{
+//														startList.removeChildAt(j);
+//													}
+//													//ListItemElementEnterHelper.deleteItems( startList, startIndex, (startList.numChildren-1)-startIndex );
+//												}
+//												//	If same as end, end at last selected item
+//												else if ( i == endListIndex )
+//												{
+//													for ( j = 0; j <= endIndex; j++ )
+//														endList.removeChildAt(j);
+//													//ListItemElementEnterHelper.deleteItems( endList, 0, endIndex );
+//												}
+//												//	Delete all others
+//												else
+//												{
+//													tf.removeChild( tf.getChildAt(i) );
+//												}
+//											}
+//										}
+//										catch ( e:* )
+//										{
+//											trace('Couldn\'t delete multiple lists');
+//										}
 									}
 									//	Single list selected
 									else
