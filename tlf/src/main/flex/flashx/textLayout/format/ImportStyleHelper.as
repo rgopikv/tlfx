@@ -33,9 +33,9 @@ package flashx.textLayout.format
 		 * Determines the validitiy of the style and its relation to TLF formatting. Returns the correct value.
 		 * @param property String
 		 * @param value *
-		 * @return *
+		 * @return StyleProperty
 		 */
-		protected function normalizeFormatValue( property:String, value:* ):*
+		protected function normalizeFormatValue( property:String, value:* ):StyleProperty
 		{
 			switch( property )
 			{
@@ -55,8 +55,14 @@ package flashx.textLayout.format
 					}	
 					value = Number(fontSizeValue);
 					break;
+				case "marginLeft":
+					property = "paragraphStartIndent";
+					break;
+				case "marginRight":
+					property = "paragraphEndIndent";
+					break;
 			}
-			return value;
+			return new StyleProperty( property, value );
 		}
 		
 		/**
@@ -71,7 +77,8 @@ package flashx.textLayout.format
 		{
 			try
 			{
-				format[property] = normalizeFormatValue( property, value );
+				var styleProperty:StyleProperty = normalizeFormatValue( property, value );
+				format[styleProperty.property] = styleProperty.value;
 			}
 			catch( e:Error )
 			{
@@ -132,6 +139,27 @@ package flashx.textLayout.format
 }
 
 import flashx.textLayout.elements.FlowElement;
+/**
+ * StyleProperty is an internal class model to represent a style on key/value pair. 
+ * @author toddanderson
+ */
+class StyleProperty
+{
+	public var property:String;
+	public var value:*;
+	
+	/**
+	 * Constructor. 
+	 * @param property String
+	 * @param value *
+	 */
+	public function StyleProperty( property:String, value:* )
+	{
+		this.property = property;
+		this.value = value;
+	}
+}
+
 /**
  * PendingStyleElement is an internal model to mark elements pending style application based on inline @style attribute. 
  * @author toddanderson

@@ -21,6 +21,7 @@ package flashx.textLayout.container
 	import flashx.textLayout.factory.TextFlowTextLineFactory;
 	import flashx.textLayout.formats.ITextLayoutFormat;
 	import flashx.textLayout.tlf_internal;
+	import flashx.textLayout.utils.TextLayoutFormatUtils;
 	
 	use namespace tlf_internal;
 	
@@ -235,23 +236,20 @@ package flashx.textLayout.container
 		{	
 			_previousHeight = ( isNaN(_actualHeight) ) ? compositionHeight : _actualHeight;
 			
-			var format:ITextLayoutFormat = _computedFormat;
-			var config:Configuration = new Configuration();
-			config.textFlowInitialFormat = format;
-			
 			while( _containerFlow.numChildren > 0 )
 			{
 				_containerFlow.removeChildAt( 0 );
 			}
-			_containerFlow.format = format;
 			
 			// Get monitored elements and add to internal text flow for TextLine creation.
 			var i:int = 0;
 			_processedElements = getMonitoredElements();
+			var element:FlowElement;
 			for( i = 0 ;i < _processedElements.length; i++ )
 			{
-				_processedElements[i].element.uid = _uid;
-				_containerFlow.addChild( _processedElements[i].element );
+				element = _processedElements[i].element;
+				element.uid = _uid;
+				_containerFlow.addChild( element );
 			}
 			
 			// Pump elements through creation factory to determine the size of this container.
