@@ -98,6 +98,7 @@
     <classEntry path="flashx.textLayout.elements.Configuration"/>
     <classEntry path="flashx.textLayout.elements.ContainerFormattedElement"/>
     <classEntry path="flashx.textLayout.elements.DivElement"/>
+    <classEntry path="flashx.textLayout.elements.ExtendedConfiguration"/>
     <classEntry path="flashx.textLayout.elements.ExtendedLinkElement"/>
     <classEntry path="flashx.textLayout.elements.FlowElement"/>
     <classEntry path="flashx.textLayout.elements.FlowGroupElement"/>
@@ -149,7 +150,9 @@
     <classEntry path="flashx.textLayout.factory.TextFlowTextLineFactory"/>
     <classEntry path="flashx.textLayout.factory.TextLineFactoryBase"/>
     <classEntry path="flashx.textLayout.factory.TruncationOptions"/>
+    <classEntry path="flashx.textLayout.format.ExportStyleHelper"/>
     <classEntry path="flashx.textLayout.format.IStyle"/>
+    <classEntry path="flashx.textLayout.format.ImportStyleHelper"/>
     <classEntry path="flashx.textLayout.format.TableStyle"/>
     <classEntry path="flashx.textLayout.formats.BackgroundColor"/>
     <classEntry path="flashx.textLayout.formats.BaselineOffset"/>
@@ -181,6 +184,7 @@
     <classEntry path="flashx.textLayout.model.attribute.TableDataAttribute"/>
     <classEntry path="flashx.textLayout.model.attribute.TableHeadingAttribute"/>
     <classEntry path="flashx.textLayout.model.attribute.TableRowAttribute"/>
+    <classEntry path="flashx.textLayout.model.style.InlineStyles"/>
     <classEntry path="flashx.textLayout.model.table.Table"/>
     <classEntry path="flashx.textLayout.model.table.TableBaseElement"/>
     <classEntry path="flashx.textLayout.model.table.TableColumn"/>

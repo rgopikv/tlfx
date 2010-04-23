@@ -9,18 +9,19 @@ package flashx.textLayout.utils
 
 	use namespace tlf_internal;
 	
+	/**
+	 * TextLayoutFormatUtils is a utility class to work with ITextLayoutFormat instances. 
+	 * @author toddanderson
+	 * 
+	 */
 	public class TextLayoutFormatUtils
 	{
-		static private function normalizeColorProperty( value:String ):Number
-		{
-			return Number( value );
-		}
-		
-		static private function normalizeFontSizeProperty( value:String ):Number
-		{
-			return Number( value );	
-		}
-		
+		/**
+		 * Overlays defined formatting property to target format. 
+		 * @param format ITextLayoutFormat The target format to overlay styles. 
+		 * @param overlayFormat ITextLayoutFormat The format from which to apply defined styles to the target format.
+		 * @return ITextLayoutFormat
+		 */
 		static public function mergeFormats( format:ITextLayoutFormat, overlayFormat:ITextLayoutFormat ):ITextLayoutFormat
 		{	
 			var property:String;
@@ -30,54 +31,6 @@ package flashx.textLayout.utils
 					format[property] = overlayFormat[property];
 			}
 			return format;
-		}
-		
-		static public function applyUserStyles( element:FlowElement ):void
-		{
-			var format:FlowValueHolder = element.format as FlowValueHolder;
-			if( format.userStyles == null ) return;
-			
-			var userStyles:String = format.userStyles.style;
-			var styleClass:String = format.userStyles.styleClass;
-			
-			var property:String;
-			var value:*;
-			var styles:Object = StyleAttributeUtil.parseStyles( userStyles );
-			for( property in styles )
-			{
-				property = StyleAttributeUtil.camelize( property );
-				value = styles[property];
-				if( property == "color" )
-					value = TextLayoutFormatUtils.normalizeColorProperty( value );
-				else if( property == "fontSize" )
-					value = TextLayoutFormatUtils.normalizeFontSizeProperty( value );
-				
-				try {
-					trace( "property: " + property );
-					element.format[property] = value;
-				}
-				catch( e:Error ) {
-					// property not on format.
-					trace( e.message );
-				}
-			}
-		}
-		
-		static public function stripWhitespaces( value:String ):String
-		{
-			var char:String = value.charAt(0);
-			while( char == " " )
-			{
-				value = value.substr( 1, value.length );
-				char = value.charAt( 0 );
-			}
-			char = value.charAt(value.length - 1);
-			while( char == " " )
-			{
-				value = value.substr( 0, value.length - 1 );
-				char = value.charAt(value.length - 1);
-			}
-			return value;
 		}
 	}
 }

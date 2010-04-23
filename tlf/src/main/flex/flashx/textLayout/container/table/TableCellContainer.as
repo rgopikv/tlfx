@@ -33,6 +33,7 @@ package flashx.textLayout.container.table
 	import flashx.textLayout.events.table.TableCellContainerEvent;
 	import flashx.textLayout.events.table.TableCellFocusEvent;
 	import flashx.textLayout.factory.TextFlowTextLineFactory;
+	import flashx.textLayout.formats.TextAlign;
 	import flashx.textLayout.formats.TextLayoutFormat;
 	import flashx.textLayout.model.attribute.IAttribute;
 	import flashx.textLayout.model.attribute.TableAttribute;
@@ -53,6 +54,7 @@ package flashx.textLayout.container.table
 		protected var background:Sprite;
 		protected var border:Shape;
 		protected var targetDisplay:TableCellDisplay;
+		protected var _defaultConfiguration:Configuration;
 		protected var _controller:ContainerController;
 		
 		protected var _width:Number = 0;
@@ -96,14 +98,16 @@ package flashx.textLayout.container.table
 		 *  
 		 * @param data The HTML table data to be presented.
 		 */
-		public function TableCellContainer( data:TableDataElement, tableAttributes:IAttribute, htmlImporter:IHTMLImporter )
+		public function TableCellContainer( data:TableDataElement, tableAttributes:IAttribute, defaultConfiguration:Configuration, htmlImporter:IHTMLImporter )
 		{
 			_data = data;
 			_tableAttributes = tableAttributes;
+			_defaultConfiguration = defaultConfiguration;
 			_htmlConverter = htmlImporter;
 			
 			// Create text flow.
 			_textFlow = new TextFlow( getDefaultConfiguration() );
+			_textFlow.color = 0xFF0000;
 			
 			// Precompute index lengths.
 			_rowLength = Math.max( ( _data.attributes as Object ).rowspan - 1, 0 );
@@ -123,10 +127,11 @@ package flashx.textLayout.container.table
 			
 			// Set default values.
 			var attributes:Object = _data.attributes;
+			var shift:Number = getUnifiedPadding();
 			_width = getDefinedWidth();
 			_height = getDefinedHeight();
-			_actualWidth = _width - getUnifiedPadding();
-			_actualHeight = _height - getUnifiedPadding();
+			_actualWidth = Math.max( shift, _width - shift );
+			_actualHeight = Math.max( shift, _height - shift );
 			
 			// Set Unique ID associated with this cell container.
 			_uid = TableCellContainer.UID_PREFIX + TableCellContainer.ID;
@@ -313,18 +318,14 @@ package flashx.textLayout.container.table
 			var tempNumLines:int = _numLines;
 			_numLines = 0;
 			
-			// Create TextFlow to be passed to factory.
-			var config:IConfiguration = ( _textFlow != null ) ? _textFlow.configuration : getDefaultConfiguration();
-			
 			cleanTextFlow();
 			var element:FlowElement;
 			var elementList:Array = []; // FlowElement[]
 			// Loop through elements and pop from Array and place on TextFlow instance.
 			while( elements.length > 0 )
 			{
-				element = elements.shift() as FlowElement;
-				element.format = ( element.format ) ? TextLayoutFormatUtils.mergeFormats( config.textFlowInitialFormat, element.format ) : config.textFlowInitialFormat;
-//				StyleAttributeUtil.applyUserStyles( element );
+				element = ( elements.shift() as FlowElement );
+				element.format = ( element.format ) ? TextLayoutFormatUtils.mergeFormats( _data.computedFormat, element.format ) : _data.computedFormat;
 				element.uid = _uid;
 				// Add to held list of elements.
 				elementList.push( element );
@@ -399,10 +400,6 @@ package flashx.textLayout.container.table
 			// Default.
 			targetDisplay.y += _descent - 1;// - getPadding();
 			targetDisplay.x = getPadding();// ( _width - _actualWidth ) * 0.5;
-			
-//			border.graphics.clear();
-//			border.graphics.lineStyle( 1 );
-//			border.graphics.drawRect( targetDisplay.x, targetDisplay.y, _actualWidth, _actualHeight );
 		}
 		
 		/**
@@ -576,16 +573,7 @@ package flashx.textLayout.container.table
 		 */
 		public function getDefaultConfiguration():IConfiguration
 		{
-			var format:TextLayoutFormat = new TextLayoutFormat();
-			// TODO: Pull font treatments form outside source.
-			format.fontFamily = "Arial";
-			format.fontSize = 12;
-			format.whiteSpaceCollapse = "preserve";
-			_data.attributes.applyAttributesToFormat( format );
-			
-			var config:Configuration = new Configuration();
-			config.textFlowInitialFormat = format;
-			return config;
+			return _defaultConfiguration;
 		}
 		
 		/**

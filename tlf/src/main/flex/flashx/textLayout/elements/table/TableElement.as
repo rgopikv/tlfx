@@ -32,6 +32,9 @@ package flashx.textLayout.elements.table
 	public class TableElement extends ContainerFormattedElement
 	{
 		public var attributes:IAttribute;
+		/**
+		 * Style for table that ha no relation to text layout format, such as border, etc. 
+		 */
 		public var styles:IStyle;
 		
 		protected var _table:Table;
