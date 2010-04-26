@@ -73,10 +73,9 @@ package flashx.textLayout.edit
 			var item:ListItemElement = startElement.getParentByType( ListItemElement ) as ListItemElement;
 			var endItem:ListItemElement = endElement.getParentByType( ListItemElement ) as ListItemElement;
 			
-			var relStart:int = absoluteStart - item.span.getAbsoluteStart()
-			
 			if ( item )
 			{
+				var relStart:int = absoluteStart - item.span.getAbsoluteStart()
 				if ( isRangeSelection() )
 				{
 					if ( endItem && endItem != item )	//	Multiline
