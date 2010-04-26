@@ -73,9 +73,25 @@ package flashx.textLayout.edit
 			var item:ListItemElement = startElement.getParentByType( ListItemElement ) as ListItemElement;
 			var endItem:ListItemElement = endElement.getParentByType( ListItemElement ) as ListItemElement;
 			
+			var relStart:int = absoluteStart - item.span.getAbsoluteStart()
+			
 			if ( item )
 			{
-				
+				if ( isRangeSelection() )
+				{
+					if ( endItem && endItem != item )	//	Multiline
+					{
+						
+					}
+					else
+					{
+						
+					}
+				}
+				else
+				{
+					
+				}
 			}
 			else
 				super.textInputHandler(event);
@@ -251,21 +267,20 @@ package flashx.textLayout.edit
 						super.keyDownHandler(event);
 					break;
 				default:
-					trace('event.keyCode = ' + event.keyCode);
-					
-					//	Space or
-					//	Numbers or
-					//	characters
-					//	Keypad or
-					//	keypad punctuation & special chars or
-					//	regular punctuation & special chars
-					if ( event.keyCode == 32 ||
-						(event.keyCode > 47 && event.keyCode < 58) ||
-						(event.keyCode > 64 && event.keyCode < 91) ||
-						(event.keyCode > 95 && event.keyCode < 108) ||
-						(event.keyCode > 108 && event.keyCode < 112) ||
-						(event.keyCode > 185 && event.keyCode < 192) ||
-						(event.keyCode > 218 && event.keyCode < 223))
+//					//	Space or
+//					//	Numbers or
+//					//	characters
+//					//	Keypad or
+//					//	keypad punctuation & special chars or
+//					//	regular punctuation & special chars
+//					if ( event.keyCode == 32 ||
+//						(event.keyCode > 47 && event.keyCode < 58) ||
+//						(event.keyCode > 64 && event.keyCode < 91) ||
+//						(event.keyCode > 95 && event.keyCode < 108) ||
+//						(event.keyCode > 108 && event.keyCode < 112) ||
+//						(event.keyCode > 185 && event.keyCode < 192) ||
+//						(event.keyCode > 218 && event.keyCode < 223))
+					if ( !event.ctrlKey )
 					{
 						if ( item )
 						{
