@@ -25,7 +25,9 @@ package flashx.textLayout.edit
 	import flashx.textLayout.elements.table.TableDataElement;
 	import flashx.textLayout.elements.table.TableElement;
 	import flashx.textLayout.elements.table.TableRowElement;
+	import flashx.textLayout.formats.TextLayoutFormat;
 	import flashx.textLayout.tlf_internal;
+	import flashx.textLayout.utils.TextLayoutFormatUtils;
 
 	use namespace tlf_internal;
 	
@@ -1227,6 +1229,11 @@ package flashx.textLayout.edit
 						while (sibParagraph.numChildren > 0)
 						{
 							var curFlowElement:FlowElement = sibParagraph.getChildAt(0);
+							// [TA] 04-27-2010 :: In order to stay consistant with inline styles,
+							//						any computed styles for the first child from parent need to be applied.
+							//						Other wise, user-defined styles are wiped.
+							curFlowElement.format = TextLayoutFormatUtils.overwrite( sibParagraph.computedFormat, ( curFlowElement.format ) ? curFlowElement.format : new TextLayoutFormat() );
+							// [END TA]
 							sibParagraph.replaceChildren(0, 1, null);
 							para.replaceChildren(para.numChildren, para.numChildren, curFlowElement);
 						}

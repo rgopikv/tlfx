@@ -79,7 +79,7 @@ package flashx.textLayout.elements.table
 					var resultingTextLayoutFormat:TextLayoutFormatValueHolder = new TextLayoutFormatValueHolder(effectiveFormat);
 					if (superFormat)
 					{
-						TextLayoutFormatUtils.mergeFormats( resultingTextLayoutFormat, superFormat );
+						TextLayoutFormatUtils.apply( resultingTextLayoutFormat, superFormat );
 					}
 					return resultingTextLayoutFormat;
 				}
