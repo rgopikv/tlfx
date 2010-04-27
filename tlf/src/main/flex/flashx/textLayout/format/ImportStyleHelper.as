@@ -45,6 +45,7 @@ package flashx.textLayout.format
 					value = (value.toLowerCase().substr(0, 2) == "0x") ? parseInt(value) : NaN;
 					break;
 				case "mso":
+					property = "fontSize";
 				case "fontSize":
 					var fontSizeValue:String = value.toString();
 					if( fontSizeValue.indexOf( "px" ) != -1 )
