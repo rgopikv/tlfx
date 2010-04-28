@@ -17,6 +17,7 @@ package flashx.textLayout.converter
 	import flashx.textLayout.model.table.Table;
 	import flashx.textLayout.model.table.TableColumn;
 	import flashx.textLayout.model.table.TableRow;
+	import flashx.textLayout.utils.StyleAttributeUtil;
 
 	[Event(name="cleanComplete", type="flashx.textLayout.events.TagParserCleanCompleteEvent")]
 	/**
@@ -71,6 +72,7 @@ package flashx.textLayout.converter
 			for each( attribute in node.attributes() )
 			{
 				var propertyName:String = attribute.name().localName;
+				if( propertyName == "style" ) continue;
 				var propertyValue:String = attribute.toString();
 				attributes[propertyName] = ( isNaN( Number(propertyValue) ) ) ? propertyValue : Number(propertyValue);
 			}
@@ -116,6 +118,7 @@ package flashx.textLayout.converter
 			}
 			cell.attributes.modifyAttributes( parentingAttributes );
 			cell.attributes.modifyAttributes( parseAttributes( td ) );
+			_htmlImporter.importStyleHelper.assignInlineStyle( td, cell );
 			return cell;
 		}
 		
@@ -138,6 +141,7 @@ package flashx.textLayout.converter
 			}
 			cell.attributes.modifyAttributes( parentingAttributes );
 			cell.attributes.modifyAttributes( parseAttributes( th ) );
+			_htmlImporter.importStyleHelper.assignInlineStyle( th, cell );
 			return cell;
 		}
 		
@@ -148,7 +152,7 @@ package flashx.textLayout.converter
 		 * @param tr XML XML fragment related to a single Table Row.
 		 * @return TableRowElement
 		 */
-		protected function parseTableRow( tr:XML ):TableRowElement
+		protected function parseTableRow( tr:XML, parentNode:XML = null ):TableRowElement
 		{
 			var row:TableRowElement = new TableRowElement();
 			var attributes:Object = parseAttributes( tr );
@@ -173,6 +177,13 @@ package flashx.textLayout.converter
 				tableData = null;
 			}
 			row.attributes.modifyAttributes( attributes );
+			// Styling.
+			// If there is a parent node, which can happen with tfoot, tbody and thead, concat styles with tr overridding.
+			if( parentNode != null )
+			{
+				StyleAttributeUtil.concatInlineStyle( parentNode, tr );
+			}
+			_htmlImporter.importStyleHelper.assignInlineStyle( tr, row );
 			return row;
 		}
 		
@@ -235,10 +246,12 @@ package flashx.textLayout.converter
 			var th:XMLList;
 			var row:TableRowElement;
 			var i:int;
+			var headNode:XML;
 			for( i = 0; i < head.length(); i++ )
 			{
-				th = XML( head[i] )..th;
-				row = parseTableRow( wrapHeadersInRow( th ) );
+				headNode = XML( head[i] );
+				th = head..th;
+				row = parseTableRow( wrapHeadersInRow( th ), headNode );
 				row.isHeader = true;
 				list.push( row );
 			}
@@ -259,12 +272,14 @@ package flashx.textLayout.converter
 			var row:TableRowElement;
 			var i:int;
 			var j:int;
+			var bodyNode:XML;
 			for( i = 0; i < body.length(); i++ )
 			{
-				tr = XML( body[i] ).tr;
+				bodyNode = XML( body[i] );
+				tr = body.tr;
 				for( j = 0; j < tr.length(); j++ )
 				{
-					row = parseTableRow( tr[j] );
+					row = parseTableRow( tr[j], bodyNode );
 					row.isBody = true;
 					list.push( row );
 				}
@@ -286,12 +301,14 @@ package flashx.textLayout.converter
 			var row:TableRowElement;
 			var i:int;
 			var j:int;
+			var footNode:XML;
 			for( i = 0; i < foot.length(); i++ )
 			{
-				tr = XML( foot[i] ).tr;
+				footNode = XML( foot[i] );
+				tr = foot.tr;
 				for( j = 0; j < tr.length(); j++ )
 				{
-					row = parseTableRow( tr[j] );
+					row = parseTableRow( tr[j], footNode );
 					row.isFooter = true;
 					list.push( row );
 				}
@@ -362,6 +379,8 @@ package flashx.textLayout.converter
 				XML.prettyPrinting = false;
 				XML.prettyIndent = 0;
 				var xml:XML = XML( fragment );
+				
+				_htmlImporter.importStyleHelper.assignInlineStyle( xml, tableElement );
 				// parse into flat row array.
 				var rows:Vector.<TableRowElement> = parseTableIntoSequenceRows( xml );
 				var i:int;
@@ -369,6 +388,7 @@ package flashx.textLayout.converter
 				{
 					tableElement.addChild( rows[i] );
 				}
+				_htmlImporter.importStyleHelper.apply();
 				
 				// instantiate a new Table instance.
 				table = new Table( getStyle( xml ) );

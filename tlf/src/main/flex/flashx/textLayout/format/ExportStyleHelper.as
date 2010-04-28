@@ -11,6 +11,10 @@ package flashx.textLayout.format
 	import flashx.textLayout.elements.ParagraphElement;
 	import flashx.textLayout.elements.SpanElement;
 	import flashx.textLayout.elements.TextFlow;
+	import flashx.textLayout.elements.table.TableDataElement;
+	import flashx.textLayout.elements.table.TableElement;
+	import flashx.textLayout.elements.table.TableHeadingElement;
+	import flashx.textLayout.elements.table.TableRowElement;
 	import flashx.textLayout.formats.Direction;
 	import flashx.textLayout.formats.ITextLayoutFormat;
 	import flashx.textLayout.formats.TextAlign;
@@ -87,6 +91,22 @@ package flashx.textLayout.format
 		}
 		
 		/**
+		 * Returns the next possible parent from hiearchical list of possible parents in order to access computed format. 
+		 * @param element FlowElement
+		 * @param parentList Array An Array of Class type reprsenting the heiarchical strcutrue of parenting elements.
+		 * @return FlowElement
+		 */
+		protected function getParentElementForComputedFormat( element:FlowElement, parentList:Array /* Class[] */ ):FlowElement
+		{
+			var parent:FlowElement;
+			while( parent == null && parentList.length > 0 )
+			{
+				parent = element.getParentByType( parentList.shift() as Class );
+			}
+			return parent;
+		}
+		
+		/**
 		 * @private
 		 * 
 		 * Returns the computed format of the parented FlowElement 
@@ -104,36 +124,40 @@ package flashx.textLayout.format
 			{
 				case SpanElement:
 					parentList = [LinkElement, ParagraphElement, DivElement, TextFlow];
-					while( parent == null && parentList.length > 0 )
-					{
-						parent = element.getParentByType( parentList.shift() as Class );
-					}
 					break;
 				case LinkElement:
 				case ExtendedLinkElement:
 					parentList = [ParagraphElement, DivElement, TextFlow];
-					while( parent == null && parentList.length > 0 )
-					{
-						parent = element.getParentByType( parentList.shift() as Class );
-					}
 					break;
 				case ParagraphElement:
-					parentList = [DivElement, TextFlow];
-					while( parent == null && parentList.length > 0 )
-					{
-						parent = element.getParentByType( parentList.shift() as Class );
-					}
+					parentList = [TableDataElement, DivElement, TextFlow];
 					break;
 				case DivElement:
 					parentList = [DivElement, TextFlow];
-					while( parent == null && parentList.length > 0 )
-					{
-						parent = element.getParentByType( parentList.shift() as Class );
-					}
+					break;
+				case TableHeadingElement:
+				case TableDataElement:
+					parentList = [TableRowElement];
+					break;
+				case TableRowElement:
+					parentList = [TableElement];
+					break;
+				case TableElement:
+					parentList = [TextFlow];
 					break;
 			}
 			
-			if( parent ) format = parent.computedFormat;
+			// If we have deciphered a heiarchical parent list based on the element type, try to find parent computed format.
+			if( parentList )
+			{
+				// Get the next possible parent for computed format.
+				parent = getParentElementForComputedFormat( element, parentList );
+				// If a parent has been found, assign format to computed format of parent.
+				if( parent )
+				{
+					format = parent.computedFormat;
+				}
+			}
 			return format;
 		}
 		
@@ -221,26 +245,26 @@ package flashx.textLayout.format
 			var parentFormat:ITextLayoutFormat = getComputedParentFormat( element );
 			var differingStyles:Array = getDifferingStyles( childFormat, parentFormat, element );
 			
+			delete node.@style;
 			if( differingStyles.length > 0 )
 			{
 				var i:int;
 				var attribute:StyleProperty;
 				var property:String;
 				var value:String;
-				var style:String;
+				var style:String = "";
 				for( i = 0; i < differingStyles.length; i++ )
 				{
 					attribute = differingStyles[i] as StyleProperty;
 					property = StyleAttributeUtil.dasherize( attribute.property );
 					value = attribute.value;
-					style = property + StyleAttributeUtil.STYLE_PROPERTY_DELIMITER + value;
-					if( StyleAttributeUtil.isValidStyleString( node.@style ) )
-					{
-						style = node.@style + StyleAttributeUtil.STYLE_DELIMITER + style;
-					}
-					node.@style = style;
+					style += property + StyleAttributeUtil.STYLE_PROPERTY_DELIMITER + value + StyleAttributeUtil.STYLE_DELIMITER;
 				}
 			}
+			// Apply @style if key/value pairs are available.
+			if( StyleAttributeUtil.isValidStyleString( style ) ) 
+				node.@style = style;
+			// Apply other attributes that relate to style like id and class.
 			applySelectorAttributes( node, element );
 			return differingStyles.length > 0;
 		}

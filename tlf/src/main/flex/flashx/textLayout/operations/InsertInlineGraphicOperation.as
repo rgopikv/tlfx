@@ -39,12 +39,13 @@ package flashx.textLayout.operations
 	 */
 	public class InsertInlineGraphicOperation extends FlowTextOperation
 	{
-		private var delSelOp:DeleteTextOperation; 
-		private var _source:Object;
-		private var imageWidth:Object;
-		private var imageHeight:Object;
-		private var _options:Object;
-		private var selPos:int = 0;
+		// Opening up as protected.
+		protected var delSelOp:DeleteTextOperation; 
+		protected var _source:Object;
+		protected var imageWidth:Object;
+		protected var imageHeight:Object;
+		protected var _options:Object;
+		protected var selPos:int = 0;
 		
 		/** 
 		 * Creates an InsertInlineGraphicsOperation object.

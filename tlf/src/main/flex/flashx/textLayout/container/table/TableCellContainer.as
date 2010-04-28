@@ -168,7 +168,7 @@ package flashx.textLayout.container.table
 			background.graphics.beginFill( ( _selected ) ? 0xEE9A00 : 0xFFFFFF, 1 );
 			background.graphics.drawRect( 0, 0, _width, _height );
 			background.graphics.endFill();
-//			background.blendMode = ( _selected ) ? BlendMode.INVERT : BlendMode.NORMAL;
+			//			background.blendMode = ( _selected ) ? BlendMode.INVERT : BlendMode.NORMAL;
 			
 			// If we have multi-select than update selection to encompass the whole range of the cell.
 			if( _selected )
@@ -275,7 +275,7 @@ package flashx.textLayout.container.table
 			}
 			return parsedElements;
 		}
-											
+		
 		
 		/**
 		 * Composes cell to defined width. 
@@ -356,7 +356,7 @@ package flashx.textLayout.container.table
 			{
 				notifyOfChange();
 			}
-			// Else elements were reassembled due to line breaks. Wait a frame.
+				// Else elements were reassembled due to line breaks. Wait a frame.
 			else if( notify && original.length != elementLength )
 			{
 				addEventListener( Event.ENTER_FRAME, handleDelayedNotification, false, 0, true );

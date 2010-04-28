@@ -8,6 +8,9 @@ package flashx.textLayout.elements.table
 	import flashx.textLayout.elements.SpanElement;
 	import flashx.textLayout.elements.SubParagraphGroupElement;
 	import flashx.textLayout.elements.TextFlow;
+	import flashx.textLayout.formats.ITextLayoutFormat;
+	import flashx.textLayout.formats.TextLayoutFormat;
+	import flashx.textLayout.formats.TextLayoutFormatValueHolder;
 	import flashx.textLayout.model.attribute.IAttribute;
 	import flashx.textLayout.model.attribute.TableDataAttribute;
 	import flashx.textLayout.tlf_internal;
@@ -40,6 +43,13 @@ package flashx.textLayout.elements.table
 		override tlf_internal function canOwnFlowElement(elem:FlowElement):Boolean
 		{
 			return !(elem is TextFlow);
+		}
+		
+		public override function shallowCopy(startPos:int = 0, endPos:int = -1):FlowElement
+		{
+			var copy:TableDataElement = super.shallowCopy(startPos, endPos) as TableDataElement;
+			copy.attributes = attributes;
+			return copy;						
 		}
 		
 		/**

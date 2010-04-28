@@ -46,6 +46,16 @@ package flashx.textLayout.elements.table
 			return elem is TableDataElement;
 		}
 		
+		public override function shallowCopy(startPos:int = 0, endPos:int = -1):FlowElement
+		{
+			var copy:TableRowElement = super.shallowCopy(startPos, endPos) as TableRowElement;
+			copy.attributes = attributes;
+			copy.isBody = isBody;
+			copy.isFooter = isFooter;
+			copy.isHeader = isHeader;
+			return copy;						
+		}
+		
 		public function children():Vector.<TableDataElement>
 		{
 			if( mxmlChildren == null ) return null;

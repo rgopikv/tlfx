@@ -9,9 +9,11 @@ package flashx.textLayout.operations
 	import flashx.textLayout.elements.ContainerFormattedElement;
 	import flashx.textLayout.elements.DivElement;
 	import flashx.textLayout.elements.FlowElement;
+	import flashx.textLayout.elements.FlowGroupElement;
 	import flashx.textLayout.elements.FlowLeafElement;
 	import flashx.textLayout.elements.ParagraphElement;
 	import flashx.textLayout.elements.TextFlow;
+	import flashx.textLayout.elements.table.TableDataElement;
 	import flashx.textLayout.tlf_internal;
 	
 	use namespace tlf_internal;
@@ -64,14 +66,12 @@ package flashx.textLayout.operations
 			// Else sever the div and add the lower children as needed to be re-adsed to the flow.
 			else if( parent is DivElement )
 			{
-				index = ( parent as DivElement ).getChildIndex( para );
-				length = ( parent as DivElement ).numChildren;
-				var content:Array = parent.mxmlChildren;
-				parent.mxmlChildren = content.slice( 0, index );
-				var newDivChildren:Array = content.slice( index, length );
-				var newDiv:DivElement = ( parent as DivElement ).shallowCopy() as DivElement;
-				newDiv.mxmlChildren = newDivChildren;
-				_elementsToPaste.push( newDiv );
+				_elementsToPaste.push( hotSwapFlowGroup( ( parent as FlowGroupElement ), para ) );
+			}
+			else if( parent is TableDataElement )
+			{
+				insertElementsIntoCell( parent as TableDataElement, leaf.getParagraph(), _elementsToPaste );
+				return;
 			}
 			length = _elementInsertIndex + _elementsToPaste.length;
 			index = 0;
@@ -80,6 +80,44 @@ package flashx.textLayout.operations
 			{
 				textFlow.addChildAt( i, _elementsToPaste[index++] );
 			}
+		}
+		
+		protected function insertElementsIntoCell( element:TableDataElement, beforePara:ParagraphElement, elements:Array ):void
+		{
+			var i:int;
+			var endIndex:int = element.mxmlChildren.length;
+			for( i = 0; i < element.mxmlChildren.length; i++ )
+			{
+				if( element.mxmlChildren[i] == beforePara )
+					break;
+			}
+			var content:Array = element.mxmlChildren;
+			var head:Array = content.slice( 0, i );
+			head = head.concat( elements );
+			var tail:Array = content.slice( i, endIndex );
+			element.mxmlChildren = head.concat(tail);
+		}
+		
+		/**
+		 * @private
+		 * 
+		 * Slices and dices content fromt FlowGroupElement to get a copy of the element with children tacked on.
+		 * @param groupElement FlowGroupElement
+		 * @param para ParagraphElement
+		 * @return FlowElement
+		 */
+		protected function hotSwapFlowGroup( groupElement:FlowGroupElement, para:ParagraphElement ):FlowElement
+		{
+			var index:int = 0;
+			var length:int;
+			index = groupElement.getChildIndex( para );
+			length = groupElement.numChildren;
+			var content:Array = groupElement.mxmlChildren;
+			groupElement.mxmlChildren = content.slice( 0, index );
+			var newGroupChildren:Array = content.slice( index, length );
+			var newGroup:FlowGroupElement = ( groupElement.shallowCopy() as FlowGroupElement );
+			newGroup.mxmlChildren = newGroupChildren;
+			return newGroup;
 		}
 		
 		override public function doOperation():Boolean
