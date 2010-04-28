@@ -107,7 +107,7 @@ package flashx.textLayout.format
 				var property:String;
 				for( property in styles )
 				{
-					setStylePropertyValue( format, StyleAttributeUtil.camelize(property), StyleAttributeUtil.stripWhitespaces(styles[property]) );
+					setStylePropertyValue( format, StyleAttributeUtil.camelize(property), styles[property] );
 				}
 				if( element.format != format ) element.format = format;
 			}

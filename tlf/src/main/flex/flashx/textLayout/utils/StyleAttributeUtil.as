@@ -134,7 +134,7 @@ package flashx.textLayout.utils
 				if( styles[i].indexOf(StyleAttributeUtil.STYLE_PROPERTY_DELIMITER) != -1 )
 				{
 					keyValue = styles[i].split( ":" );
-					styleObj[keyValue[0]] = keyValue[1];
+					styleObj[keyValue[0]] = StyleAttributeUtil.stripWhitespaces( keyValue[1] );
 				}
 			}
 			return styleObj;
@@ -237,6 +237,41 @@ package flashx.textLayout.utils
 			delete tag.@color;
 			delete tag.@fontSize;
 			delete tag.@textAlign;
+		}
+		
+		/**
+		 * Concatenates the inline syle values from node to masterNode. 
+		 * @param node XML
+		 * @param masterNode XML
+		 */
+		static public function concatInlineStyle( node:XML, masterNode:XML ):void
+		{
+			var nodeStyleAttribute:String = node.@style.toString();
+			var masterStyleAttribute:String = masterNode.@style.toString();
+			// If we don't have style attributes to concat, forget it.
+			if( !StyleAttributeUtil.isValidStyleString( nodeStyleAttribute ) )
+			{
+				return;
+			}
+			// Generate generic key/value objects.
+			var nodeStyles:Object = StyleAttributeUtil.parseStyles( nodeStyleAttribute );
+			var masterStyles:Object = StyleAttributeUtil.parseStyles( masterStyleAttribute );
+			// Loop through properties on node and assign to master if not previously defined.
+			var property:String;
+			for( property in nodeStyles )
+			{
+				if( !masterStyles[property] )
+					masterStyles[property] = nodeStyles[property];
+			}
+			// Delete the style attribute form master for clean insertion.
+			delete masterNode.@style;
+			// Loop through key/value and assemble inline @style attribute.
+			var style:String = "";
+			for( property in masterStyles )
+			{
+				style += property + StyleAttributeUtil.STYLE_PROPERTY_DELIMITER + masterStyles[property] + StyleAttributeUtil.STYLE_DELIMITER;
+			}
+			masterNode.@style = style;
 		}
 	}
 }

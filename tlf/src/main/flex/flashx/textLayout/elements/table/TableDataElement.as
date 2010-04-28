@@ -8,6 +8,9 @@ package flashx.textLayout.elements.table
 	import flashx.textLayout.elements.SpanElement;
 	import flashx.textLayout.elements.SubParagraphGroupElement;
 	import flashx.textLayout.elements.TextFlow;
+	import flashx.textLayout.formats.ITextLayoutFormat;
+	import flashx.textLayout.formats.TextLayoutFormat;
+	import flashx.textLayout.formats.TextLayoutFormatValueHolder;
 	import flashx.textLayout.model.attribute.IAttribute;
 	import flashx.textLayout.model.attribute.TableDataAttribute;
 	import flashx.textLayout.tlf_internal;
@@ -63,6 +66,49 @@ package flashx.textLayout.elements.table
 			{
 				super.normalizeRange(normalizeStart,normalizeEnd);
 			}
+		}
+		
+		override tlf_internal function doComputeTextLayoutFormat(formatForCascade:ITextLayoutFormat):void
+		{
+			var element:FlowElement = parent;
+			var parentFormatForCascade:ITextLayoutFormat;
+			
+			if (element)
+			{
+				parentFormatForCascade = element.formatForCascade;
+				if (TextLayoutFormat.isEqual(formatForCascade,TextLayoutFormat.emptyTextLayoutFormat) && TextLayoutFormat.isEqual(parentFormatForCascade,TextLayoutFormat.emptyTextLayoutFormat))
+				{
+					_computedFormat = element.computedFormat;
+					return;
+				}
+			}
+			
+			var tf:TextFlow;
+			// compute the cascaded attributes	
+			_scratchTextLayoutFormat.format = formatForCascade;
+			if (element)
+			{
+				if (parentFormatForCascade)
+					_scratchTextLayoutFormat.concatInheritOnly(parentFormatForCascade);
+				while (element.parent)
+				{
+					element = element.parent;
+					var concatAttrs:ITextLayoutFormat = element.formatForCascade;
+					if (concatAttrs)
+						_scratchTextLayoutFormat.concatInheritOnly(concatAttrs);
+				}
+				tf = element as TextFlow;
+			}
+			else
+				tf = this as TextFlow;
+			var defaultFormat:ITextLayoutFormat;
+			var defaultFormatHash:uint;
+			if (tf)
+			{
+				defaultFormat = tf.getDefaultFormat();
+				defaultFormatHash = tf.getDefaultFormatHash();
+			}
+			_computedFormat = TextFlow.getCanonical(_scratchTextLayoutFormat,defaultFormat,defaultFormatHash);
 		}
 		
 		/**

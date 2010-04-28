@@ -2,6 +2,7 @@ package flashx.textLayout.converter
 {
 	import flashx.textLayout.elements.FlowElement;
 	import flashx.textLayout.elements.TextFlow;
+	import flashx.textLayout.format.ImportStyleHelper;
 
 	/**
 	 * IHTMLImporter is a basic interface for extended html importers. 
@@ -22,5 +23,11 @@ package flashx.textLayout.converter
 		 * @return FlowElement
 		 */
 		function parseFragment( fragment:String ):FlowElement;
+		
+		/**
+		 * Returns the instance of the import style helper used to apply styles to elements parsed. 
+		 * @return ImportStyleHelper
+		 */
+		function get importStyleHelper():ImportStyleHelper;
 	}
 }
