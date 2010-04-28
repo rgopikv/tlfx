@@ -80,8 +80,9 @@ package flashx.textLayout.converter
 			var fragment:XML = ( td is TableHeadingElement ) ? <th /> : <td />;
 			htmlExporter.exportElementsToFragment( fragment, td.mxmlChildren );
 			replaceImageSourceAttribute( fragment );
-			assignAttributesAsStyle( fragment );
+//			assignAttributesAsStyle( fragment );
 			FragmentAttributeUtil.removeAttributesFromFragment( fragment, td.attributes.getStrippedAttributes() );
+			htmlExporter.exportStyleHelper.applyStyleAttributesFromElement( fragment, td );
 			return fragment.toXMLString();
 		}
 	}

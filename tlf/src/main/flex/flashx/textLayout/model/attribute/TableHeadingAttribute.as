@@ -67,7 +67,7 @@ package flashx.textLayout.model.attribute
 			var attribute:String;
 			for( attribute in attributes )
 			{
-				if( attributes[attribute] != TableDataAttribute.DEFAULTS[attribute] )
+				if( attributes[attribute] != TableHeadingAttribute.DEFAULTS[attribute] )
 					stripped[attribute] = attributes[attribute];
 			}
 			return stripped;

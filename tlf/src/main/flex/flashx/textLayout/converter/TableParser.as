@@ -72,6 +72,7 @@ package flashx.textLayout.converter
 			for each( attribute in node.attributes() )
 			{
 				var propertyName:String = attribute.name().localName;
+				if( propertyName == "style" ) continue;
 				var propertyValue:String = attribute.toString();
 				attributes[propertyName] = ( isNaN( Number(propertyValue) ) ) ? propertyValue : Number(propertyValue);
 			}

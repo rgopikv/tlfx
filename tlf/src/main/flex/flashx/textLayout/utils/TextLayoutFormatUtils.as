@@ -26,11 +26,10 @@ package flashx.textLayout.utils
 		static public function mergeFormats( format:ITextLayoutFormat, overlayFormat:ITextLayoutFormat ):ITextLayoutFormat
 		{	
 			var property:String;
-			var clone:Object = Property.shallowCopy( format );
 			for( property in TextLayoutFormat.description )
 			{
-				if( overlayFormat[property] == undefined && clone[property] )
-					overlayFormat[property] = clone[property];
+				if( overlayFormat[property] == undefined && format[property] && format[property] != "inherit" )
+					overlayFormat[property] = format[property];
 			}
 			return overlayFormat;
 		}

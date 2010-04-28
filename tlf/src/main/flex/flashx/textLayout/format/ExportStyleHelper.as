@@ -123,28 +123,28 @@ package flashx.textLayout.format
 			switch( type )
 			{
 				case SpanElement:
-					parentList = [LinkElement, TableDataElement, ParagraphElement, DivElement, TextFlow];
+					parentList = [LinkElement, ParagraphElement, DivElement, TextFlow];
 					break;
 				case LinkElement:
 				case ExtendedLinkElement:
-					parentList = [TableDataElement, ParagraphElement, DivElement, TextFlow];
+					parentList = [ParagraphElement, DivElement, TextFlow];
 					break;
 				case ParagraphElement:
 					parentList = [TableDataElement, DivElement, TextFlow];
 					break;
 				case DivElement:
-					parentList = [TableDataElement, DivElement, TextFlow];
+					parentList = [DivElement, TextFlow];
 					break;
 				case TableHeadingElement:
 				case TableDataElement:
-					parentList = [TableRowElement, TableElement, TextFlow];
+					parentList = [TableRowElement];
 					break;
-//				case TableRowElement:
-//					parentList = [TableElement, TextFlow];
-//					break;
-//				case TableElement:
-//					parentList = [TextFlow];
-//					break;
+				case TableRowElement:
+					parentList = [TableElement];
+					break;
+				case TableElement:
+					parentList = [TextFlow];
+					break;
 			}
 			
 			// If we have deciphered a heiarchical parent list based on the element type, try to find parent computed format.
@@ -245,26 +245,26 @@ package flashx.textLayout.format
 			var parentFormat:ITextLayoutFormat = getComputedParentFormat( element );
 			var differingStyles:Array = getDifferingStyles( childFormat, parentFormat, element );
 			
+			delete node.@style;
 			if( differingStyles.length > 0 )
 			{
 				var i:int;
 				var attribute:StyleProperty;
 				var property:String;
 				var value:String;
-				var style:String;
+				var style:String = "";
 				for( i = 0; i < differingStyles.length; i++ )
 				{
 					attribute = differingStyles[i] as StyleProperty;
 					property = StyleAttributeUtil.dasherize( attribute.property );
 					value = attribute.value;
-					style = property + StyleAttributeUtil.STYLE_PROPERTY_DELIMITER + value;
-					if( StyleAttributeUtil.isValidStyleString( node.@style ) )
-					{
-						style = node.@style + StyleAttributeUtil.STYLE_DELIMITER + style;
-					}
-					node.@style = style;
+					style += property + StyleAttributeUtil.STYLE_PROPERTY_DELIMITER + value + StyleAttributeUtil.STYLE_DELIMITER;
 				}
 			}
+			// Apply @style if key/value pairs are available.
+			if( StyleAttributeUtil.isValidStyleString( style ) ) 
+				node.@style = style;
+			// Apply other attributes that relate to style like id and class.
 			applySelectorAttributes( node, element );
 			return differingStyles.length > 0;
 		}
