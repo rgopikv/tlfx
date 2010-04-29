@@ -6,6 +6,7 @@ package flashx.textLayout.format
 	import flashx.textLayout.formats.ITextLayoutFormat;
 	import flashx.textLayout.formats.TextLayoutFormat;
 	import flashx.textLayout.model.style.InlineStyles;
+	import flashx.textLayout.utils.ColorValueUtil;
 	import flashx.textLayout.utils.StyleAttributeUtil;
 
 	/**
@@ -40,9 +41,34 @@ package flashx.textLayout.format
 			switch( property )
 			{
 				case "color":
+					var nums:Array = value.toString().match( /[^\w#]\d{1,3}/g );
+					if( nums.length > 0 )
+					{
+						var hexString:String = '#';
+						for ( var i:int = 0; i < nums.length; i++ )
+						{
+							var str:String = nums[i].replace(/[,|\(]/g, '');
+							var color:String = uint(str).toString(16);
+							while ( color.length < 2 )
+								color = color + '0';
+							hexString += color;
+						}
+						while ( hexString.length < 7 )
+							hexString = hexString + '0';
+	
+						value = hexString;
+					}
+					
+					value = ColorValueUtil.validateColor( value.toString() );
 					if (value.substr(0, 1) == "#")
 						value = "0x" + value.substr(1, value.length-1);
 					value = (value.toLowerCase().substr(0, 2) == "0x") ? parseInt(value) : NaN;
+					break;
+				case "fontFamily":
+					value = escape( value );
+					value = value.replace( /%27/g, "" ); 
+					value = value.replace( /%22/g, "" );
+					value = unescape( value );
 					break;
 				case "mso":
 					property = "fontSize";
@@ -107,7 +133,7 @@ package flashx.textLayout.format
 				var property:String;
 				for( property in styles )
 				{
-					setStylePropertyValue( format, StyleAttributeUtil.camelize(property), StyleAttributeUtil.stripWhitespaces( styles[property] ) );
+					setStylePropertyValue( format, StyleAttributeUtil.stripWhitespaces( StyleAttributeUtil.camelize(property) ), StyleAttributeUtil.stripWhitespaces( styles[property] ) );
 				}
 				if( element.format != format ) element.format = format;
 			}
