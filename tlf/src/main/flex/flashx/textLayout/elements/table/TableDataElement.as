@@ -45,6 +45,13 @@ package flashx.textLayout.elements.table
 			return !(elem is TextFlow);
 		}
 		
+		public override function shallowCopy(startPos:int = 0, endPos:int = -1):FlowElement
+		{
+			var copy:TableDataElement = super.shallowCopy(startPos, endPos) as TableDataElement;
+			copy.attributes = attributes;
+			return copy;						
+		}
+		
 		/**
 		 * @private
 		 * 
