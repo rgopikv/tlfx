@@ -240,33 +240,37 @@ package flashx.textLayout.format
 		 */
 		public function applyStyleAttributesFromElement( node:XML, element:FlowElement ):Boolean
 		{
-			// TODO: Strip styles based on stylesheet assignment.
-			var childFormat:ITextLayoutFormat = element.format;
-			var parentFormat:ITextLayoutFormat = getComputedParentFormat( element );
-			var differingStyles:Array = getDifferingStyles( childFormat, parentFormat, element );
-			
-			delete node.@style;
-			if( differingStyles.length > 0 )
+			if ( element )
 			{
-				var i:int;
-				var attribute:StyleProperty;
-				var property:String;
-				var value:String;
-				var style:String = "";
-				for( i = 0; i < differingStyles.length; i++ )
+				// TODO: Strip styles based on stylesheet assignment.
+				var childFormat:ITextLayoutFormat = element.format;
+				var parentFormat:ITextLayoutFormat = getComputedParentFormat( element );
+				var differingStyles:Array = getDifferingStyles( childFormat, parentFormat, element );
+				
+				delete node.@style;
+				if( differingStyles.length > 0 )
 				{
-					attribute = differingStyles[i] as StyleProperty;
-					property = StyleAttributeUtil.dasherize( attribute.property );
-					value = attribute.value;
-					style += property + StyleAttributeUtil.STYLE_PROPERTY_DELIMITER + value + StyleAttributeUtil.STYLE_DELIMITER;
+					var i:int;
+					var attribute:StyleProperty;
+					var property:String;
+					var value:String;
+					var style:String = "";
+					for( i = 0; i < differingStyles.length; i++ )
+					{
+						attribute = differingStyles[i] as StyleProperty;
+						property = StyleAttributeUtil.dasherize( attribute.property );
+						value = attribute.value;
+						style += property + StyleAttributeUtil.STYLE_PROPERTY_DELIMITER + value + StyleAttributeUtil.STYLE_DELIMITER;
+					}
 				}
+				// Apply @style if key/value pairs are available.
+				if( StyleAttributeUtil.isValidStyleString( style ) ) 
+					node.@style = style;
+				// Apply other attributes that relate to style like id and class.
+				applySelectorAttributes( node, element );
+				return differingStyles.length > 0;
 			}
-			// Apply @style if key/value pairs are available.
-			if( StyleAttributeUtil.isValidStyleString( style ) ) 
-				node.@style = style;
-			// Apply other attributes that relate to style like id and class.
-			applySelectorAttributes( node, element );
-			return differingStyles.length > 0;
+			return false;
 		}
 	}
 }
