@@ -120,7 +120,10 @@ package flashx.textLayout.elements.table
 		override public function shallowCopy(startPos:int=0, endPos:int=-1):FlowElement
 		{
 			var copy:TableElement = super.shallowCopy(startPos, endPos) as TableElement;
+			copy.importer = _importer;
+			copy.exporter = _exporter;
 			copy.fragment = serialize();
+			copy.tableModel = _table;
 			return copy;
 		}
 		
@@ -269,50 +272,6 @@ package flashx.textLayout.elements.table
 			return null;
 		}
 		
-//		/**
-//		 * Override rot refresh on frame render. 
-//		 * @param index uint
-//		 * @return FlowElement
-//		 */
-//		override public function removeChildAt(index:uint):FlowElement
-//		{
-//			if( _targetContainer && _isInitialized )
-//			{
-//				_targetContainer.addEventListener( Event.ENTER_FRAME, handleRenderFrame, false, 0, true );
-//			}
-//			return super.removeChildAt( index );
-//		}
-//		
-//		/**
-//		 * Override to refresh on frame render. 
-//		 * @param index uint
-//		 * @param child FlowElement
-//		 * @return FlowElement
-//		 */
-//		override public function addChild(child:FlowElement):FlowElement
-//		{
-//			if( _targetContainer && _isInitialized )
-//			{
-//				_targetContainer.addEventListener( Event.ENTER_FRAME, handleRenderFrame, false, 0, true );
-//			}
-//			return super.addChild( child );
-//		}
-//		
-//		/**
-//		 * Override to refresh on frame render. 
-//		 * @param index uint
-//		 * @param child FlowElement
-//		 * @return FlowElement
-//		 */
-//		override public function addChildAt(index:uint, child:FlowElement):FlowElement
-//		{
-//			if( _targetContainer && _isInitialized )
-//			{
-//				_targetContainer.addEventListener( Event.ENTER_FRAME, handleRenderFrame, false, 0, true );
-//			}
-//			return super.addChildAt( index, child );
-//		}
-		
 		/**
 		 * Returns the held TetFlow instance. 
 		 * @return TextFlow
@@ -359,6 +318,10 @@ package flashx.textLayout.elements.table
 		public function getTableModel():Table
 		{
 			return _table;
+		}
+		tlf_internal function set tableModel( value:Table ):void
+		{
+			_table = value;
 		}
 		
 		/**

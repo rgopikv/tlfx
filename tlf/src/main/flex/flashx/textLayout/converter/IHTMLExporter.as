@@ -1,5 +1,6 @@
 package flashx.textLayout.converter
 {
+	import flashx.textLayout.elements.TextFlow;
 	import flashx.textLayout.format.ExportStyleHelper;
 
 	/**
@@ -8,6 +9,14 @@ package flashx.textLayout.converter
 	 */
 	public interface IHTMLExporter
 	{
+		/**
+		 * Exports whole text flow based on conversion type. 
+		 * @param source TextFlow
+		 * @param conversionType String
+		 * @return Object
+		 */
+		function export(source:TextFlow, conversionType:String):Object
+			
 		/**
 		 * Adds FlowElements to a fragment. 
 		 * @param node XML
