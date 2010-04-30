@@ -14,6 +14,7 @@ package flashx.textLayout.edit
 	import flashx.textLayout.container.table.TableDisplayContainer;
 	import flashx.textLayout.conversion.ConversionType;
 	import flashx.textLayout.conversion.TextConverter;
+	import flashx.textLayout.converter.IHTMLExporter;
 	import flashx.textLayout.converter.IHTMLImporter;
 	import flashx.textLayout.edit.helpers.ListHelper;
 	import flashx.textLayout.edit.helpers.ListItemElementEnterHelper;
@@ -28,6 +29,8 @@ package flashx.textLayout.edit
 	import flashx.textLayout.elements.SpanElement;
 	import flashx.textLayout.elements.TextFlow;
 	import flashx.textLayout.elements.table.TableElement;
+	import flashx.textLayout.operations.CutOperation;
+	import flashx.textLayout.operations.ExtendedCopyOperation;
 	import flashx.textLayout.operations.PasteOperation;
 	import flashx.textLayout.tlf_internal;
 	import flashx.undo.IUndoManager;
@@ -37,10 +40,15 @@ package flashx.textLayout.edit
 	public class ExtendedEditManager extends EditManager
 	{
 		protected var _htmlImporter:IHTMLImporter;
+		protected var _htmlExporter:IHTMLExporter;
+		protected var _extendedClipboard:ExtendedTextClipboard;
 		
-		public function ExtendedEditManager(undoManager:IUndoManager=null)
+		public function ExtendedEditManager( htmlImporter:IHTMLImporter, htmlExporter:IHTMLExporter, undoManager:IUndoManager=null)
 		{
 			super(undoManager);
+			_htmlImporter = htmlImporter;
+			_htmlExporter = htmlExporter;
+			_extendedClipboard = new ExtendedTextClipboard( _htmlImporter, _htmlExporter );
 		}
 		
 		// TODO: Hack to ensure won't throw error on delete including table cells.
@@ -322,281 +330,6 @@ package flashx.textLayout.edit
 					super.keyDownHandler( event );
 					break;
 			}
-		}
-		
-//		override public function keyDownHandler(event:KeyboardEvent) : void
-//		{
-//			var startElement:FlowLeafElement = this.textFlow.findLeaf( this.absoluteStart );
-//			var endElement:FlowLeafElement = this.textFlow.findLeaf( this.absoluteEnd );
-//			
-//			var i:int;
-//			
-//			switch ( event.keyCode )
-//			{
-//				case Keyboard.TAB:
-//
-//					var item:ListItemElement = startElement.getParentByType( ListItemElement ) as ListItemElement;
-//					if ( item )
-//					{
-//						var selectedItems:Array = ListHelper.getSelectedListItemElements( this.textFlow );
-//						
-//						var tabList:ListElement = item.parent as ListElement;
-//						var mode:String = item.mode;
-//						var indent:int = int( item.paragraphStartIndent );
-//						
-//						var parentListIndex:int;
-//						
-//						var selectedItem:ListItemElement;
-//						var itemParent:ListElement;
-//						
-//						//	Apply tabbing
-//						if ( event.shiftKey )
-//						{
-//							indent = Math.max( indent - 24, 0 );
-//							
-//							for ( i = 0; i < selectedItems.length; i++ )
-//							{
-//								//	A	<----
-//								//	->	B	|
-//								//		->	C
-//								
-//								selectedItem = selectedItems[i] as ListItemElement;
-//								itemParent = selectedItem.parent as ListElement;
-//								var itemParent2:FlowGroupElement = itemParent.parent;
-//								var itemParent3:FlowGroupElement = itemParent2.parent;
-//								
-//								if ( itemParent2 is ListElement )
-//								{
-//									//	Nested
-//									if ( itemParent3 )
-//									{
-//										if ( itemParent3 is ListElement )
-//										{
-//											//	Nested twice or more
-//											parentListIndex = ( itemParent3 as ListElement ).getChildIndex( itemParent2 );
-//											itemParent2.removeChild( itemParent );
-//											itemParent3.addChildAt( parentListIndex+1, itemParent );
-//											itemParent.paragraphStartIndent = indent;
-//										}
-//										else
-//										{
-//											//	Nested only once
-//											parentListIndex = ( itemParent2 as ListElement ).parent.getChildIndex( itemParent2 );
-//											itemParent2.removeChild( itemParent );
-//											( itemParent2 as ListElement ).parent.addChildAt( parentListIndex+1, itemParent );
-//											itemParent.paragraphStartIndent = indent;
-//										}
-//									}
-//									else
-//									{
-//										//	Nested only once
-//										parentListIndex = ( itemParent2 as ListElement ).parent.getChildIndex( itemParent2 );
-//										itemParent2.removeChild( itemParent );
-//										( itemParent2 as ListElement ).parent.addChildAt( parentListIndex+1, itemParent );
-//										itemParent.paragraphStartIndent = indent;
-//									}
-//								}
-//								else
-//								{
-//									//	Not nested
-//								}
-//							}
-//						}
-//						else
-//						{
-//							indent = Math.min( indent + 24, 240 );
-//							
-//							var prevList:ListElement;
-//							var newList:ListElement;
-//							
-//							for ( i = 0; i < selectedItems.length; i++ )
-//							{
-//								selectedItem = selectedItems[i] as ListItemElement;
-//								itemParent = selectedItem.parent as ListElement;
-//								
-//								//	Figure out if current parent is the same as last parent
-//								
-//								var clonedItem:ListItemElement = new ListItemElement();
-//								clonedItem.mode = selectedItem.mode;
-//								clonedItem.text = selectedItem.text;
-//								clonedItem.paragraphStartIndent = indent;
-//								
-//								if ( prevList != itemParent )
-//								{
-//									newList = new ListElement();
-//									newList.mode = itemParent.mode;
-//									newList.paragraphStartIndent = indent;
-//									
-//									var selectedItemIndex:int = itemParent.getChildIndex( selectedItem );
-//									if ( selectedItemIndex < itemParent.numChildren/2 )
-//										itemParent.addChildAt( selectedItemIndex, newList );
-//									else
-//										itemParent.addChildAt( selectedItemIndex+1, newList );
-//									
-//									itemParent.removeChild( selectedItem );
-//								}
-//								
-//								newList.addChild( clonedItem );
-//							}
-//						}
-//						
-//						//item.paragraphStartIndent = indent;
-//					}
-//					else
-//					{
-//						this.insertText( '\t' );
-//					}
-//					break;
-//				case Keyboard.ENTER:
-////					trace('enter pressed');
-//					if ( this.hasSelection() )
-//					{
-////						trace('startElement:', startElement);
-//						if ( startElement.getParentByType(ListItemElement) )// startElement.parent.parent is ListItemElement )
-//						{
-//							ListItemElementEnterHelper.processReturnKey( this, startElement.getParentByType( ListItemElement ) as ListItemElement );
-//						}
-//						else
-//						{
-//							// [TA] :: 03/16/10 -> entering a line character would not properly perform a Split paragraph operation.
-//							super.keyDownHandler( event );
-//						}
-//					}
-//					break;
-//				case Keyboard.BACKSPACE:
-//					if ( this.hasSelection() )
-//					{
-//						var previousElement:FlowLeafElement = this.textFlow.findLeaf( startElement.getElementRelativeStart( this.textFlow ) - 1 );
-//						
-//						if ( startElement.getParentByType( ListItemElement ) )// (startElement.parent is ListItemElement) || (endElement.parent is ListItemElement) )
-//						{
-//							ListItemElementEnterHelper.processDeleteKey( textFlow );
-//						}
-//						else if ( previousElement is ListItemElement )
-//						{
-//							var previousItem:ListItemElement = previousElement as ListItemElement;
-//							var selectionState:SelectionState = new SelectionState( this.textFlow, this.absoluteStart, this.absoluteEnd, this.textFlow.format );
-//							
-//							if ( this.isRangeSelection() )
-//							{
-//								this.deleteText( selectionState );
-//								this.selectRange( this.absoluteStart-2, this.absoluteStart-2 );
-//							}
-//							else
-//							{
-//								previousItem.text = previousItem.text.substr( 0, previousItem.text.length-2 );//rawText.substr( 0, previousItem.rawText.length-2 );
-//								var selectionPos:int = previousItem.getElementRelativeStart( this.textFlow ) + previousItem.text.length - 2;
-//								this.selectRange( selectionPos, selectionPos );
-//							}
-//							this.textFlow.flowComposer.updateAllControllers();
-//						}
-//						else
-//						{
-//							super.keyDownHandler( event );
-//						}
-//					}
-//					break;
-//				case Keyboard.DELETE: //del
-//					super.keyDownHandler( event );
-//					event.preventDefault();
-//				break;
-//				default:
-//					var char:String = String.fromCharCode( event.charCode );
-//					var regEx:RegExp = /\w/;
-//					if ( regEx.test( char ) )
-//					{
-//						if ( startElement.getParentByType( ListItemElement ) )
-//						{
-//							event.stopImmediatePropagation();
-//							event.preventDefault();
-//							
-//							//	Insert text being entered into position it's being entered
-//							var startItem:ListItemElement = startElement.getParentByType( ListItemElement ) as ListItemElement;
-//							var list:ListElement = startItem.parent as ListElement;
-//							var offset:int = startItem.mode == ListElement.UNORDERED ? 3 : 4;
-//							var relativeStart:int = this.absoluteStart - startItem.getElementRelativeStart( this.textFlow ) - offset;
-//							var rawText:String = startItem.text;//rawText;
-//							var beginning:String = rawText.substring(0, relativeStart-1);
-//							var end:String;
-//							
-//							var deleteState:SelectionState;
-//							var startPos:int = list.getChildIndex( startItem);
-//							
-//							if ( this.isRangeSelection() )
-//							{
-//								var endItem:ListItemElement;
-//								if ( endElement is ListItemElement )
-//								{
-//									endItem = endElement as ListItemElement;
-//									
-//									deleteState = new SelectionState( this.textFlow, endItem.getElementRelativeStart( this.textFlow ) + endItem.text.length, this.absoluteEnd, this.textFlow.format );
-//									this.deleteText( deleteState );
-//									
-//									var relativeEnd:int = this.absoluteEnd - endItem.getElementRelativeStart( this.textFlow ) - offset;
-//									var endText:String = endItem.text;//rawText;
-//									endItem.text = endText.substr( relativeEnd, endText.length );
-//									
-//									var endPos:int = list.getChildIndex( endItem );
-//									
-//									for ( i = endPos - 1; i > startPos; i-- )
-//									{
-//										list.removeChildAt(i);
-//									}
-//									
-////									list.update();
-//								}
-//								else
-//								{
-//									endItem = list.getChildAt( list.numChildren - 1 ) as ListItemElement;
-//									var startDelete:int = endItem.getElementRelativeStart( this.textFlow ) + endItem.text.length;
-//									
-//									deleteState = new SelectionState( this.textFlow, startDelete, this.absoluteEnd, this.textFlow.format );
-//									this.deleteText( deleteState );
-//									
-//									for ( i = list.numChildren - 1; i > startPos; i-- )
-//									{
-//										list.removeChildAt(i);
-//									}
-//									
-////									list.update();
-//								}
-//								
-//								end = '';
-//							}
-//							else
-//							{
-//								end = rawText.substring(relativeStart-1, rawText.length);
-//							}
-//							
-//							startItem.text = beginning + char + end;
-//							
-//							this.textFlow.flowComposer.updateAllControllers();
-//							this.selectRange( this.absoluteStart+1, this.absoluteStart+1 );
-//						}
-//						else
-//						{
-//							super.keyDownHandler( event );
-//						}
-//					}
-//					else
-//					{
-//						super.keyDownHandler( event );
-//					}
-//					break;
-//			}
-//			
-//			this.textFlow.flowComposer.updateAllControllers();
-//		}
-		
-		/**
-		 * Override to intercept paste operations applied to cells. Currently strings from the Clipboard that contain carraige returns break the flow and cause RTEs. 
-		 * @param event Event
-		 */
-		override public function editHandler(event:Event):void
-		{
-			// Access to String pasted form clipboard. Just for reference.
-//			var data:String = TextClipboard.getTextOnClipboardForFormat(ClipboardFormats.TEXT_FORMAT );
-			super.editHandler( event );
 		}
 		
 		override public function pasteTextScrap(scrapToPaste:TextScrap, operationState:SelectionState = null):void

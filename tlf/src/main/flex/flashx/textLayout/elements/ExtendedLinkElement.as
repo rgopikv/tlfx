@@ -26,6 +26,17 @@ package flashx.textLayout.elements
 			return elem is FlowLeafElement;
 		}
 		
+		public override function shallowCopy(startPos:int = 0, endPos:int = -1):FlowElement
+		{
+			if (endPos == -1)
+				endPos = textLength;
+			
+			var retFlow:ExtendedLinkElement = super.shallowCopy(startPos, endPos) as ExtendedLinkElement;
+			retFlow.href = href;
+			retFlow.target = target;
+			return retFlow;
+		}
+		
 		/**
 		 * @private
 		 * 
