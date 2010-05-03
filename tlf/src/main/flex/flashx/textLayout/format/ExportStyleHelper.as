@@ -216,33 +216,37 @@ package flashx.textLayout.format
 		 */
 		public function applyStyleAttributesFromElement( node:XML, element:FlowElement ):Boolean
 		{
-			// TODO: Strip styles based on stylesheet assignment.
-			var childFormat:ITextLayoutFormat = element.format;
-			var parentFormat:ITextLayoutFormat = getComputedParentFormat( element );
-			var differingStyles:Array = getDifferingStyles( childFormat, parentFormat, element );
-			
-			if( differingStyles.length > 0 )
+			if ( element )
 			{
-				var i:int;
-				var attribute:StyleProperty;
-				var property:String;
-				var value:String;
-				var style:String;
-				for( i = 0; i < differingStyles.length; i++ )
+				// TODO: Strip styles based on stylesheet assignment.
+				var childFormat:ITextLayoutFormat = element.format;
+				var parentFormat:ITextLayoutFormat = getComputedParentFormat( element );
+				var differingStyles:Array = getDifferingStyles( childFormat, parentFormat, element );
+				
+				if( differingStyles.length > 0 )
 				{
-					attribute = differingStyles[i] as StyleProperty;
-					property = StyleAttributeUtil.dasherize( attribute.property );
-					value = attribute.value;
-					style = property + StyleAttributeUtil.STYLE_PROPERTY_DELIMITER + value;
-					if( StyleAttributeUtil.isValidStyleString( node.@style ) )
+					var i:int;
+					var attribute:StyleProperty;
+					var property:String;
+					var value:String;
+					var style:String;
+					for( i = 0; i < differingStyles.length; i++ )
 					{
-						style = node.@style + StyleAttributeUtil.STYLE_DELIMITER + style;
+						attribute = differingStyles[i] as StyleProperty;
+						property = StyleAttributeUtil.dasherize( attribute.property );
+						value = attribute.value;
+						style = property + StyleAttributeUtil.STYLE_PROPERTY_DELIMITER + value;
+						if( StyleAttributeUtil.isValidStyleString( node.@style ) )
+						{
+							style = node.@style + StyleAttributeUtil.STYLE_DELIMITER + style;
+						}
+						node.@style = style;
 					}
-					node.@style = style;
 				}
+				applySelectorAttributes( node, element );
+				return differingStyles.length > 0;
 			}
-			applySelectorAttributes( node, element );
-			return differingStyles.length > 0;
+			return false;
 		}
 	}
 }
