@@ -58,6 +58,7 @@ package flashx.textLayout.operations
 			if( source is IManagedInlineGraphicSource )
 			{
 				( source as IManagedInlineGraphicSource ).inlineGraphicElement = imgElem;
+				( source as IManagedInlineGraphicSource ).applyCascadingFormat();
 			}
 			
 			if (textFlow.interactionManager)

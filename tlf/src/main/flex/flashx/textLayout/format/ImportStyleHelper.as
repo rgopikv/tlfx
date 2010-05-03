@@ -3,6 +3,8 @@ package flashx.textLayout.format
 	import flash.utils.getQualifiedClassName;
 	
 	import flashx.textLayout.elements.FlowElement;
+	import flashx.textLayout.elements.IManagedInlineGraphicSource;
+	import flashx.textLayout.elements.InlineGraphicElement;
 	import flashx.textLayout.formats.ITextLayoutFormat;
 	import flashx.textLayout.formats.TextLayoutFormat;
 	import flashx.textLayout.model.style.InlineStyles;
@@ -125,18 +127,39 @@ package flashx.textLayout.format
 		 */
 		protected function applyStylesToElement( styleAttribute:String, element:FlowElement ):void
 		{
+			var format:ITextLayoutFormat = getFormatFromStyleAttribute( styleAttribute, element.format );
+			if( element.format != format ) element.format = format;
+			if( element is InlineGraphicElement )
+			{
+				var graphicElement:InlineGraphicElement = ( element as InlineGraphicElement );
+				if( graphicElement.source is IManagedInlineGraphicSource )
+				{
+					( graphicElement.source as IManagedInlineGraphicSource ).applyCascadingFormat();
+				}
+			}
+		}
+		
+		/**
+		 * Returns a populated ITextLayoutFormat instance with style formatting based on @style attribute. 
+		 * @param styleAttribute String The contents of the @style attribute.
+		 * @param heldFormat ITextLayoutFormat The optional previously applied format. 
+		 * @return ITextLayoutFormat
+		 */
+		public function getFormatFromStyleAttribute( styleAttribute:String, heldFormat:ITextLayoutFormat = null ):ITextLayoutFormat
+		{
 			// TODO: Do lookup on style sheets and apply styles to element.
 			if( StyleAttributeUtil.isValidStyleString( styleAttribute ) )
 			{
-				var format:ITextLayoutFormat = ( element.format ) ? element.format : new TextLayoutFormat();
+				var format:ITextLayoutFormat = ( heldFormat ) ? heldFormat : new TextLayoutFormat();
 				var styles:Object = StyleAttributeUtil.parseStyles( styleAttribute );
 				var property:String;
 				for( property in styles )
 				{
 					setStylePropertyValue( format, StyleAttributeUtil.stripWhitespaces( StyleAttributeUtil.camelize(property) ), StyleAttributeUtil.stripWhitespaces( styles[property] ) );
 				}
-				if( element.format != format ) element.format = format;
+				return format;
 			}
+			return heldFormat;
 		}
 		
 		/**
@@ -208,5 +231,5 @@ class PendingStyleElement
 	{
 		this.node = node;
 		this.element = element;
-}
+	}
 }

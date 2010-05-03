@@ -1,5 +1,7 @@
 package flashx.textLayout.utils
 {
+	import flash.text.engine.ElementFormat;
+	
 	import flashx.textLayout.elements.FlowElement;
 	import flashx.textLayout.elements.FlowValueHolder;
 	import flashx.textLayout.formats.FormatValue;

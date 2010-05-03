@@ -245,32 +245,45 @@ package flashx.textLayout.format
 				// TODO: Strip styles based on stylesheet assignment.
 				var childFormat:ITextLayoutFormat = element.format;
 				var parentFormat:ITextLayoutFormat = getComputedParentFormat( element );
-				var differingStyles:Array = getDifferingStyles( childFormat, parentFormat, element );
-				
-				delete node.@style;
-				if( differingStyles.length > 0 )
-				{
-					var i:int;
-					var attribute:StyleProperty;
-					var property:String;
-					var value:String;
-					var style:String = "";
-					for( i = 0; i < differingStyles.length; i++ )
-					{
-						attribute = differingStyles[i] as StyleProperty;
-						property = StyleAttributeUtil.dasherize( attribute.property );
-						value = attribute.value;
-						style += property + StyleAttributeUtil.STYLE_PROPERTY_DELIMITER + value + StyleAttributeUtil.STYLE_DELIMITER;
-					}
-				}
-				// Apply @style if key/value pairs are available.
-				if( StyleAttributeUtil.isValidStyleString( style ) ) 
-					node.@style = style;
-				// Apply other attributes that relate to style like id and class.
-				applySelectorAttributes( node, element );
-				return differingStyles.length > 0;
+				return applyStyleAttributesFromDifferingStyles( node, parentFormat, childFormat, element );
 			}
 			return false;
+		} 
+		
+		/**
+		 * Constrcuts @style attribute based on differing styles between parent and child formatting. 
+		 * @param node XML
+		 * @param parentFormat ITextLayoutFormat
+		 * @param elementFormat ITextLayoutFormat
+		 * @param element FlowElement
+		 * @return Boolean
+		 */
+		public function applyStyleAttributesFromDifferingStyles( node:XML, parentFormat:ITextLayoutFormat, elementFormat:ITextLayoutFormat, element:FlowElement = null ):Boolean
+		{
+			var differingStyles:Array = getDifferingStyles( elementFormat, parentFormat, element );
+			
+			delete node.@style;
+			if( differingStyles.length > 0 )
+			{
+				var i:int;
+				var attribute:StyleProperty;
+				var property:String;
+				var value:String;
+				var style:String = "";
+				for( i = 0; i < differingStyles.length; i++ )
+				{
+					attribute = differingStyles[i] as StyleProperty;
+					property = StyleAttributeUtil.dasherize( attribute.property );
+					value = attribute.value;
+					style += property + StyleAttributeUtil.STYLE_PROPERTY_DELIMITER + value + StyleAttributeUtil.STYLE_DELIMITER;
+				}
+			}
+			// Apply @style if key/value pairs are available.
+			if( StyleAttributeUtil.isValidStyleString( style ) ) 
+				node.@style = style;
+			// Apply other attributes that relate to style like id and class.
+			if( element ) applySelectorAttributes( node, element );
+			return differingStyles.length > 0;	
 		}
 	}
 }
