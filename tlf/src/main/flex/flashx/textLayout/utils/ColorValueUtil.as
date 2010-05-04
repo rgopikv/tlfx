@@ -2,6 +2,40 @@ package flashx.textLayout.utils
 {
 	public class ColorValueUtil
 	{
+		static public function normalizeForLayoutFormat( value:String ):Number
+		{
+			var nums:Array = value.toString().match( /[^\w#]\d{1,3}/g );
+			if( nums.length > 0 )
+			{
+				var hexString:String = '#';
+				for ( var i:int = 0; i < nums.length; i++ )
+				{
+					var str:String = nums[i].replace(/[,|\(]/g, '');
+					var color:String = uint(str).toString(16);
+					while ( color.length < 2 )
+						color = color + '0';
+					hexString += color;
+				}
+				while ( hexString.length < 7 )
+					hexString = hexString + '0';
+				
+				value = hexString;
+			}
+			
+			value = ColorValueUtil.validateColor( value.toString() );
+			if (value.substr(0, 1) == "#")
+				value = "0x" + value.substr(1, value.length-1);
+			return (value.toLowerCase().substr(0, 2) == "0x") ? parseInt(value) : NaN;
+		}
+		
+		static public function normalizeForCSS( value:Number ):String
+		{
+			var rgb:String = value.toString( 16 );
+			while (rgb.length < 6) 
+				rgb = "0" + rgb;
+			return ( "#" + rgb );
+		}
+		
 		static public function validateColor( value:String ):String
 		{
 			value = value.replace( /AliceBlue/ig, '#F0F8FF' );

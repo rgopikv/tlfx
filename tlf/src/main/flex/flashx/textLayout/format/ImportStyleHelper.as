@@ -15,7 +15,7 @@ package flashx.textLayout.format
 	 * ImportStyleHelper is a helper class for applying inline styles to an elements format. 
 	 * @author toddanderson
 	 */
-	public class ImportStyleHelper
+	public class ImportStyleHelper implements IImportStyleHelper
 	{
 		// TODO: Use text flow to traverse for stylesheets?
 		// TODO: Store stylesheets here?
@@ -33,73 +33,6 @@ package flashx.textLayout.format
 		/**
 		 * @private
 		 * 
-		 * Determines the validitiy of the style and its relation to TLF formatting. Returns the correct value.
-		 * @param property String
-		 * @param value *
-		 * @return StyleProperty
-		 */
-		protected function normalizeFormatValue( property:String, value:* ):StyleProperty
-		{
-			switch( property )
-			{
-				case "color":
-					var nums:Array = value.toString().match( /[^\w#]\d{1,3}/g );
-					if( nums.length > 0 )
-					{
-						var hexString:String = '#';
-						for ( var i:int = 0; i < nums.length; i++ )
-						{
-							var str:String = nums[i].replace(/[,|\(]/g, '');
-							var color:String = uint(str).toString(16);
-							while ( color.length < 2 )
-								color = color + '0';
-							hexString += color;
-						}
-						while ( hexString.length < 7 )
-							hexString = hexString + '0';
-	
-						value = hexString;
-					}
-					
-					value = ColorValueUtil.validateColor( value.toString() );
-					if (value.substr(0, 1) == "#")
-						value = "0x" + value.substr(1, value.length-1);
-					value = (value.toLowerCase().substr(0, 2) == "0x") ? parseInt(value) : NaN;
-					break;
-				case "fontFamily":
-					value = escape( value );
-					value = value.replace( /%27/g, "" ); 
-					value = value.replace( /%22/g, "" );
-					value = unescape( value );
-					break;
-				case "mso":
-					property = "fontSize";
-				case "fontSize":
-					var fontSizeValue:String = value.toString();
-					if( fontSizeValue.indexOf( "px" ) != -1 )
-					{
-						fontSizeValue = fontSizeValue.replace( "px", "" );
-					}
-					else if( fontSizeValue.indexOf( "pt" ) != -1 )
-					{
-						var size:Number = Number(fontSizeValue.replace("pt","")) * 96 / 72;
-						fontSizeValue = size.toString();
-					}	
-					value = Number(fontSizeValue);
-					break;
-				case "marginLeft":
-					property = "paragraphStartIndent";
-					break;
-				case "marginRight":
-					property = "paragraphEndIndent";
-					break;
-			}
-			return new StyleProperty( property, value );
-		}
-		
-		/**
-		 * @private
-		 * 
 		 * Applies the style property to the format if defined on the format class.
 		 * @param format ITextLAyoutFormat
 		 * @param property String
@@ -109,7 +42,7 @@ package flashx.textLayout.format
 		{
 			try
 			{
-				var styleProperty:StyleProperty = normalizeFormatValue( property, value );
+				var styleProperty:StyleProperty = StyleProperty.normalizeForFormat( property, value );
 				format[styleProperty.property] = styleProperty.value;
 			}
 			catch( e:Error )
@@ -188,30 +121,15 @@ package flashx.textLayout.format
 				applyStylesToElement( styleElement.node.@style.toString(), styleElement.element );
 			}
 		}
+		
+		public function clean():void
+		{
+			// nada.
+		}
 	}
 }
 
 import flashx.textLayout.elements.FlowElement;
-/**
- * StyleProperty is an internal class model to represent a style on key/value pair. 
- * @author toddanderson
- */
-class StyleProperty
-{
-	public var property:String;
-	public var value:*;
-	
-	/**
-	 * Constructor. 
-	 * @param property String
-	 * @param value *
-	 */
-	public function StyleProperty( property:String, value:* )
-	{
-		this.property = property;
-		this.value = value;
-	}
-}
 
 /**
  * PendingStyleElement is an internal model to mark elements pending style application based on inline @style attribute. 

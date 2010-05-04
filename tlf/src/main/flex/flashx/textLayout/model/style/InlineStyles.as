@@ -17,6 +17,7 @@ package flashx.textLayout.model.style
 	{
 		public var styleId:String;
 		public var styleClass:String;
+		public var explicitStyle:Object; /* Generic object fo key/value pairs for style properties. */
 		
 		/**
 		 * Constructor. 
@@ -29,7 +30,6 @@ package flashx.textLayout.model.style
 				deserialize( elementTag );
 		}
 		
-		// Serialize dictionary to @style attribute.
 		/**
 		 * Serializes held properties to a tag. 
 		 * @param tag XML
@@ -43,7 +43,6 @@ package flashx.textLayout.model.style
 				tag["@class"] = styleClass;
 		}
 		
-		// Deserialize @style attribute to dictionary
 		/**
 		 * Deserializes tag attributes to properties. 
 		 * @param tag XML
@@ -55,6 +54,9 @@ package flashx.textLayout.model.style
 			
 			var clazz:String = tag["@class"];
 			if( clazz.length > 0 ) styleClass = clazz; 
+			
+			var style:String = tag.@style;
+			if( style.length > 0 ) explicitStyle = StyleAttributeUtil.parseStyles( style );
 		}
 	}
 }
