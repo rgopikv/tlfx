@@ -77,6 +77,14 @@ package flashx.textLayout.container.table
 		}
 		
 		/**
+		 * Cleans for removal.
+		 */
+		public function dispose():void
+		{
+			_table.removeEventListener( Event.RESIZE, handleTableResize, false );
+		}
+		
+		/**
 		 * Returns the height specified on the model. 
 		 * @return Number
 		 */

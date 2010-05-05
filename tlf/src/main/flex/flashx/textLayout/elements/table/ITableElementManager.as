@@ -49,5 +49,10 @@ package flashx.textLayout.elements.table
 		 * Runs a refresh command on the table element manager.
 		 */
 		function refresh():void;
+		
+		/**
+		 * Performs any cleanup for garbage collection.
+		 */
+		function dispose():void;
 	}
 }

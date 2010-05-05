@@ -167,13 +167,15 @@ package flashx.textLayout.format
 		 * @param node XML
 		 * @param element FlowElement
 		 */
-		protected function applySelectorAttributes( node:XML, element:FlowElement ):void
+		protected function applySelectorAttributes( node:XML, element:FlowElement ):Boolean
 		{
 			var inlineStyle:InlineStyles = ( element.userStyles ) ? element.userStyles.inline as InlineStyles : null;
 			if( inlineStyle )
 			{
 				inlineStyle.serialize( node );
+				return inlineStyle.styleId != null || inlineStyle.styleClass != null;
 			}
+			return false;
 		}
 		
 		/**
@@ -226,8 +228,12 @@ package flashx.textLayout.format
 			if( StyleAttributeUtil.isValidStyleString( style ) ) 
 				node.@style = style;
 			// Apply other attributes that relate to style like id and class.
-			if( element ) applySelectorAttributes( node, element );
-			return differingStyles.length > 0;	
+			var requiresInlineStyleAttributes:Boolean;
+			if( element )
+			{
+				requiresInlineStyleAttributes = applySelectorAttributes( node, element );	
+			}
+			return ( differingStyles.length > 0 ) || requiresInlineStyleAttributes;	
 		}
 	}
 }
