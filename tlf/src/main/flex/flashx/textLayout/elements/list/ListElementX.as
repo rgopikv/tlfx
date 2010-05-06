@@ -112,7 +112,6 @@ package flashx.textLayout.elements.list
 					numbers.push(1);
 				
 				item.number = numbers[numbers.length-1] ? numbers[numbers.length-1] : 0;
-				item.text = item.text + ' ' + item.number;
 				item.update(false);
 				
 				numbers[numbers.length-1]++;
@@ -126,58 +125,81 @@ package flashx.textLayout.elements.list
 		
 		public function export():XML
 		{
-			var xml:XML = new XML();
-			var mode:String;
-			var indent:int;
+			var xml:XML;
+			var xmlStr:String = '';
 			
-			if ( numChildren == 0 )
-				return null;
+			var items:Array = listItems;
 			
-			mode = ( getChildAt(0) as ListItemElementX ).mode;
-			indent = int( ( getChildAt(0) as ListItemElementX ).paragraphStartIndent );
+			var prevItem:ListItemElementX;
 			
-			if ( mode == ListItemElementX.UNORDERED )
-				xml = <ul/>;
-			else
-				xml = <ol/>;
+			var appendChild:int;
 			
-			for ( var i:int = 0; i < numChildren; i++ )
+			XML.prettyPrinting = false;
+			
+			for ( var i:int = 0; i < items.length; i++ )
 			{
-				var item:ListItemElementX = getChildAt(i) as ListItemElementX;
+				var item:ListItemElementX = items[i] as ListItemElementX;
 				
-				if ( item.mode != mode )
+				if ( prevItem )
 				{
-					//	Start new list
-					var newList:XML = item.mode == ListItemElementX.UNORDERED ? <ul/> : <ol/>;
-					if ( int( item.paragraphStartIndent ) > indent )
+					var ind:int;
+					if ( item.indent > prevItem.indent )
 					{
+						ind = item.indent;
+						while ( ind > prevItem.indent )
+						{
+							xmlStr += item.mode == ListItemElementX.UNORDERED ? '<ul>' : '<ol>';
+							ind -= 24;
+						}
+					}
+					else if ( item.indent < prevItem.indent )
+					{
+						ind = prevItem.indent;
 						
+						var lastList:String = prevItem.mode == ListItemElementX.UNORDERED ? '<ul>' : '<ol>';
+						var lastListIndex:int = xmlStr.lastIndexOf(lastList);
+						while ( ind > item.indent )
+						{
+							xmlStr += lastList == '<ul>' ? '</ul>' : '</ol>';
+							ind -= 24;
+							
+							var lastOL:int = xmlStr.substring(0, lastListIndex).lastIndexOf('<ol>', lastListIndex);
+							var lastUL:int = xmlStr.substring(0, lastListIndex).lastIndexOf('<ul>', lastListIndex);
+							
+							if ( lastOL > lastUL )
+							{
+								lastList = '<ol>';
+								lastListIndex = lastOL;
+							}
+							else if ( lastUL > lastOL )
+							{
+								lastList = '<ul>';
+								lastListIndex = lastUL;
+							}
+							else
+							{
+								//	BROKEN!
+							}
+						}
 					}
-					else if ( int( item.paragraphStartIndent ) < indent )
+					else if ( item.mode != prevItem.mode )
 					{
-						
-					}
-					else
-					{
-						if ( xml.parent() )
-							xml = xml.parent().appendChild( newList );
-						//	if not, needs to be able to add & concatenate a list after itself
+						xmlStr += item.mode == ListItemElementX.UNORDERED ? '<ul>' : '<ol>';
 					}
 				}
-				else if ( int( item.paragraphStartIndent ) > indent )
-				{
-					//	Nest
-					
-				}
-				else if ( int( item.paragraphStartIndent ) < indent )
-				{
-					//	End nesting
-					xml = xml.parent();
-				}
+				else
+					xmlStr += item.mode == ListItemElementX.UNORDERED ? '<ul>' : '<ol>';
 				
-				//	Add new item to current list
-				xml.appendChild( item.export() );
+				xmlStr += item.export().toXMLString();
+				
+				prevItem = item;
 			}
+			
+			xmlStr += ( items[0] as ListItemElementX ).mode == ListItemElementX.UNORDERED ? '</ul>' : '</ol>';
+			
+			xml = new XML( xmlStr );
+			
+			XML.prettyPrinting = true;
 			
 			return xml;
 		}

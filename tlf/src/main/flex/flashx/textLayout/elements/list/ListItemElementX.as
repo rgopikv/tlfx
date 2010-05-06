@@ -115,7 +115,7 @@ package flashx.textLayout.elements.list
 		
 		tlf_internal override function ensureTerminatorAfterReplace(oldLastLeaf:FlowLeafElement):void
 		{
-			//	Nothing here in order to ensure that no extra spaces are added between lines
+			//	Nothing, to prevent extra line breaks
 		}
 		
 		public function export():XML
@@ -133,19 +133,22 @@ package flashx.textLayout.elements.list
 					case SpanElement:
 						var span:SpanElement = child as SpanElement;
 						childXML = <span>{span.text}</span>;
-						styleExporter.applyStyleAttributesFromElement( childXML, span );
-						if ( span.id.length > 0 )
+						var hasStyles:Boolean = styleExporter.applyStyleAttributesFromElement( childXML, span );
+						if ( span.id && span.id.length > 0 )
 							childXML.@id = span.id;
+						
+						if ( !hasStyles && (!span.id || !(span.id && span.id.length > 0)) )
+							childXML = new XML(span.text);
 						break;
 					case InlineGraphicElement:
 						var img:InlineGraphicElement = child as InlineGraphicElement;
-						if ( img.source.hasOwnProperty( 'export' ) )	//	EditableImageElement or VariableElement
+						if ( img.source && img.source.hasOwnProperty( 'export' ) )	//	EditableImageElement or VariableElement
 							childXML = img.source.export();	//	May not be an <img/> tag
 						else
 						{
 							childXML = <img/>;
 							childXML.@src = img.source.toString();
-							if ( img.id.length > 0 )
+							if ( img.id && img.id.length > 0 )
 								childXML.@id = childXML.@alt = img.id;
 						}
 						break;
@@ -155,7 +158,7 @@ package flashx.textLayout.elements.list
 						childXML = <a/>;
 						childXML.@href = link.href;
 						childXML.@target = link.target;
-						if ( link.id.length > 0 )
+						if ( link.id && link.id.length > 0 )
 							childXML.@id = link.id;
 						break;
 					default:
