@@ -4,7 +4,10 @@ package flashx.textLayout.utils
 	{
 		static public function normalizeForLayoutFormat( value:String ):Number
 		{
-			var nums:Array = value.toString().match( /[^\w#]\d{1,3}/g );
+			var nums:Array = [];
+			if ( value.charAt(0) != '#' )
+				nums = value.toString().match( /[^a-gA-GrR\(#]?\d{1,3}/g );
+			
 			if( nums.length > 0 )
 			{
 				var hexString:String = '#';
@@ -25,6 +28,7 @@ package flashx.textLayout.utils
 			value = ColorValueUtil.validateColor( value.toString() );
 			if (value.substr(0, 1) == "#")
 				value = "0x" + value.substr(1, value.length-1);
+			
 			return (value.toLowerCase().substr(0, 2) == "0x") ? parseInt(value) : NaN;
 		}
 		

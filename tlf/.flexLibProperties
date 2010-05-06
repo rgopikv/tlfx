@@ -244,6 +244,10 @@
     <classEntry path="flashx.textLayout.operations.InsertEditableInlineGraphicOperation"/>
     <classEntry path="flashx.textLayout.edit.ExtendedTextClipboard"/>
     <classEntry path="flashx.textLayout.operations.ExtendedCopyOperation"/>
+    <classEntry path="flashx.textLayout.format.IImportStyleHelper"/>
+    <classEntry path="flashx.textLayout.format.IExportStyleHelper"/>
+    <classEntry path="flashx.textLayout.format.StyleProperty"/>
+    <classEntry path="flashx.textLayout.events.CSSStyleApplicationEvent"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests>
