@@ -13,6 +13,7 @@ package flashx.textLayout.elements.list
 	import flashx.textLayout.elements.ExtendedLinkElement;
 	import flashx.textLayout.elements.FlowElement;
 	import flashx.textLayout.elements.FlowGroupElement;
+	import flashx.textLayout.elements.FlowLeafElement;
 	import flashx.textLayout.elements.InlineGraphicElement;
 	import flashx.textLayout.elements.LinkElement;
 	import flashx.textLayout.elements.ParagraphElement;
@@ -23,6 +24,8 @@ package flashx.textLayout.elements.list
 	import flashx.textLayout.formats.TextLayoutFormat;
 	import flashx.textLayout.tlf_internal;
 	import flashx.textLayout.utils.StyleAttributeUtil;
+	
+	use namespace tlf_internal;
 	
 	public class ListItemElementX extends ParagraphElement
 	{
@@ -39,6 +42,8 @@ package flashx.textLayout.elements.list
 		{
 			super();
 			
+			paddingBottom = paddingTop = paragraphSpaceAfter = paragraphSpaceBefore = 0;
+			
 			_number = 1;
 			_mode = UNORDERED;
 			_bulletSpan = new SpanElement();
@@ -52,10 +57,11 @@ package flashx.textLayout.elements.list
 			_bulletFormat.textDecoration = TextDecoration.NONE;
 			_bulletFormat.fontStyle = FontPosture.NORMAL;
 			_bulletFormat.lineThrough = false;
+			_bulletFormat.paddingBottom = _bulletFormat.paddingTop = _bulletFormat.paragraphSpaceAfter = _bulletFormat.paragraphSpaceBefore = 0;
 			
 			_bulletSpan.format = _bulletFormat;
 			
-			update();
+			update(false);
 		}
 		
 		
@@ -64,15 +70,6 @@ package flashx.textLayout.elements.list
 		{
 			if ( updateParent && this.parent && this.parent is ListElementX )
 				( this.parent as ListElementX ).update();
-			else
-			{
-				if ( !updateParent )
-					trace('Not updating per request.');
-				else if ( !this.parent )
-					trace('No parent to update upon.');
-				else
-					trace('Parent is not ListElementX.');
-			}
 			_bulletSpan.format = _bulletFormat;
 			_bulletSpan.text = getSeparator();
 			
@@ -116,56 +113,66 @@ package flashx.textLayout.elements.list
 			return child;
 		}
 		
-//		public function export():XML
+		tlf_internal override function ensureTerminatorAfterReplace(oldLastLeaf:FlowLeafElement):void
+		{
+			//	Nothing here in order to ensure that no extra spaces are added between lines
+		}
+		
+		public function export():XML
+		{
+			var xml:XML = <li/>;
+			var styleExporter:ExportStyleHelper = new ExportStyleHelper();
+			
+			for ( var i:int = 1; i < numChildren; i++ )
+			{
+				var child:FlowElement = getChildAt(i);
+				var childXML:XML;
+				
+				switch ( Class( getDefinitionByName( getQualifiedClassName( child ) ) ) )
+				{
+					case SpanElement:
+						var span:SpanElement = child as SpanElement;
+						childXML = <span>{span.text}</span>;
+						styleExporter.applyStyleAttributesFromElement( childXML, span );
+						if ( span.id.length > 0 )
+							childXML.@id = span.id;
+						break;
+					case InlineGraphicElement:
+						var img:InlineGraphicElement = child as InlineGraphicElement;
+						if ( img.source.hasOwnProperty( 'export' ) )	//	EditableImageElement or VariableElement
+							childXML = img.source.export();	//	May not be an <img/> tag
+						else
+						{
+							childXML = <img/>;
+							childXML.@src = img.source.toString();
+							if ( img.id.length > 0 )
+								childXML.@id = childXML.@alt = img.id;
+						}
+						break;
+					case ExtendedLinkElement:
+					case LinkElement:
+						var link:LinkElement = child as LinkElement;
+						childXML = <a/>;
+						childXML.@href = link.href;
+						childXML.@target = link.target;
+						if ( link.id.length > 0 )
+							childXML.@id = link.id;
+						break;
+					default:
+						trace('Could not export:', child, 'from:', this);
+						break;
+				}
+				
+				if ( childXML )
+					xml.appendChild( childXML );
+			}
+			
+			return xml.toXMLString() != '<li/>' ? xml : null;
+		}
+		
+//		public function toString():String
 //		{
-//			var xml:XML = <li/>;
-//			var styleExporter:ExportStyleHelper = new ExportStyleHelper();
-//			
-//			for ( var i:int = 1; i < numChildren; i++ )
-//			{
-//				var child:FlowElement = getChildAt(i);
-//				var childXML:XML;
-//				
-//				switch ( Class( getDefinitionByName( getQualifiedClassName( child ) ) ) )
-//				{
-//					case SpanElement:
-//						var span:SpanElement = child as SpanElement;
-//						childXML = <span>{span.text}</span>;
-//						styleExporter.applyStyleAttributesFromElement( childXML, span );
-//						if ( span.id.length > 0 )
-//							childXML.@id = span.id;
-//						break;
-//					case InlineGraphicElement:
-//						var img:InlineGraphicElement = child as InlineGraphicElement;
-//						if ( img.source.hasOwnProperty( 'export' ) )	//	EditableImageElement or VariableElement
-//							childXML = img.source.export();	//	May not be an <img/> tag
-//						else
-//						{
-//							childXML = <img/>;
-//							childXML.@src = img.source.toString();
-//							if ( img.id.length > 0 )
-//								childXML.@id = childXML.@alt = img.id;
-//						}
-//						break;
-//					case ExtendedLinkElement:
-//					case LinkElement:
-//						var link:LinkElement = child as LinkElement;
-//						childXML = <a/>;
-//						childXML.@href = link.href;
-//						childXML.@target = link.target;
-//						if ( link.id.length > 0 )
-//							childXML.@id = link.id;
-//						break;
-//					default:
-//						trace('Could not export:', child, 'from:', this);
-//						break;
-//				}
-//				
-//				if ( childXML )
-//					xml.appendChild( childXML );
-//			}
-//			
-//			return xml.toXMLString() != '<li/>' ? xml : null;
+//			return '[ListItemElementX number: ' + number + ' | text: ' + text + ' | mode: ' + mode + ' | indent: ' + indent + ']';
 //		}
 		
 		protected function getSeparator():String
@@ -207,7 +214,7 @@ package flashx.textLayout.elements.list
 			if ( value != UNORDERED && value != ORDERED )
 				_mode = UNORDERED;
 			
-			update();
+			update(false);
 		}
 		public function get mode():String
 		{
@@ -233,7 +240,7 @@ package flashx.textLayout.elements.list
 			span.text = value;
 			addChild( span );
 			
-			update();
+			update(false);
 		}
 		public function get text():String
 		{
@@ -259,6 +266,15 @@ package flashx.textLayout.elements.list
 		public function get modifiedTextLength():uint
 		{
 			return textLength - getChildAt(0).textLength;
+		}
+		
+		public function set indent( value:uint ):void
+		{
+			paragraphStartIndent = value;
+		}
+		public function get indent():uint
+		{
+			return Math.max( uint( paragraphStartIndent ), 0 );
 		}
 	}
 }
