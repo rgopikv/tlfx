@@ -77,6 +77,7 @@
     <classEntry path="flashx.textLayout.edit.EditingMode"/>
     <classEntry path="flashx.textLayout.edit.ElementRange"/>
     <classEntry path="flashx.textLayout.edit.ExtendedEditManager"/>
+    <classEntry path="flashx.textLayout.edit.ExtendedTextClipboard"/>
     <classEntry path="flashx.textLayout.edit.IEditManager"/>
     <classEntry path="flashx.textLayout.edit.IInteractionEventHandler"/>
     <classEntry path="flashx.textLayout.edit.IMEClient"/>
@@ -108,6 +109,7 @@
     <classEntry path="flashx.textLayout.elements.IConfiguration"/>
     <classEntry path="flashx.textLayout.elements.IFormatResolver"/>
     <classEntry path="flashx.textLayout.elements.IListElement"/>
+    <classEntry path="flashx.textLayout.elements.IManagedInlineGraphicSource"/>
     <classEntry path="flashx.textLayout.elements.InlineGraphicElement"/>
     <classEntry path="flashx.textLayout.elements.InlineGraphicElementStatus"/>
     <classEntry path="flashx.textLayout.elements.LinkElement"/>
@@ -204,9 +206,11 @@
     <classEntry path="flashx.textLayout.operations.DeleteAndInsertTextOperation"/>
     <classEntry path="flashx.textLayout.operations.DeleteElementsOperation"/>
     <classEntry path="flashx.textLayout.operations.DeleteTextOperation"/>
+    <classEntry path="flashx.textLayout.operations.ExtendedCopyOperation"/>
     <classEntry path="flashx.textLayout.operations.FlowElementOperation"/>
     <classEntry path="flashx.textLayout.operations.FlowOperation"/>
     <classEntry path="flashx.textLayout.operations.FlowTextOperation"/>
+    <classEntry path="flashx.textLayout.operations.InsertEditableInlineGraphicOperation"/>
     <classEntry path="flashx.textLayout.operations.InsertInlineGraphicOperation"/>
     <classEntry path="flashx.textLayout.operations.InsertTextOperation"/>
     <classEntry path="flashx.textLayout.operations.ModifyInlineGraphicOperation"/>
@@ -231,6 +235,7 @@
     <classEntry path="flashx.textLayout.property.UintWithEnumProperty"/>
     <classEntry path="flashx.textLayout.tlf_internal"/>
     <classEntry path="flashx.textLayout.utils.CharacterUtil"/>
+    <classEntry path="flashx.textLayout.utils.ColorValueUtil"/>
     <classEntry path="flashx.textLayout.utils.FragmentAttributeUtil"/>
     <classEntry path="flashx.textLayout.utils.GeometryUtil"/>
     <classEntry path="flashx.textLayout.utils.LocaleUtil"/>
