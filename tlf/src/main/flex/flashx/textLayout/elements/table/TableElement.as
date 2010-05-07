@@ -184,6 +184,8 @@ package flashx.textLayout.elements.table
 		 */
 		protected function handleParseCleanComplete( evt:TagParserCleanCompleteEvent ):void
 		{
+			_importer.removeEventListener( TagParserCleanCompleteEvent.CLEAN_COMPLETE, handleParseCleanComplete );
+			_importer.removeEventListener( TagParserCleanProgressEvent.CLEAN_PROGRESS, handleParseCleanProgress );
 			// Kill progress alert if shown.
 //			if( _progressAlert )
 //			{
@@ -288,6 +290,24 @@ package flashx.textLayout.elements.table
 		{
 			updateTableMap();
 			_tableManager.compose();
+		}
+		
+		/**
+		 * Cleans table element for removal.
+		 */
+		public function dispose():void
+		{
+			_importer = null;
+			_exporter = null;
+			_tableMapper = null;
+			_table = null;
+			_fragment = null;
+			
+			_targetContainer.dispose();
+			_targetContainer = null;
+			
+			_tableManager.dispose();
+			_tableManager = null;
 		}
 		
 		/**

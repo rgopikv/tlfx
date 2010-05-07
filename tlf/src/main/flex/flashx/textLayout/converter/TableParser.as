@@ -384,9 +384,16 @@ package flashx.textLayout.converter
 				// parse into flat row array.
 				var rows:Vector.<TableRowElement> = parseTableIntoSequenceRows( xml );
 				var i:int;
+				var preexistingChildrenIndex:int = tableElement.numChildren;
 				for( i = 0; i < rows.length; i++ )
 				{
 					tableElement.addChild( rows[i] );
+				}
+				// Remove preexisting children. Preexisting children can be present due to TLF popoulating default children from normalizeRange while elemnt is considered empty.
+				i = preexistingChildrenIndex;
+				while( --i > -1 )
+				{
+					tableElement.removeChildAt( i );
 				}
 				_htmlImporter.importStyleHelper.apply();
 				

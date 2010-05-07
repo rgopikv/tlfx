@@ -15,8 +15,11 @@ package flashx.textLayout.model.style
 	 */
 	public class InlineStyles
 	{
+		public var node:XML;
 		public var styleId:String;
 		public var styleClass:String;
+		public var appliedStyle:*; 			/* Style applied from stylesheet */
+		public var explicitStyle:Object; 	/* Generic object fo key/value pairs for style properties. */
 		
 		/**
 		 * Constructor. 
@@ -29,7 +32,6 @@ package flashx.textLayout.model.style
 				deserialize( elementTag );
 		}
 		
-		// Serialize dictionary to @style attribute.
 		/**
 		 * Serializes held properties to a tag. 
 		 * @param tag XML
@@ -43,18 +45,22 @@ package flashx.textLayout.model.style
 				tag["@class"] = styleClass;
 		}
 		
-		// Deserialize @style attribute to dictionary
 		/**
 		 * Deserializes tag attributes to properties. 
 		 * @param tag XML
 		 */
 		public function deserialize( tag:XML ):void
 		{
+			node = tag;
+			
 			var id:String = tag.@id;
 			if( id.length > 0 ) styleId = id;
 			
 			var clazz:String = tag["@class"];
 			if( clazz.length > 0 ) styleClass = clazz; 
+			
+			var style:String = tag.@style;
+			if( style.length > 0 ) explicitStyle = StyleAttributeUtil.parseStyles( style );
 		}
 	}
 }

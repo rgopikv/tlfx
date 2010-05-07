@@ -2,6 +2,7 @@ package flashx.textLayout.converter
 {
 	import flashx.textLayout.elements.TextFlow;
 	import flashx.textLayout.format.ExportStyleHelper;
+	import flashx.textLayout.format.IExportStyleHelper;
 
 	/**
 	 * IHTMLExporter is an interface for exporting a list of FlowElements to a a valid fragment. 
@@ -28,6 +29,6 @@ package flashx.textLayout.converter
 		 * Returns the export style helper instanced used by the exporter. 
 		 * @return ExportStyleHelper
 		 */
-		function get exportStyleHelper():ExportStyleHelper;
+		function get exportStyleHelper():IExportStyleHelper;
 	}
 }

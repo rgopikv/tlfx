@@ -24,6 +24,7 @@ package flashx.textLayout.container.table
 	import flashx.textLayout.elements.DivElement;
 	import flashx.textLayout.elements.FlowElement;
 	import flashx.textLayout.elements.FlowGroupElement;
+	import flashx.textLayout.elements.FlowValueHolder;
 	import flashx.textLayout.elements.IConfiguration;
 	import flashx.textLayout.elements.ParagraphElement;
 	import flashx.textLayout.elements.SpanElement;
@@ -33,6 +34,7 @@ package flashx.textLayout.container.table
 	import flashx.textLayout.events.table.TableCellContainerEvent;
 	import flashx.textLayout.events.table.TableCellFocusEvent;
 	import flashx.textLayout.factory.TextFlowTextLineFactory;
+	import flashx.textLayout.formats.ITextLayoutFormat;
 	import flashx.textLayout.formats.TextAlign;
 	import flashx.textLayout.formats.TextLayoutFormat;
 	import flashx.textLayout.model.attribute.IAttribute;
@@ -165,7 +167,7 @@ package flashx.textLayout.container.table
 		protected function invalidateSelection():void
 		{
 			background.graphics.clear();
-			background.graphics.beginFill( ( _selected ) ? 0xEE9A00 : 0xFFFFFF, 1 );
+			background.graphics.beginFill( ( _selected ) ? 0xccccff : 0xFFFFFF, 1 );
 			background.graphics.drawRect( 0, 0, _width, _height );
 			background.graphics.endFill();
 			//			background.blendMode = ( _selected ) ? BlendMode.INVERT : BlendMode.NORMAL;
@@ -320,15 +322,17 @@ package flashx.textLayout.container.table
 			
 			cleanTextFlow();
 			var element:FlowElement;
-			var elementList:Array = []; // FlowElement[]
+			var elementList:Array = []; // CellElement[]
+			var previousFormat:ITextLayoutFormat;
 			// Loop through elements and pop from Array and place on TextFlow instance.
 			while( elements.length > 0 )
 			{
 				element = ( elements.shift() as FlowElement );
+				previousFormat = new FlowValueHolder( ( element.format as FlowValueHolder ) );
 				element.format = ( element.format ) ? TextLayoutFormatUtils.mergeFormats( _data.computedFormat, element.format ) : _data.computedFormat;
 				element.uid = _uid;
 				// Add to held list of elements.
-				elementList.push( element );
+				elementList.push( CellElementPool.getCellElement( element, previousFormat ) );
 				// Push to stack of TextFlow
 				_textFlow.addChild( element );
 			}
@@ -339,10 +343,13 @@ package flashx.textLayout.container.table
 			factory.createTextLines( updateActualBounds, _textFlow );
 			
 			var elementLength:int = elementList.length;
+			var cellElement:CellElement;
 			// Add back to element.
 			while( elementList.length > 0 )
 			{
-				_data.addChild( elementList.shift() as FlowElement );
+				cellElement = elementList.shift() as CellElement;
+				_data.addChild( cellElement.element );
+				CellElementPool.returnCellElement( cellElement );
 			}
 			
 			updateMeasuredBounds();
@@ -849,5 +856,40 @@ package flashx.textLayout.container.table
 			_selected = value;
 			invalidateSelection();
 		}
+	}
+}
+
+import flashx.textLayout.elements.FlowElement;
+import flashx.textLayout.formats.ITextLayoutFormat;
+
+class CellElement
+{
+	public var element:FlowElement;
+	public var previousFormat:ITextLayoutFormat;
+	public function CellElement( element:FlowElement, previousFormat:ITextLayoutFormat )
+	{
+		this.element = element;
+		this.previousFormat = previousFormat;
+	}
+}
+
+class CellElementPool
+{
+	private static var _pool:Array = [];
+	static public function getCellElement( element:FlowElement, previousFormat:ITextLayoutFormat ):CellElement
+	{
+		if( _pool.length == 0 )
+			_pool.push( new CellElement( element, previousFormat ) );
+		
+		var cellElement:CellElement = _pool.shift() as CellElement;
+		cellElement.element = element;
+		cellElement.previousFormat = previousFormat;
+		return cellElement;
+	}
+	
+	static public function returnCellElement( cellElement:CellElement ):void
+	{
+		cellElement.element.format = cellElement.previousFormat;
+		_pool.push( cellElement );
 	}
 }

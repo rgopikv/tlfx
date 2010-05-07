@@ -179,7 +179,7 @@ package flashx.textLayout.operations
 				// If table element is still held on text flow model, remove it.
 				if( textFlow.mxmlChildren.indexOf( tableElement ) > -1 )
 				{
-					
+					tableElement.dispose();
 					TextFlowEdit.findAndRemoveTableElement( tableElement );	
 				}
 					// Else pop it from held list of deleted tables.

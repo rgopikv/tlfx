@@ -25,7 +25,7 @@ package flashx.textLayout.format
 	 * ExportStyleHelper is a helper class to export inline styles associated with FlowElements 
 	 * @author toddanderson
 	 */
-	public class ExportStyleHelper
+	public class ExportStyleHelper implements IExportStyleHelper
 	{
 		// TODO: Run diffs on stylesheets.
 		
@@ -33,62 +33,6 @@ package flashx.textLayout.format
 		 * Constrcutor.
 		 */
 		public function ExportStyleHelper() {}
-		
-		/**
-		 * @private
-		 * 
-		 * Determines CSS related style and values based on properties and formatting. 
-		 * @param property String
-		 * @param value *
-		 * @param format ITextLayoutFormat
-		 * @return StyleProperty
-		 */
-		protected function normalizeProperty( property:String, value:*, format:ITextLayoutFormat = null ):StyleProperty
-		{
-			switch( property )
-			{
-				case "color":
-					var rgb:String = value.toString( 16 );
-					while (rgb.length < 6) 
-						rgb = "0" + rgb;
-					value = "#" + rgb;
-					break;
-				case "fontSize":
-					value = value + "px";
-					break;
-				case "textAlign":
-					if( value == TextAlign.START )
-					{
-						value = ( format.direction == Direction.LTR) ? TextAlign.LEFT : TextAlign.RIGHT;
-					}
-					else if( value == TextAlign.END )
-					{
-						value = ( format.direction == Direction.LTR) ? TextAlign.RIGHT : TextAlign.LEFT;
-					}
-					break;
-				case "paragraphStartIndent":
-					if( format.direction == Direction.RTL )
-					{
-						property = "marginRight";
-					}
-					else
-					{
-						property = "marginLeft";
-					}
-					break;
-				case "paragraphEndIndent":
-					if( format.direction == Direction.RTL )
-					{
-						property = "marginLeft";
-					}
-					else
-					{
-						property = "marginRight";
-					}
-					break;
-			}	
-			return new StyleProperty( property, value )
-		}
 		
 		/**
 		 * Returns the next possible parent from hiearchical list of possible parents in order to access computed format. 
@@ -202,7 +146,7 @@ package flashx.textLayout.format
 						}
 						if( childPropertyValue != parentPropertyValue )
 						{
-							styleProperty = normalizeProperty( property, childPropertyValue, childFormat );
+							styleProperty = StyleProperty.normalizePropertyForCSS( property, childPropertyValue, childFormat );
 							styles.push( styleProperty );			
 						}
 					}
@@ -223,13 +167,15 @@ package flashx.textLayout.format
 		 * @param node XML
 		 * @param element FlowElement
 		 */
-		protected function applySelectorAttributes( node:XML, element:FlowElement ):void
+		protected function applySelectorAttributes( node:XML, element:FlowElement ):Boolean
 		{
 			var inlineStyle:InlineStyles = ( element.userStyles ) ? element.userStyles.inline as InlineStyles : null;
 			if( inlineStyle )
 			{
 				inlineStyle.serialize( node );
+				return inlineStyle.styleId != null || inlineStyle.styleClass != null;
 			}
+			return false;
 		}
 		
 		/**
@@ -282,29 +228,12 @@ package flashx.textLayout.format
 			if( StyleAttributeUtil.isValidStyleString( style ) ) 
 				node.@style = style;
 			// Apply other attributes that relate to style like id and class.
-			if( element ) applySelectorAttributes( node, element );
-			return differingStyles.length > 0;	
+			var requiresInlineStyleAttributes:Boolean;
+			if( element )
+			{
+				requiresInlineStyleAttributes = applySelectorAttributes( node, element );	
+			}
+			return ( differingStyles.length > 0 ) || requiresInlineStyleAttributes;	
 		}
-	}
-}
-
-/**
- * StyleProperty is an internal class model to represent a style on key/value pair. 
- * @author toddanderson
- */
-class StyleProperty
-{
-	public var property:String;
-	public var value:*;
-	
-	/**
-	 * Constructor. 
-	 * @param property String
-	 * @param value *
-	 */
-	public function StyleProperty( property:String, value:* )
-	{
-		this.property = property;
-		this.value = value;
 	}
 }
