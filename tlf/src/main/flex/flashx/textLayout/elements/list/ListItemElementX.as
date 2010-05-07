@@ -35,6 +35,8 @@ package flashx.textLayout.elements.list
 		private var _mode:String;
 		private var _number:uint;
 		
+		private var _source:XML;
+		
 		private var _bulletSpan:SpanElement;
 		private var _bulletFormat:TextLayoutFormat;
 		
@@ -123,6 +125,8 @@ package flashx.textLayout.elements.list
 			var xml:XML = <li/>;
 			var styleExporter:ExportStyleHelper = new ExportStyleHelper();
 			
+			styleExporter.applyStyleAttributesFromElement( xml, this );
+			
 			for ( var i:int = 1; i < numChildren; i++ )
 			{
 				var child:FlowElement = getChildAt(i);
@@ -151,6 +155,7 @@ package flashx.textLayout.elements.list
 							if ( img.id && img.id.length > 0 )
 								childXML.@id = childXML.@alt = img.id;
 						}
+						styleExporter.applyStyleAttributesFromElement( childXML, img );
 						break;
 					case ExtendedLinkElement:
 					case LinkElement:
@@ -160,6 +165,7 @@ package flashx.textLayout.elements.list
 						childXML.@target = link.target;
 						if ( link.id && link.id.length > 0 )
 							childXML.@id = link.id;
+						styleExporter.applyStyleAttributesFromElement( childXML, link );
 						break;
 					default:
 						trace('Could not export:', child, 'from:', this);
@@ -278,6 +284,11 @@ package flashx.textLayout.elements.list
 		public function get indent():uint
 		{
 			return Math.max( uint( paragraphStartIndent ), 0 );
+		}
+		
+		public function set source( value:XML ):void
+		{
+			_source = value;
 		}
 	}
 }

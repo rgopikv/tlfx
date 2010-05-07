@@ -11,6 +11,8 @@ package flashx.textLayout.format
 	import flashx.textLayout.elements.ParagraphElement;
 	import flashx.textLayout.elements.SpanElement;
 	import flashx.textLayout.elements.TextFlow;
+	import flashx.textLayout.elements.list.ListElementX;
+	import flashx.textLayout.elements.list.ListItemElementX;
 	import flashx.textLayout.formats.Direction;
 	import flashx.textLayout.formats.ITextLayoutFormat;
 	import flashx.textLayout.formats.TextAlign;
@@ -103,34 +105,34 @@ package flashx.textLayout.format
 			switch( type )
 			{
 				case SpanElement:
-					parentList = [LinkElement, ParagraphElement, DivElement, TextFlow];
-					while( parent == null && parentList.length > 0 )
-					{
-						parent = element.getParentByType( parentList.shift() as Class );
-					}
+					parentList = [LinkElement, ParagraphElement, ListItemElementX, DivElement, TextFlow];
 					break;
 				case LinkElement:
 				case ExtendedLinkElement:
-					parentList = [ParagraphElement, DivElement, TextFlow];
-					while( parent == null && parentList.length > 0 )
-					{
-						parent = element.getParentByType( parentList.shift() as Class );
-					}
+					parentList = [ParagraphElement, ListItemElementX, DivElement, TextFlow];
 					break;
 				case ParagraphElement:
 					parentList = [DivElement, TextFlow];
-					while( parent == null && parentList.length > 0 )
-					{
-						parent = element.getParentByType( parentList.shift() as Class );
-					}
+					break;
+				case ListItemElementX:
+					parentList = [ListElementX, TextFlow];
 					break;
 				case DivElement:
 					parentList = [DivElement, TextFlow];
-					while( parent == null && parentList.length > 0 )
-					{
-						parent = element.getParentByType( parentList.shift() as Class );
-					}
+//					while( parent == null && parentList.length > 0 )
+//					{
+//						parent = element.getParentByType( parentList.shift() as Class );
+//					}
 					break;
+				case ListElementX:
+					parentList = [DivElement, TextFlow];
+					break;
+			}
+			
+			if ( parentList )
+			{
+				while ( parent == null && parentList.length > 0 )
+					parent = element.getParentByType(parentList.shift() as Class);
 			}
 			
 			if( parent ) format = parent.computedFormat;
