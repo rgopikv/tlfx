@@ -382,9 +382,9 @@ package flashx.textLayout.converter
 				
 				_htmlImporter.importStyleHelper.assignInlineStyle( xml, tableElement );
 				// parse into flat row array.
-				var preexistingChildrenIndex:int = tableElement.numChildren;
 				var rows:Vector.<TableRowElement> = parseTableIntoSequenceRows( xml );
 				var i:int;
+				var preexistingChildrenIndex:int = tableElement.numChildren;
 				for( i = 0; i < rows.length; i++ )
 				{
 					tableElement.addChild( rows[i] );
