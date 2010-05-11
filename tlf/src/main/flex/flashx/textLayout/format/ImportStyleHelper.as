@@ -80,7 +80,6 @@ package flashx.textLayout.format
 		 */
 		public function getFormatFromStyleAttribute( styleAttribute:String, heldFormat:ITextLayoutFormat = null ):ITextLayoutFormat
 		{
-			// TODO: Do lookup on style sheets and apply styles to element.
 			if( StyleAttributeUtil.isValidStyleString( styleAttribute ) )
 			{
 				var format:ITextLayoutFormat = ( heldFormat ) ? heldFormat : new TextLayoutFormat();
@@ -103,8 +102,13 @@ package flashx.textLayout.format
 		public function assignInlineStyle( node:XML, element:FlowElement ):void
 		{
 			var userStyles:Object = ( element.userStyles ) ? element.userStyles : {};
-			userStyles.inline = new InlineStyles( node );
+			if( userStyles.inline == null )
+				userStyles.inline = new InlineStyles( node );	
+			else
+				userStyles.inline.node = node;
+			userStyles.inline.explicitStyle = StyleAttributeUtil.parseStyles( node.@style );
 			element.userStyles = userStyles;
+			
 			// Push to queue for pending.
 			_pendingStyledElements.push( new PendingStyleElement( node, element ) );
 		}

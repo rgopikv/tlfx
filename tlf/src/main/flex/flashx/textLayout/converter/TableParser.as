@@ -11,8 +11,6 @@ package flashx.textLayout.converter
 	import flashx.textLayout.elements.table.TableRowElement;
 	import flashx.textLayout.events.TagParserCleanCompleteEvent;
 	import flashx.textLayout.events.TagParserCleanProgressEvent;
-	import flashx.textLayout.format.IStyle;
-	import flashx.textLayout.format.TableStyle;
 	import flashx.textLayout.model.attribute.TableDataAttribute;
 	import flashx.textLayout.model.table.Table;
 	import flashx.textLayout.model.table.TableColumn;
@@ -40,22 +38,6 @@ package flashx.textLayout.converter
 			_cleaner = new TableCleaner( imageProxy );
 			_cleaner.addEventListener( TagParserCleanCompleteEvent.CLEAN_COMPLETE, handleCleanComplete, false, 0, true );
 			_cleaner.addEventListener( TagParserCleanProgressEvent.CLEAN_PROGRESS, handleCleanProgress, false, 0, true );
-		}
-		
-		/**
-		 * @private
-		 * 
-		 * Parses style attribute. 
-		 * @param tableNode XML
-		 * @return IStyle
-		 */
-		protected function getStyle( tableNode:XML ):IStyle
-		{
-			// TODO. Check for attibute style and instantiate the TabStyle with it.
-			var style:IStyle = new TableStyle();
-			style.deserializeAttribute( tableNode.attribute("style") );
-			( style as TableStyle ).border = int( tableNode.attribute("border") );
-			return style;
 		}
 		
 		/**
@@ -398,7 +380,7 @@ package flashx.textLayout.converter
 				_htmlImporter.importStyleHelper.apply();
 				
 				// instantiate a new Table instance.
-				table = new Table( getStyle( xml ) );
+				table = new Table();
 				table.attributes.modifyAttributes( parseAttributes( xml ) );
 			}
 			catch( e:Error )

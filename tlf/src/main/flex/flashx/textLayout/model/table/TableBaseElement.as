@@ -1,8 +1,6 @@
 package flashx.textLayout.model.table
 {
 	import flash.events.EventDispatcher;
-	
-	import flashx.textLayout.format.IStyle;
 	import flashx.textLayout.model.attribute.IAttribute;
 
 	/**
@@ -13,7 +11,6 @@ package flashx.textLayout.model.table
 	public class TableBaseElement extends EventDispatcher
 	{
 		public var attributes:IAttribute;
-		public var styles:IStyle;
 		
 		public function TableBaseElement() 
 		{

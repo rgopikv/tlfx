@@ -1,5 +1,7 @@
 package flashx.textLayout.model.style
 {
+	import flash.events.Event;
+	import flash.events.EventDispatcher;
 	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	
@@ -13,13 +15,16 @@ package flashx.textLayout.model.style
 	 * An InlineStyles object is handed to a FlowElement through its userStyles property.
 	 * @author toddanderson
 	 */
-	public class InlineStyles
+	public class InlineStyles extends EventDispatcher
 	{
 		public var node:XML;
 		public var styleId:String;
 		public var styleClass:String;
-		public var appliedStyle:*; 			/* Style applied from stylesheet */
-		public var explicitStyle:Object; 	/* Generic object fo key/value pairs for style properties. */
+		protected var _appliedStyle:*; 			/* Style applied from stylesheet */
+		protected var _explicitStyle:Object; 	/* Generic object fo key/value pairs for style properties. */
+		
+		public static const APPLIED_STYLE_CHANGE:String = "appliedStyleChange";
+		public static const EXPLICIT_STYLE_CHANGE:String = "explicitStyleChange";
 		
 		/**
 		 * Constructor. 
@@ -61,6 +66,26 @@ package flashx.textLayout.model.style
 			
 			var style:String = tag.@style;
 			if( style.length > 0 ) explicitStyle = StyleAttributeUtil.parseStyles( style );
+		}
+		
+		public function get appliedStyle():*
+		{
+			return _appliedStyle;
+		}
+		public function set appliedStyle( value:* ):void
+		{
+			_appliedStyle = value;
+			dispatchEvent( new Event( InlineStyles.APPLIED_STYLE_CHANGE ) );
+		}
+		
+		public function get explicitStyle():Object
+		{
+			return _explicitStyle;
+		}
+		public function set explicitStyle( value:Object ):void
+		{
+			_explicitStyle = value;
+			dispatchEvent( new Event( InlineStyles.EXPLICIT_STYLE_CHANGE ) );
 		}
 	}
 }

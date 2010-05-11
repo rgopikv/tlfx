@@ -4,7 +4,6 @@ package flashx.textLayout.model.table
 	
 	import flashx.textLayout.converter.TableMapper;
 	import flashx.textLayout.elements.table.TableRowElement;
-	import flashx.textLayout.format.IStyle;
 	import flashx.textLayout.model.attribute.TableAttribute;
 
 	[Event(name="resize", type="flash.events.Event")]
@@ -24,13 +23,8 @@ package flashx.textLayout.model.table
 		/**
 		 * Constructor. 
 		 * @param rows Vector.<TableRow> The list of rows.
-		 * @param style IStyle The IStyle implementation associated with the Table.
 		 */
-		public function Table( style:IStyle = null )
-		{
-			super();
-			this.styles = style;
-		}
+		public function Table() { super() }
 		
 		/**
 		 * @inherit

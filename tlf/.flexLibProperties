@@ -151,9 +151,7 @@
     <classEntry path="flashx.textLayout.factory.TextLineFactoryBase"/>
     <classEntry path="flashx.textLayout.factory.TruncationOptions"/>
     <classEntry path="flashx.textLayout.format.ExportStyleHelper"/>
-    <classEntry path="flashx.textLayout.format.IStyle"/>
     <classEntry path="flashx.textLayout.format.ImportStyleHelper"/>
-    <classEntry path="flashx.textLayout.format.TableStyle"/>
     <classEntry path="flashx.textLayout.formats.BackgroundColor"/>
     <classEntry path="flashx.textLayout.formats.BaselineOffset"/>
     <classEntry path="flashx.textLayout.formats.BaselineShift"/>
@@ -240,10 +238,6 @@
     <classEntry path="flashx.undo.IOperation"/>
     <classEntry path="flashx.undo.IUndoManager"/>
     <classEntry path="flashx.undo.UndoManager"/>
-    <classEntry path="flashx.textLayout.model.style.InlineStyles"/>
-    <classEntry path="flashx.textLayout.format.ImportStyleHelper"/>
-    <classEntry path="flashx.textLayout.format.ExportStyleHelper"/>
-    <classEntry path="flashx.textLayout.elements.ExtendedConfiguration"/>
     <classEntry path="flashx.textLayout.elements.IManagedInlineGraphicSource"/>
     <classEntry path="flashx.textLayout.operations.InsertEditableInlineGraphicOperation"/>
     <classEntry path="flashx.textLayout.edit.ExtendedTextClipboard"/>
@@ -252,6 +246,10 @@
     <classEntry path="flashx.textLayout.format.IExportStyleHelper"/>
     <classEntry path="flashx.textLayout.format.StyleProperty"/>
     <classEntry path="flashx.textLayout.events.CSSStyleApplicationEvent"/>
+    <classEntry path="flashx.textLayout.format.TableElementStyle"/>
+    <classEntry path="flashx.textLayout.format.TableBorderStyleEnum"/>
+    <classEntry path="flashx.textLayout.format.TableVerticalAlignEnum"/>
+    <classEntry path="flashx.textLayout.utils.TableStyleUtil"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests>

@@ -2,6 +2,7 @@ package flashx.textLayout.elements.table
 {
 	import flash.display.DisplayObjectContainer;
 	import flash.events.Event;
+	import flash.utils.getQualifiedClassName;
 	import flash.utils.getQualifiedSuperclassName;
 	
 	import flashx.textLayout.container.table.ICellContainer;
@@ -18,11 +19,13 @@ package flashx.textLayout.elements.table
 	import flashx.textLayout.events.TableElementStatusEvent;
 	import flashx.textLayout.events.TagParserCleanCompleteEvent;
 	import flashx.textLayout.events.TagParserCleanProgressEvent;
-	import flashx.textLayout.format.IStyle;
+	import flashx.textLayout.format.TableElementStyle;
 	import flashx.textLayout.model.attribute.IAttribute;
+	import flashx.textLayout.model.style.InlineStyles;
 	import flashx.textLayout.model.table.Table;
 	import flashx.textLayout.model.table.TableRow;
 	import flashx.textLayout.tlf_internal;
+	import flashx.textLayout.utils.StyleAttributeUtil;
 	
 	use namespace tlf_internal;
 	/**
@@ -32,10 +35,7 @@ package flashx.textLayout.elements.table
 	public class TableElement extends ContainerFormattedElement
 	{
 		public var attributes:IAttribute;
-		/**
-		 * Style for table that ha no relation to text layout format, such as border, etc. 
-		 */
-		public var styles:IStyle;
+		public var style:TableElementStyle;
 		
 		protected var _table:Table;
 		protected var _tableMapper:TableMapper;
@@ -49,7 +49,7 @@ package flashx.textLayout.elements.table
 		protected var _targetContainer:TableDisplayContainer;
 		
 		protected var _textFlow:TextFlow;
-		
+		protected var _userStyles:Object;
 		protected var _isInitialized:Boolean;
 		
 		public static const LINE_BREAK_IDENTIFIER:String = "|tlf_table_paste_break|";
@@ -60,6 +60,7 @@ package flashx.textLayout.elements.table
 		public function TableElement()
 		{
 			super();
+			style = new TableElementStyle();
 		}
 		
 		/**
@@ -124,6 +125,8 @@ package flashx.textLayout.elements.table
 			copy.exporter = _exporter;
 			copy.fragment = serialize();
 			copy.tableModel = _table;
+			copy.attributes = attributes;
+			copy.style = style;
 			return copy;
 		}
 		
@@ -166,14 +169,7 @@ package flashx.textLayout.elements.table
 		 */
 		protected function handleParseCleanProgress( evt:TagParserCleanProgressEvent ):void
 		{
-//			// Create progress alert if not there.
-//			if( _progressAlert == null )
-//				_progressAlert = new TableProgressAlert();
-//			
-//			// Show and update.
-//			_alertManager.showAlert( _progressAlert );
-//			_progressAlert.message = evt.message;
-//			_progressAlert.percent = evt.percent;
+			//
 		}
 		
 		/**
@@ -186,12 +182,7 @@ package flashx.textLayout.elements.table
 		{
 			_importer.removeEventListener( TagParserCleanCompleteEvent.CLEAN_COMPLETE, handleParseCleanComplete );
 			_importer.removeEventListener( TagParserCleanProgressEvent.CLEAN_PROGRESS, handleParseCleanProgress );
-			// Kill progress alert if shown.
-//			if( _progressAlert )
-//			{
-//				_alertManager.hideAlert( _progressAlert );
-//				_progressAlert = null;
-//			}
+			
 			// Wipe out any possibility of empty constrcution which TLF loves to do.
 			if( !_isInitialized )
 			{
@@ -216,6 +207,48 @@ package flashx.textLayout.elements.table
 			
 			_isInitialized = true;
 			_textFlow.dispatchEvent( new TableElementStatusEvent( TableElementStatusEvent.INITIALIZED, this ) );
+		}
+		
+		protected function handleAppliedStyleChange( evt:Event ):void
+		{
+			var appliedStyle:Object = _userStyles.inline.appliedStyle;
+			var property:String;	
+			var styleProperty:String;
+			for( property in appliedStyle )
+			{
+				try 
+				{
+					styleProperty = StyleAttributeUtil.camelize(property);
+					// Only ovewrite if not explicitly set which happens when reading in explicit style from @style attribute.
+					if( style.isUndefined( style[styleProperty] ) )
+						style[styleProperty] = appliedStyle[property];
+				}
+				catch( e:Error )
+				{
+					trace( "[" + getQualifiedClassName( this ) + "] :: Style property of type '" + property + "' cannot be set on " + getQualifiedClassName( style ) + "." );
+				}
+			}
+			trace( "Applied computed style:\n" + style.getComputedStyle().toString() );
+		}
+		
+		protected function handleExplicitStyleChange( evt:Event ):void
+		{
+			var explicitStyle:Object = _userStyles.inline.explicitStyle;
+			var property:String;	
+			var styleProperty:String;
+			for( property in explicitStyle )
+			{
+				try 
+				{
+					styleProperty = StyleAttributeUtil.camelize(property);
+					style[styleProperty] = explicitStyle[property];
+				}
+				catch( e:Error )
+				{
+					trace( "[" + getQualifiedClassName( this ) + "] :: Style property of type '" + property + "' cannot be set on " + getQualifiedClassName( style ) + "." );
+				}
+			}
+			trace( "Explicit computed style:\n" + style.getComputedStyle().toString() );
 		}
 		
 		/**
@@ -308,6 +341,8 @@ package flashx.textLayout.elements.table
 			
 			_tableManager.dispose();
 			_tableManager = null;
+			
+			_userStyles = null;
 		}
 		
 		/**
@@ -329,6 +364,20 @@ package flashx.textLayout.elements.table
 		public function getTargetContainer():TableDisplayContainer
 		{
 			return _targetContainer;
+		}
+		
+		override public function get userStyles():Object
+		{
+			if( _userStyles == null )
+			{
+				_userStyles = {};
+				var inline:InlineStyles = new InlineStyles();
+				inline.addEventListener( InlineStyles.APPLIED_STYLE_CHANGE, handleAppliedStyleChange );
+				inline.addEventListener( InlineStyles.EXPLICIT_STYLE_CHANGE, handleExplicitStyleChange );
+				_userStyles.inline = inline;
+				super.userStyles = _userStyles;
+			}
+			return super.userStyles;
 		}
 		
 		/**
