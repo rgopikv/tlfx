@@ -214,6 +214,7 @@ package flashx.textLayout.elements.table
 			var appliedStyle:Object = _userStyles.inline.appliedStyle;
 			var property:String;	
 			var styleProperty:String;
+			var requiresUpdate:Boolean;
 			for( property in appliedStyle )
 			{
 				try 
@@ -221,13 +222,17 @@ package flashx.textLayout.elements.table
 					styleProperty = StyleAttributeUtil.camelize(property);
 					// Only ovewrite if not explicitly set which happens when reading in explicit style from @style attribute.
 					if( style.isUndefined( style[styleProperty] ) )
+					{
+						requiresUpdate = true;
 						style[styleProperty] = appliedStyle[property];
+					}
 				}
 				catch( e:Error )
 				{
 					trace( "[" + getQualifiedClassName( this ) + "] :: Style property of type '" + property + "' cannot be set on " + getQualifiedClassName( style ) + "." );
 				}
 			}
+			if( _tableManager && requiresUpdate ) _tableManager.refresh();
 			trace( "Applied computed style:\n" + style.getComputedStyle().toString() );
 		}
 		
@@ -236,18 +241,21 @@ package flashx.textLayout.elements.table
 			var explicitStyle:Object = _userStyles.inline.explicitStyle;
 			var property:String;	
 			var styleProperty:String;
+			var requiresUpdate:Boolean;
 			for( property in explicitStyle )
 			{
 				try 
 				{
 					styleProperty = StyleAttributeUtil.camelize(property);
 					style[styleProperty] = explicitStyle[property];
+					requiresUpdate = true;
 				}
 				catch( e:Error )
 				{
 					trace( "[" + getQualifiedClassName( this ) + "] :: Style property of type '" + property + "' cannot be set on " + getQualifiedClassName( style ) + "." );
 				}
 			}
+			if( _tableManager && requiresUpdate ) _tableManager.refresh();
 			trace( "Explicit computed style:\n" + style.getComputedStyle().toString() );
 		}
 		

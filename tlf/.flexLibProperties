@@ -250,6 +250,7 @@
     <classEntry path="flashx.textLayout.format.TableBorderStyleEnum"/>
     <classEntry path="flashx.textLayout.format.TableVerticalAlignEnum"/>
     <classEntry path="flashx.textLayout.utils.TableStyleUtil"/>
+    <classEntry path="flashx.textLayout.events.table.TableStyleEvent"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests>

@@ -1,5 +1,7 @@
 package flashx.textLayout.container.table
 {
+	import flash.display.DisplayObjectContainer;
+	import flash.display.Shape;
 	import flash.display.Sprite;
 	import flash.events.Event;
 	
@@ -20,6 +22,10 @@ package flashx.textLayout.container.table
 		protected var _table:Table;
 		protected var _tableElement:TableElement;
 		
+		protected var _background:Shape;
+		protected var _border:Shape;
+		protected var _cellHolder:Sprite;
+		
 		/**
 		 * Constructir. 
 		 * @param tableElement TableElement
@@ -27,6 +33,18 @@ package flashx.textLayout.container.table
 		public function TableDisplayContainer( tableElement:TableElement )
 		{
 			_tableElement = tableElement;
+			createChildren();
+		}
+		
+		protected function createChildren():void
+		{
+			_background = new Shape();
+			_border = new Shape();
+			_cellHolder = new Sprite();
+			
+			addChild( _background );
+			addChild( _border );
+			addChild( _cellHolder );
 		}
 		
 		/**
@@ -82,6 +100,39 @@ package flashx.textLayout.container.table
 		public function dispose():void
 		{
 			_table.removeEventListener( Event.RESIZE, handleTableResize, false );
+		}
+		
+		public function get backgroundDisplay():Shape
+		{
+			return _background;
+		}
+		
+		public function get borderDisplay():Shape
+		{
+			return _border;
+		}
+		
+		public function get cellHolder():DisplayObjectContainer
+		{
+			return _cellHolder;
+		}
+		
+		public function get cellOffsetX():Number
+		{
+			return _cellHolder.x;
+		}
+		public function set cellOffsetX( value:Number ):void
+		{
+			_cellHolder.x = value;
+		}
+		
+		public function get cellOffsetY():Number
+		{
+			return _cellHolder.y;
+		}
+		public function set cellOffsetY( value:Number ):void
+		{
+			_cellHolder.y = value;
 		}
 		
 		/**

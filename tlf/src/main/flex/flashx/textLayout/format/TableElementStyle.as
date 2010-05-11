@@ -46,7 +46,7 @@ package flashx.textLayout.format
 												( _borderSpacing || 2 ), 
 												( _borderCollapse || getDefaultBorderCollapse() ) );
 				_style.padding = _padding || 0;
-				_style.backgroundColor = ColorValueUtil.normalizeForLayoutFormat(_backgroundColor.toString());
+				_style.backgroundColor = ( !isUndefined( _backgroundColor ) ) ? _backgroundColor : Number.NaN;
 				_style.verticalAlign = _verticalAlign || TableVerticalAlignEnum.TOP;
 				_isDirty = false;
 			}
@@ -98,7 +98,7 @@ package flashx.textLayout.format
 		
 		public function getDefaultBorderWidth():Array
 		{
-			return [1, 1, 1, 1];
+			return [0, 0, 0, 0];
 		}
 		
 		public function getDefaultBorderColor():Array
@@ -178,11 +178,11 @@ package flashx.textLayout.format
 		{
 			return _backgroundColor;
 		}
-		public function set backgroundColor( value:Number ):void
+		public function set backgroundColor( value:* ):void
 		{
 			if( _backgroundColor == value ) return;
 			
-			_backgroundColor = value;
+			_backgroundColor = ColorValueUtil.normalizeForLayoutFormat(value);
 			_isDirty = true;
 		}
 		

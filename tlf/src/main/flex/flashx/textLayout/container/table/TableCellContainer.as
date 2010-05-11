@@ -151,7 +151,7 @@ package flashx.textLayout.container.table
 		{
 			//TODO: Get background color from styles.
 			background.graphics.clear();
-			background.graphics.beginFill( 0xFFFFFF, 1 );
+			background.graphics.beginFill( 0xFFFFFF, 0 );
 			background.graphics.drawRect( 0, 0, _width, _height );
 			background.graphics.endFill();
 			
@@ -167,7 +167,7 @@ package flashx.textLayout.container.table
 		protected function invalidateSelection():void
 		{
 			background.graphics.clear();
-			background.graphics.beginFill( ( _selected ) ? 0xccccff : 0xFFFFFF, 1 );
+			background.graphics.beginFill( ( _selected ) ? 0xccccff : 0xFFFFFF, ( selected ) ? 1 : 0 );
 			background.graphics.drawRect( 0, 0, _width, _height );
 			background.graphics.endFill();
 			//			background.blendMode = ( _selected ) ? BlendMode.INVERT : BlendMode.NORMAL;
