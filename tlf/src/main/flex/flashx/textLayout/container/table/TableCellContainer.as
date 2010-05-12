@@ -18,7 +18,6 @@ package flashx.textLayout.container.table
 	import flashx.textLayout.container.ISizableContainer;
 	import flashx.textLayout.conversion.TextConverter;
 	import flashx.textLayout.converter.IHTMLImporter;
-	import flashx.textLayout.converter.TableDataElementConverter;
 	import flashx.textLayout.edit.SelectionState;
 	import flashx.textLayout.elements.Configuration;
 	import flashx.textLayout.elements.DivElement;

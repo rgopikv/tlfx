@@ -8,6 +8,7 @@ package flashx.textLayout.container.table
 	import flashx.textLayout.container.ContainerController;
 	import flashx.textLayout.container.ISizableContainer;
 	import flashx.textLayout.elements.table.TableElement;
+	import flashx.textLayout.format.TableElementStyle;
 	import flashx.textLayout.model.table.Table;
 	
 	[Event(name="resize", type="flash.events.Event")]
@@ -141,7 +142,12 @@ package flashx.textLayout.container.table
 		 */
 		public function get actualHeight():Number
 		{
-			return ( _table ) ? _table.height : 0;
+			var amount:Number = 0;
+			if( _table && _tableElement.style )
+			{
+				amount = _table.height + _tableElement.style.getComputedHeightOfBorderSpacing();
+			}
+			return amount;
 		}
 		/**
 		 * Returns the width specified on the model. 
@@ -150,7 +156,12 @@ package flashx.textLayout.container.table
 		 */
 		public function get actualWidth():Number
 		{
-			return ( _table ) ? _table.width : 0;
+			var amount:Number = 0;
+			if( _table && _tableElement.style )
+			{
+				amount = _table.width + _tableElement.style.getComputedWidthOfBorderSpacing();
+			}
+			return amount;
 		}
 	}
 }

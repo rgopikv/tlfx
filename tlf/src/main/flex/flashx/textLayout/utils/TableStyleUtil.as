@@ -6,7 +6,7 @@ package flashx.textLayout.utils
 		public static const MEDIUM:String = "medium";
 		public static const THICK:String = "thick";
 		
-		static private function normalizeBorderUnit( value:Object ):Object
+		static public function normalizeBorderUnit( value:Object ):Number
 		{
 			if( value is String )
 			{
@@ -34,7 +34,7 @@ package flashx.textLayout.utils
 					}
 				}
 			}
-			return value;
+			return Number(value);
 		}
 		
 		static public function convertBorderUnits( units:Array ):Array

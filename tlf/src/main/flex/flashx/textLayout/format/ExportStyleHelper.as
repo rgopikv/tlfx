@@ -27,12 +27,47 @@ package flashx.textLayout.format
 	 */
 	public class ExportStyleHelper implements IExportStyleHelper
 	{
-		// TODO: Run diffs on stylesheets.
-		
 		/**
 		 * Constrcutor.
 		 */
 		public function ExportStyleHelper() {}
+		
+		/**
+		 * @private
+		 * 
+		 * Appends to the @style attribute all possible key/value pairs related to optional custom styles of elements. 
+		 * @param node XML
+		 * @param element FlowElement
+		 */
+		protected function extendStyleAttributeFromCustomStyle( node:XML, element:FlowElement ):void
+		{
+			if( element is TableElement )
+			{
+				var style:String = "";
+				var tableStyle:TableElementStyle = ( element as TableElement ).style;
+				var appliedStyle:Object = ( element.userStyles.inline as InlineStyles ).appliedStyle;
+				var property:String;
+				var propertyList:Vector.<String> = TableElementStyle.definition;
+				// Run diff on applied style against current style for table.
+				// Append those that are definied and don't equate to applicaiton from external style sheet.
+				for each( property in propertyList )
+				{
+					if( !tableStyle.isUndefined( tableStyle[property] ) )
+					{
+						if( appliedStyle == null || tableStyle[property] != appliedStyle[property] )
+							style += StyleAttributeUtil.assembleStyleProperty( property, tableStyle[property] );
+					}
+				}
+				// If we have a valid string for the @style attribute, append or apply to node.
+				if( StyleAttributeUtil.isValidStyleString( style ) )
+				{
+					if( StyleAttributeUtil.isValidStyleString( node.@style ) )
+						node.@style += style;
+					else
+						node.@style = style;
+				}
+			}
+		}
 		
 		/**
 		 * Returns the next possible parent from hiearchical list of possible parents in order to access computed format. 
@@ -123,6 +158,7 @@ package flashx.textLayout.format
 			var childPropertyValue:*;
 			var parentPropertyValue:*;
 			var i:int;
+			// Start adding style properties based on different formats.
 			for( i = 0; i < propertyList.length(); i++ )
 			{
 				if( propertyList[i].@access == "writeonly" ) continue;
@@ -227,6 +263,10 @@ package flashx.textLayout.format
 			// Apply @style if key/value pairs are available.
 			if( StyleAttributeUtil.isValidStyleString( style ) ) 
 				node.@style = style;
+			
+			// Append to @style nased on custom styles held on element.
+			extendStyleAttributeFromCustomStyle( node, element );
+			
 			// Apply other attributes that relate to style like id and class.
 			var requiresInlineStyleAttributes:Boolean;
 			if( element )

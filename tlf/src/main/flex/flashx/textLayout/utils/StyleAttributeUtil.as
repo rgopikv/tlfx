@@ -134,7 +134,7 @@ package flashx.textLayout.utils
 				if( styles[i].indexOf(StyleAttributeUtil.STYLE_PROPERTY_DELIMITER) != -1 )
 				{
 					keyValue = styles[i].split( ":" );
-					styleObj[keyValue[0]] = StyleAttributeUtil.stripWhitespaces( keyValue[1] );
+					styleObj[StyleAttributeUtil.stripWhitespaces(keyValue[0])] = StyleAttributeUtil.stripWhitespaces( keyValue[1] );
 				}
 			}
 			return styleObj;
@@ -188,55 +188,6 @@ package flashx.textLayout.utils
 					tag["@" + attribute] = value;
 				}
 			}
-		}
-		
-		/**
-		 * Strips out any style property attributes and pushes then to a @style attribute. 
-		 * @param tag XML
-		 */
-		static public function assignAttributesAsStyle( tag:XML ):void
-		{
-			var fontFamily:String = tag.@fontFamily;
-			var fontWeight:String = tag.@fontWeight;
-			var fontStyle:String = tag.@fontStyle;
-			var textDecoration:String = tag.@textDecoration;
-			var color:String = tag.@color;
-			var fontSize:String = String( tag.@fontSize ).replace( "px", "" );
-			var textAlign:String = tag.@textAlign;
-			
-			var styles:Array = [];
-			if( isValidStyleString( fontFamily ) )
-				styles.push( "font-family:" + fontFamily );
-			if( isValidStyleString( fontWeight ) )
-				styles.push( "font-weight:" + fontWeight );
-			if( isValidStyleString( fontStyle ) )
-				styles.push( "font-style:" + fontStyle );
-			if( isValidStyleString( textDecoration ) )
-				styles.push( "text-decoration:" + textDecoration );
-			if( isValidStyleString( color ) )
-				styles.push( "color:" + color );
-			if( isValidFontSize( fontSize ) )
-				styles.push( "font-size:" + fontSize + "px" );
-			if( isValidStyleString( textAlign ) )
-				styles.push( "text-align:" + textAlign );
-			
-			if( styles.length > 0 )
-			{
-				var style:String = styles.join(StyleAttributeUtil.STYLE_DELIMITER);
-				if( isValidStyleString( tag.@style ) )
-				{
-					style = tag.@style + StyleAttributeUtil.STYLE_DELIMITER + style;
-				}
-				tag.@style = style;
-			}
-			
-			delete tag.@fontFamily;
-			delete tag.@fontWeight;
-			delete tag.@fontStyle;
-			delete tag.@textDecoration;
-			delete tag.@color;
-			delete tag.@fontSize;
-			delete tag.@textAlign;
 		}
 		
 		/**

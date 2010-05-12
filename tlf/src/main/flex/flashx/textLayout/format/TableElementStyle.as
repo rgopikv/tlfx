@@ -4,16 +4,17 @@ package flashx.textLayout.format
 	
 	import flashx.textLayout.model.attribute.Attribute;
 	import flashx.textLayout.utils.ColorValueUtil;
+	import flashx.textLayout.utils.StyleAttributeUtil;
 	import flashx.textLayout.utils.TableStyleUtil;
 
 	public class TableElementStyle
 	{
-		protected var _borderStyle:Array;
-		protected var _borderWidth:Array;
-		protected var _borderColor:Array;
+		protected var _borderStyle:*;
+		protected var _borderWidth:*;
+		protected var _borderColor:*;
 		protected var _borderCollapse:String;
-		protected var _borderSpacing:Number;
-		protected var _backgroundColor:Number = Number.NaN;
+		protected var _borderSpacing:* = Number.NaN;
+		protected var _backgroundColor:* = Number.NaN;
 		protected var _verticalAlign:String;
 		protected var _padding:Number = Number.NaN;
 		
@@ -40,24 +41,63 @@ package flashx.textLayout.format
 		{
 			if( !_style || _isDirty )
 			{
-				_style = new TableElementStyle( normalizeBorderUnits( _borderStyle || getDefaultBorderStyle() ), 
-												normalizeBorderWidthUnits( _borderWidth || getDefaultBorderWidth() ),
-												normalizeBorderColorUnits( _borderColor || getDefaultBorderColor() ), 
-												( _borderSpacing || 2 ), 
-												( _borderCollapse || getDefaultBorderCollapse() ) );
+				_style = new TableElementStyle();
+				_style.borderStyle = ( _borderStyle ) ? normalizeBorderUnits( evaluateUnitValue( _borderStyle ) ) : getDefaultBorderStyle();
+				_style.borderWidth = ( _borderWidth ) ? normalizeBorderWidthUnits( evaluateUnitValue( _borderWidth ) ) : getDefaultBorderWidth();
+				_style.borderColor = ( _borderColor ) ? normalizeBorderColorUnits( evaluateUnitValue( _borderColor ) ) : getDefaultBorderColor();
+				_style.borderSpacing = ( _borderSpacing ) ? TableStyleUtil.normalizeBorderUnit(_borderSpacing) : getDefaultBorderSpacing();
 				_style.padding = _padding || 0;
-				_style.backgroundColor = ( !isUndefined( _backgroundColor ) ) ? _backgroundColor : Number.NaN;
+				_style.backgroundColor = ( !isUndefined( _backgroundColor ) ) ? ColorValueUtil.normalizeForLayoutFormat(_backgroundColor) : Number.NaN;
 				_style.verticalAlign = _verticalAlign || TableVerticalAlignEnum.TOP;
+				modifyOnValueCriteria( _style );
 				_isDirty = false;
 			}
 			return _style;
+		}
+		
+		public function getComputedHeightOfBorderSpacing():Number
+		{
+			var computedStyle:TableElementStyle = getComputedStyle();
+			return computedStyle.borderWidth[0] + computedStyle.borderWidth[2] + ( computedStyle.borderSpacing * 2 );
+		}
+		
+		public function getComputedWidthOfBorderSpacing():Number
+		{
+			var computedStyle:TableElementStyle = getComputedStyle();
+			return computedStyle.borderWidth[1] + computedStyle.borderWidth[3] + ( computedStyle.borderSpacing * 2 );
+		}
+		
+		protected function modifyOnValueCriteria( tableElementStyle:TableElementStyle ):void
+		{
+			var modifiedBorderWidth:Array = [];
+			var widths:Array = tableElementStyle.borderWidth as Array;
+			var styles:Array = tableElementStyle.borderStyle as Array;
+			var i:int;
+			// Modify width values based on style.
+			for( i = 0; i < widths.length; i++ )
+			{
+				modifiedBorderWidth.push( computeBorderWidthBasedOnStyle( styles[i], widths[i] ) );
+			}
+			tableElementStyle.borderWidth = modifiedBorderWidth;
+			// Modify border spacing based on style.
+//			var hasStyle:Boolean;
+//			i = styles.length;
+//			while( --i > -1 )
+//			{
+//				if( styles[i] != TableBorderStyleEnum.NONE && styles[i] != TableBorderStyleEnum.HIDDEN )
+//				{
+//					hasStyle = true;
+//					break;
+//				}
+//			}
+//			tableElementStyle.borderSpacing = hasStyle ? tableElementStyle.borderSpacing : 0;
 		}
 		
 		protected function evaluateUnitValue( value:* ):Array
 		{
 			if( value is String )
 			{
-				value = value.split( "," );
+				value = value.split( " " );
 			}
 			return value;
 		}
@@ -91,27 +131,46 @@ package flashx.textLayout.format
 			return TableStyleUtil.convertColorUnits( units );
 		}
 		
-		public function getDefaultBorderStyle():Array
+		protected function getDefaultBorderStyle():Array
 		{
-			return [TableBorderStyleEnum.OUTSET, TableBorderStyleEnum.OUTSET, TableBorderStyleEnum.OUTSET, TableBorderStyleEnum.OUTSET];
+			return [TableBorderStyleEnum.NONE, TableBorderStyleEnum.NONE, TableBorderStyleEnum.NONE, TableBorderStyleEnum.NONE];
 		}
 		
-		public function getDefaultBorderWidth():Array
+		protected function getDefaultBorderWidth():Array
 		{
 			return [0, 0, 0, 0];
 		}
 		
-		public function getDefaultBorderColor():Array
+		protected function getDefaultBorderColor():Array
 		{
-			return [0xDDDDDD, 0xAAAAAA, 0xDDDDDD, 0xAAAAAA];
+			return [0x808080, 0x808080, 0x808080, 0x808080];
 		}
 		
-		public function getDefaultBorderCollapse():String
+		protected function getDefaultBorderCollapse():String
 		{
 			return TableElementStyle.COLLAPSE_SEPARATE;
 		}
 		
-		public function get borderStyle():Array
+		protected function getDefaultBorderSpacing():Number
+		{
+			return 2;
+		}
+		
+		protected function computeBorderWidthBasedOnStyle( style:String, presetValue:Number ):Number
+		{
+			switch( style )
+			{
+				case TableBorderStyleEnum.NONE:
+				case TableBorderStyleEnum.HIDDEN:
+					return 0;
+				default:
+					return ( presetValue == 0 ) ? 3 : presetValue;
+					break;
+			}
+			return 0;
+		}
+		
+		public function get borderStyle():*
 		{
 			return _borderStyle;
 		}
@@ -119,12 +178,11 @@ package flashx.textLayout.format
 		{
 			if( _borderStyle == value ) return;
 			
-			value = evaluateUnitValue( value );
 			_borderStyle = value;
 			_isDirty = true;
 		}
 		
-		public function get borderColor():Array
+		public function get borderColor():*
 		{
 			return _borderColor;
 		}
@@ -132,12 +190,11 @@ package flashx.textLayout.format
 		{
 			if( _borderColor == value ) return;
 			
-			value = evaluateUnitValue( value );
 			_borderColor = value;
 			_isDirty = true;
 		}
 		
-		public function get borderWidth():Array
+		public function get borderWidth():*
 		{
 			return _borderWidth;
 		}
@@ -145,7 +202,6 @@ package flashx.textLayout.format
 		{
 			if( _borderWidth == value ) return;
 			
-			value = evaluateUnitValue( value );
 			_borderWidth = value;
 			_isDirty = true;
 		}
@@ -162,11 +218,11 @@ package flashx.textLayout.format
 			_isDirty = true;
 		}
 		
-		public function get borderSpacing():Number
+		public function get borderSpacing():*
 		{
 			return _borderSpacing;
 		}
-		public function set borderSpacing( value:Number ):void
+		public function set borderSpacing( value:* ):void
 		{
 			if( _borderSpacing == value ) return;
 			
@@ -174,7 +230,7 @@ package flashx.textLayout.format
 			_isDirty = true;
 		}
 		
-		public function get backgroundColor():Number
+		public function get backgroundColor():*
 		{
 			return _backgroundColor;
 		}
@@ -182,7 +238,7 @@ package flashx.textLayout.format
 		{
 			if( _backgroundColor == value ) return;
 			
-			_backgroundColor = ColorValueUtil.normalizeForLayoutFormat(value);
+			_backgroundColor = value;
 			_isDirty = true;
 		}
 		
@@ -210,6 +266,15 @@ package flashx.textLayout.format
 			_isDirty = true;
 		}
 		
+		public function undefineStyleProperty( property:String ):void
+		{
+			if( this[property] is Number ) this[property] = Number.NaN;
+			else
+			{
+				this[property] = null;
+			}
+		}
+		
 		public function isUndefined( value:Object ):Boolean
 		{
 			if( value is Number ) return isNaN(Number(value));
@@ -221,13 +286,13 @@ package flashx.textLayout.format
 		public function toString():String
 		{
 			return "borderWidth: " + _borderWidth + "\n" +
-					"borderStyle: " + _borderStyle + "\n" +
-					"borderColor: " + _borderColor + "\n" +
-					"borderCollapse: " + _borderCollapse + "\n" +
-					"borderSpacing: " + _borderSpacing + "\n" +
-					"backgroundColor: " + _backgroundColor + "\n" +
-					"padding: " + _padding + "\n" +
-					"verticalAlign: " + _verticalAlign + "\n";
+				"borderStyle: " + _borderStyle + "\n" +
+				"borderColor: " + _borderColor + "\n" +
+				"borderCollapse: " + _borderCollapse + "\n" +
+				"borderSpacing: " + _borderSpacing + "\n" +
+				"backgroundColor: " + _backgroundColor + "\n" +
+				"padding: " + _padding + "\n" +
+				"verticalAlign: " + _verticalAlign + "\n";
 		}
 		
 		static public function get definition():Vector.<String>

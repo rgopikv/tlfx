@@ -16,6 +16,7 @@ package flashx.textLayout.elements.table
 	import flashx.textLayout.elements.ParagraphElement;
 	import flashx.textLayout.elements.SpanElement;
 	import flashx.textLayout.elements.TextFlow;
+	import flashx.textLayout.events.InlineStyleEvent;
 	import flashx.textLayout.events.TableElementStatusEvent;
 	import flashx.textLayout.events.TagParserCleanCompleteEvent;
 	import flashx.textLayout.events.TagParserCleanProgressEvent;
@@ -140,6 +141,16 @@ package flashx.textLayout.elements.table
 			_tableMapper.map( children() );
 		}
 		
+		protected function undefinePreviousAppliedStyle( previousStyle:Object, tableStyle:TableElementStyle ):void
+		{
+			var property:String;
+			for( property in previousStyle )
+			{
+				if( tableStyle[property] == previousStyle[property] )
+					tableStyle.undefineStyleProperty( property );
+			}
+		}
+		
 		/**
 		 * @private
 		 * 
@@ -209,9 +220,10 @@ package flashx.textLayout.elements.table
 			_textFlow.dispatchEvent( new TableElementStatusEvent( TableElementStatusEvent.INITIALIZED, this ) );
 		}
 		
-		protected function handleAppliedStyleChange( evt:Event ):void
+		protected function handleAppliedStyleChange( evt:InlineStyleEvent ):void
 		{
-			var appliedStyle:Object = _userStyles.inline.appliedStyle;
+			undefinePreviousAppliedStyle( evt.oldStyle, style );
+			var appliedStyle:Object = evt.newStyle;
 			var property:String;	
 			var styleProperty:String;
 			var requiresUpdate:Boolean;
@@ -232,13 +244,16 @@ package flashx.textLayout.elements.table
 					trace( "[" + getQualifiedClassName( this ) + "] :: Style property of type '" + property + "' cannot be set on " + getQualifiedClassName( style ) + "." );
 				}
 			}
-			if( _tableManager && requiresUpdate ) _tableManager.refresh();
+			
 			trace( "Applied computed style:\n" + style.getComputedStyle().toString() );
+			
+			if( requiresUpdate && _isInitialized && _tableManager ) 
+				_tableManager.refresh();
 		}
 		
-		protected function handleExplicitStyleChange( evt:Event ):void
+		protected function handleExplicitStyleChange( evt:InlineStyleEvent ):void
 		{
-			var explicitStyle:Object = _userStyles.inline.explicitStyle;
+			var explicitStyle:Object = evt.newStyle;
 			var property:String;	
 			var styleProperty:String;
 			var requiresUpdate:Boolean;
@@ -255,8 +270,11 @@ package flashx.textLayout.elements.table
 					trace( "[" + getQualifiedClassName( this ) + "] :: Style property of type '" + property + "' cannot be set on " + getQualifiedClassName( style ) + "." );
 				}
 			}
-			if( _tableManager && requiresUpdate ) _tableManager.refresh();
+			
 			trace( "Explicit computed style:\n" + style.getComputedStyle().toString() );
+			
+			if( requiresUpdate && _isInitialized && _tableManager )
+				_tableManager.refresh();
 		}
 		
 		/**
@@ -380,8 +398,8 @@ package flashx.textLayout.elements.table
 			{
 				_userStyles = {};
 				var inline:InlineStyles = new InlineStyles();
-				inline.addEventListener( InlineStyles.APPLIED_STYLE_CHANGE, handleAppliedStyleChange );
-				inline.addEventListener( InlineStyles.EXPLICIT_STYLE_CHANGE, handleExplicitStyleChange );
+				inline.addEventListener( InlineStyleEvent.APPLIED_STYLE_CHANGE, handleAppliedStyleChange );
+				inline.addEventListener( InlineStyleEvent.EXPLICIT_STYLE_CHANGE, handleExplicitStyleChange );
 				_userStyles.inline = inline;
 				super.userStyles = _userStyles;
 			}
