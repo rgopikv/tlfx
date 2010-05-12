@@ -78,7 +78,7 @@ package flashx.textLayout.converter
 				body.appendChild( list[i] as XML );
 			}
 			source.appendChild( body );
-			return _htmlImporter.importToFlow( source.toXMLString() );
+			return _htmlImporter.importToFlow( source.toXMLString(), false );
 		}
 		
 		/**

@@ -15,7 +15,7 @@ package flashx.textLayout.converter
 		 * @param source String HTML markup
 		 * @return TextFlow
 		 */
-		function importToFlow( source:String ):TextFlow;
+		function importToFlow( source:String, updateStyles:Boolean = true ):TextFlow;
 		
 		/**
 		 * Creates a FlowElement based on fragment. 

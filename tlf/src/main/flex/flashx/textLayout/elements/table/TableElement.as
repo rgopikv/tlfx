@@ -146,8 +146,15 @@ package flashx.textLayout.elements.table
 			var property:String;
 			for( property in previousStyle )
 			{
-				if( tableStyle[property] == previousStyle[property] )
-					tableStyle.undefineStyleProperty( property );
+				try
+				{
+					if( tableStyle[property] == previousStyle[property] )
+						tableStyle.undefineStyleProperty( property );
+				}
+				catch( e:Error )
+				{
+					// unsupported style on TableElementStyle.
+				}
 			}
 		}
 		
