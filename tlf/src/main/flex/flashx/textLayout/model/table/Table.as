@@ -77,7 +77,7 @@ package flashx.textLayout.model.table
 		 */
 		public function getComputedHeight():Number
 		{
-			return _height + context.style.getComputedHeightOfBorders() + ( cellspacing * 2 );
+			return _height + ( context as ITableDecorationContext ).getComputedHeightOfBorders() + ( cellspacing * 2 );
 		}
 		/**
 		 * Returns the overall computed width of the table for display based on context and held properties. 
@@ -85,7 +85,7 @@ package flashx.textLayout.model.table
 		 */
 		public function getComputedWidth():Number
 		{
-			return _width + context.style.getComputedWidthOfBorders() + ( cellspacing * 2 );
+			return _width + ( context as ITableDecorationContext ).getComputedWidthOfBorders() + ( cellspacing * 2 );
 		}
 		
 		/**

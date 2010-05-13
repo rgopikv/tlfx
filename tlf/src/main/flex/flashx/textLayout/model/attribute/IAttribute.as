@@ -10,6 +10,12 @@ package flashx.textLayout.model.attribute
 	public interface IAttribute
 	{
 		/**
+		 * Returns flag of holding property value. 
+		 * @param property String
+		 * @return Boolean
+		 */
+		function hasProperty( property:String ):Boolean;
+		/**
 		 * Applies any propety values held on supplied object to current existing attributes. 
 		 * @param attributes Object A key/value pair object.
 		 */

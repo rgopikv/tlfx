@@ -86,6 +86,16 @@ package flashx.textLayout.model.attribute
 		}
 		
 		/**
+		 * Returns flag of holding property value. 
+		 * @param property String
+		 * @return Boolean
+		 */
+		public function hasProperty( property:String ):Boolean
+		{
+			return attributes[property] != null;
+		}
+		
+		/**
 		 * Sets new values on attributes based on supplied values. 
 		 * @param atts Object Key/value pairs.
 		 */

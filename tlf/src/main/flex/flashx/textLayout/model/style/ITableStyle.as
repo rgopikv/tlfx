@@ -11,16 +11,6 @@ package flashx.textLayout.model.style
 		 * @return ITableStyle
 		 */
 		function getComputedStyle():ITableStyle;
-		/**
-		 * Returns the cummulative height of the top and bottom borders based on set values. 
-		 * @return Number
-		 */
-		function getComputedHeightOfBorders():Number;
-		/**
-		 * Returns the cummulative width of the left and right borders based on set values. 
-		 * @return Number
-		 */
-		function getComputedWidthOfBorders():Number;
 		
 		/**
 		 * Accessor/Modifier for border style property. 

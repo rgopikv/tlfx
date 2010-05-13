@@ -22,6 +22,44 @@ package flashx.textLayout.model.table
 		}
 		
 		/**
+		 * Returns the cummulative height based on top and bottom border widths. 
+		 * @return Number
+		 */
+		public function getComputedHeightOfBorders():Number
+		{
+			var borderWidth:Array = determineBorderWidth();
+			return borderWidth[0] + borderWidth[2];
+		}
+		
+		/**
+		 * Returns the cummulative width based on left and right border widths. 
+		 * @return Number
+		 */
+		public function getComputedWidthOfBorders():Number
+		{
+			var borderWidth:Array = determineBorderWidth();
+			return borderWidth[1] + borderWidth[3];
+		}
+		
+		/**
+		 * @see ITableDecorationContext#determineBorderWidth
+		 */
+		public function determineBorderWidth():Array
+		{
+			var borderWidth:Array = _style.getComputedStyle().borderWidth;
+			var attributeOverridesStyle:Boolean;
+			if( _style.isUndefined( _style.borderWidth ) )
+			{
+				if( _attributes.hasProperty( "border" ) )
+				{
+					var border:Number = Number(_attributes["border"] );
+					borderWidth = [border, border, border, border];
+				}
+			}
+			return borderWidth;
+		}
+		
+		/**
 		 * @see ITableDecorationContext#determineCellSpacing
 		 */
 		public function determineCellSpacing():Number

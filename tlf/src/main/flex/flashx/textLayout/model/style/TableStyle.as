@@ -69,26 +69,6 @@ package flashx.textLayout.model.style
 		}
 		
 		/**
-		 * Returns the cummulative height based on top and bottom border widths. 
-		 * @return Number
-		 */
-		public function getComputedHeightOfBorders():Number
-		{
-			var computedStyle:ITableStyle = getComputedStyle();
-			return computedStyle.borderWidth[0] + computedStyle.borderWidth[2];
-		}
-		
-		/**
-		 * Returns the cummulative width based on left and right border widths. 
-		 * @return Number
-		 */
-		public function getComputedWidthOfBorders():Number
-		{
-			var computedStyle:ITableStyle = getComputedStyle();
-			return computedStyle.borderWidth[1] + computedStyle.borderWidth[3];
-		}
-		
-		/**
 		 * @private
 		 * 
 		 * Modifies the TableStyle based on defined criteria for property values. 
@@ -194,7 +174,7 @@ package flashx.textLayout.model.style
 		 */
 		protected function getDefaultBorderStyle():Array
 		{
-			return [TableBorderStyleEnum.NONE, TableBorderStyleEnum.NONE, TableBorderStyleEnum.NONE, TableBorderStyleEnum.NONE];
+			return [TableBorderStyleEnum.INSET, TableBorderStyleEnum.INSET, TableBorderStyleEnum.INSET, TableBorderStyleEnum.INSET];
 		}
 		
 		/**
