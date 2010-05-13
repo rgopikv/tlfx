@@ -3,6 +3,7 @@ package flashx.textLayout.model.table
 	import flashx.textLayout.model.attribute.IAttribute;
 	import flashx.textLayout.model.attribute.TableAttribute;
 	import flashx.textLayout.model.style.ITableStyle;
+	import flashx.textLayout.model.style.TableCollapseStyleEnum;
 	
 	/**
 	 * TableDecorationContext is an implementation of ITableDecorationContext that extends TableBaseDecorationContext to expose methods related to the context of attrbributes and styles for parenting Table element. 
@@ -29,6 +30,10 @@ package flashx.textLayout.model.table
 			if( !_style.isUndefined(_style.borderSpacing) )
 			{
 				spacing = _style.getComputedStyle().borderSpacing;
+			}
+			if( !_style.isUndefined(_style.borderCollapse) )
+			{
+				spacing = ( _style.borderCollapse == TableCollapseStyleEnum.COLLAPSE_COLLAPSE ) ? 2 : spacing;
 			}
 			return spacing;
 		}

@@ -27,9 +27,6 @@ package flashx.textLayout.model.style
 		
 		private static var _description:Vector.<String>;
 		
-		public static const COLLAPSE_SEPARATE:String = "separate";
-		public static const COLLAPSE_COLLAPSE:String = "collapse";
-		
 		/**
 		 * Constructor. 
 		 * @param borderStyle Array
@@ -230,7 +227,7 @@ package flashx.textLayout.model.style
 		 */
 		protected function getDefaultBorderCollapse():String
 		{
-			return TableStyle.COLLAPSE_SEPARATE;
+			return TableCollapseStyleEnum.COLLAPSE_SEPARATE;
 		}
 		
 		/**
