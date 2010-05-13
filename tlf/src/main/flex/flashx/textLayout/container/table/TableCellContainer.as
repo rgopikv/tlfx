@@ -39,6 +39,7 @@ package flashx.textLayout.container.table
 	import flashx.textLayout.model.attribute.IAttribute;
 	import flashx.textLayout.model.attribute.TableAttribute;
 	import flashx.textLayout.model.attribute.TableDataAttribute;
+	import flashx.textLayout.model.table.ITableDecorationContext;
 	import flashx.textLayout.tlf_internal;
 	import flashx.textLayout.utils.FragmentAttributeUtil;
 	import flashx.textLayout.utils.StyleAttributeUtil;
@@ -77,7 +78,7 @@ package flashx.textLayout.container.table
 		
 		protected var _data:TableDataElement;
 		protected var _htmlConverter:IHTMLImporter;
-		protected var _tableAttributes:IAttribute;
+		protected var _tableContext:ITableDecorationContext;
 		protected var _textFlow:TextFlow;
 		
 		protected var _lineBreakIdentifier:String = TableCellContainer.INTERNAL_LINE_BREAK_IDENTIFIER;
@@ -99,10 +100,10 @@ package flashx.textLayout.container.table
 		 *  
 		 * @param data The HTML table data to be presented.
 		 */
-		public function TableCellContainer( data:TableDataElement, tableAttributes:IAttribute, defaultConfiguration:Configuration, htmlImporter:IHTMLImporter )
+		public function TableCellContainer( data:TableDataElement, tableContext:ITableDecorationContext, defaultConfiguration:Configuration, htmlImporter:IHTMLImporter )
 		{
 			_data = data;
-			_tableAttributes = tableAttributes;
+			_tableContext = tableContext;
 			_defaultConfiguration = defaultConfiguration;
 			_htmlConverter = htmlImporter;
 			
@@ -471,8 +472,7 @@ package flashx.textLayout.container.table
 		 */
 		protected function getPadding():Number
 		{
-			var attributes:* = _tableAttributes;
-			return attributes.cellpadding;
+			return _tableContext.determineCellPadding();
 		}
 		
 		/**
@@ -483,8 +483,7 @@ package flashx.textLayout.container.table
 		 */
 		protected function getUnifiedPadding():Number
 		{
-			var attributes:* = _tableAttributes;
-			return attributes.cellpadding * 2;
+			return getPadding() * 2;
 		}
 		
 		/**

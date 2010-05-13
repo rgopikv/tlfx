@@ -360,7 +360,11 @@ package flashx.textLayout.converter
 				XML.ignoreWhitespace = true;
 				XML.prettyPrinting = false;
 				XML.prettyIndent = 0;
+				
 				var xml:XML = XML( fragment );
+				// instantiate a new Table instance.
+				table = new Table();
+				table.context.modifyAttributes( parseAttributes( xml ) );
 				
 				_htmlImporter.importStyleHelper.assignInlineStyle( xml, tableElement );
 				// parse into flat row array.
@@ -378,10 +382,6 @@ package flashx.textLayout.converter
 					tableElement.removeChildAt( i );
 				}
 				_htmlImporter.importStyleHelper.apply();
-				
-				// instantiate a new Table instance.
-				table = new Table();
-				table.attributes.modifyAttributes( parseAttributes( xml ) );
 			}
 			catch( e:Error )
 			{

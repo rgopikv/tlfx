@@ -8,7 +8,7 @@ package flashx.textLayout.container.table
 	import flashx.textLayout.container.ContainerController;
 	import flashx.textLayout.container.ISizableContainer;
 	import flashx.textLayout.elements.table.TableElement;
-	import flashx.textLayout.format.TableElementStyle;
+	import flashx.textLayout.model.style.TableStyle;
 	import flashx.textLayout.model.table.Table;
 	
 	[Event(name="resize", type="flash.events.Event")]
@@ -103,21 +103,37 @@ package flashx.textLayout.container.table
 			_table.removeEventListener( Event.RESIZE, handleTableResize, false );
 		}
 		
+		/**
+		 * Returns defined instance of background display. 
+		 * @return Shape
+		 */
 		public function get backgroundDisplay():Shape
 		{
 			return _background;
 		}
 		
+		/**
+		 * Returns defined instance of border display. 
+		 * @return Shape
+		 */
 		public function get borderDisplay():Shape
 		{
 			return _border;
 		}
 		
+		/**
+		 * Returns defined instance of cell holder display. 
+		 * @return DisplayObjectContainer
+		 */
 		public function get cellHolder():DisplayObjectContainer
 		{
 			return _cellHolder;
 		}
 		
+		/**
+		 * Accessor/Modifier for x offset of cell holder display. 
+		 * @return Number
+		 */
 		public function get cellOffsetX():Number
 		{
 			return _cellHolder.x;
@@ -127,6 +143,10 @@ package flashx.textLayout.container.table
 			_cellHolder.x = value;
 		}
 		
+		/**
+		 * Accessor/Modifier for y offset of cell holder display. 
+		 * @return Number
+		 */
 		public function get cellOffsetY():Number
 		{
 			return _cellHolder.y;
@@ -143,9 +163,9 @@ package flashx.textLayout.container.table
 		public function get actualHeight():Number
 		{
 			var amount:Number = 0;
-			if( _table && _tableElement.style )
+			if( _table )
 			{
-				amount = _table.height + _tableElement.style.getComputedHeightOfBorderSpacing();
+				amount = _table.getComputedHeight();
 			}
 			return amount;
 		}
@@ -157,9 +177,9 @@ package flashx.textLayout.container.table
 		public function get actualWidth():Number
 		{
 			var amount:Number = 0;
-			if( _table && _tableElement.style )
+			if( _table )
 			{
-				amount = _table.width + _tableElement.style.getComputedWidthOfBorderSpacing();
+				amount = _table.getComputedWidth();
 			}
 			return amount;
 		}

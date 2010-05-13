@@ -1,4 +1,4 @@
-package flashx.textLayout.format
+package flashx.textLayout.model.style
 {
 	import flash.utils.describeType;
 	
@@ -7,7 +7,11 @@ package flashx.textLayout.format
 	import flashx.textLayout.utils.StyleAttributeUtil;
 	import flashx.textLayout.utils.TableStyleUtil;
 
-	public class TableElementStyle
+	/**
+	 * TableStyle is an ITableStyle implementation exposes properties and method son handling property values related to a table element. 
+	 * @author toddanderson
+	 */
+	public class TableStyle implements ITableStyle
 	{
 		protected var _borderStyle:*;
 		protected var _borderWidth:*;
@@ -18,7 +22,7 @@ package flashx.textLayout.format
 		protected var _verticalAlign:String;
 		protected var _padding:Number = Number.NaN;
 		
-		protected var _style:TableElementStyle;
+		protected var _style:TableStyle;
 		protected var _isDirty:Boolean;
 		
 		private static var _description:Vector.<String>;
@@ -26,7 +30,15 @@ package flashx.textLayout.format
 		public static const COLLAPSE_SEPARATE:String = "separate";
 		public static const COLLAPSE_COLLAPSE:String = "collapse";
 		
-		public function TableElementStyle( borderStyle:Array = null, borderWidth:Array = null, 
+		/**
+		 * Constructor. 
+		 * @param borderStyle Array
+		 * @param borderWidth Array
+		 * @param borderColor Array
+		 * @param borderSpacing Number
+		 * @param borderCollapse String
+		 */
+		public function TableStyle( borderStyle:Array = null, borderWidth:Array = null, 
 										   borderColor:Array = null, borderSpacing:Number = Number.NaN, 
 										   borderCollapse:String = null )
 		{
@@ -37,11 +49,15 @@ package flashx.textLayout.format
 			this.borderCollapse = borderCollapse;
 		}
 		
-		public function getComputedStyle():TableElementStyle
+		/**
+		 * Returns the computed style of this instance in a new instance based on predefined properties and defaults. 
+		 * @return ITableStyle
+		 */
+		public function getComputedStyle():ITableStyle
 		{
 			if( !_style || _isDirty )
 			{
-				_style = new TableElementStyle();
+				_style = new TableStyle();
 				_style.borderStyle = ( _borderStyle ) ? normalizeBorderUnits( evaluateUnitValue( _borderStyle ) ) : getDefaultBorderStyle();
 				_style.borderWidth = ( _borderWidth ) ? normalizeBorderWidthUnits( evaluateUnitValue( _borderWidth ) ) : getDefaultBorderWidth();
 				_style.borderColor = ( _borderColor ) ? normalizeBorderColorUnits( evaluateUnitValue( _borderColor ) ) : getDefaultBorderColor();
@@ -55,19 +71,33 @@ package flashx.textLayout.format
 			return _style;
 		}
 		
-		public function getComputedHeightOfBorderSpacing():Number
+		/**
+		 * Returns the cummulative height based on top and bottom border widths. 
+		 * @return Number
+		 */
+		public function getComputedHeightOfBorders():Number
 		{
-			var computedStyle:TableElementStyle = getComputedStyle();
-			return computedStyle.borderWidth[0] + computedStyle.borderWidth[2] + ( computedStyle.borderSpacing * 2 );
+			var computedStyle:ITableStyle = getComputedStyle();
+			return computedStyle.borderWidth[0] + computedStyle.borderWidth[2];
 		}
 		
-		public function getComputedWidthOfBorderSpacing():Number
+		/**
+		 * Returns the cummulative width based on left and right border widths. 
+		 * @return Number
+		 */
+		public function getComputedWidthOfBorders():Number
 		{
-			var computedStyle:TableElementStyle = getComputedStyle();
-			return computedStyle.borderWidth[1] + computedStyle.borderWidth[3] + ( computedStyle.borderSpacing * 2 );
+			var computedStyle:ITableStyle = getComputedStyle();
+			return computedStyle.borderWidth[1] + computedStyle.borderWidth[3];
 		}
 		
-		protected function modifyOnValueCriteria( tableElementStyle:TableElementStyle ):void
+		/**
+		 * @private
+		 * 
+		 * Modifies the TableStyle based on defined criteria for property values. 
+		 * @param tableElementStyle TableStyle
+		 */
+		protected function modifyOnValueCriteria( tableElementStyle:TableStyle ):void
 		{
 			var modifiedBorderWidth:Array = [];
 			var widths:Array = tableElementStyle.borderWidth as Array;
@@ -93,6 +123,13 @@ package flashx.textLayout.format
 //			tableElementStyle.borderSpacing = hasStyle ? tableElementStyle.borderSpacing : 0;
 		}
 		
+		/**
+		 * @private
+		 * 
+		 * Evaluates the property value of a unit defined in an array of values for a property. 
+		 * @param value *
+		 * @return Array
+		 */
 		protected function evaluateUnitValue( value:* ):Array
 		{
 			if( value is String )
@@ -102,6 +139,13 @@ package flashx.textLayout.format
 			return value;
 		}
 		
+		/**
+		 * @private
+		 * 
+		 * Determines property value for border units. 
+		 * @param units Array
+		 * @return Array
+		 */
 		protected function normalizeBorderUnits( units:Array ):Array
 		{
 			if( units.length == 1 )
@@ -119,43 +163,95 @@ package flashx.textLayout.format
 			return units;
 		}
 		
+		/**
+		 * @private
+		 * 
+		 * Determines the property value for units defined in borderWidths. 
+		 * @param units Array
+		 * @return Array
+		 */
 		protected function normalizeBorderWidthUnits( units:Array ):Array
 		{
 			units = normalizeBorderUnits( units );
 			return TableStyleUtil.convertBorderUnits( units );
 		}
 		
+		/**
+		 * @private
+		 * 
+		 * Determined the property value for units defined in borderColor. 
+		 * @param units Array
+		 * @return Array
+		 */
 		protected function normalizeBorderColorUnits( units:Array ):Array
 		{
 			units = normalizeBorderUnits( units );
 			return TableStyleUtil.convertColorUnits( units );
 		}
 		
+		/**
+		 * @private
+		 * 
+		 * Returns the default border style array. 
+		 * @return Array
+		 */
 		protected function getDefaultBorderStyle():Array
 		{
 			return [TableBorderStyleEnum.NONE, TableBorderStyleEnum.NONE, TableBorderStyleEnum.NONE, TableBorderStyleEnum.NONE];
 		}
 		
+		/**
+		 * @private
+		 * 
+		 * Returns the default border width array. 
+		 * @return Array
+		 */
 		protected function getDefaultBorderWidth():Array
 		{
 			return [0, 0, 0, 0];
 		}
 		
+		/**
+		 * @private
+		 * 
+		 * Returns the default border color array. 
+		 * @return Array
+		 */
 		protected function getDefaultBorderColor():Array
 		{
 			return [0x808080, 0x808080, 0x808080, 0x808080];
 		}
 		
+		/**
+		 * @private
+		 * 
+		 * Returns the default border collapse. 
+		 * @return String
+		 */
 		protected function getDefaultBorderCollapse():String
 		{
-			return TableElementStyle.COLLAPSE_SEPARATE;
+			return TableStyle.COLLAPSE_SEPARATE;
 		}
 		
+		/**
+		 * @private
+		 * 
+		 * Returns the default border spacing. 
+		 * @return Number
+		 */
 		protected function getDefaultBorderSpacing():Number
 		{
 			return 2;
 		}
 		
+		/**
+		 * @private
+		 * 
+		 * Determines the property border width of a unit based on border style. 
+		 * @param style String
+		 * @param presetValue Number
+		 * @return Number
+		 */
 		protected function computeBorderWidthBasedOnStyle( style:String, presetValue:Number ):Number
 		{
 			switch( style )
@@ -170,6 +266,9 @@ package flashx.textLayout.format
 			return 0;
 		}
 		
+		/**
+		 * @see ITableStyle#borderStyle
+		 */
 		public function get borderStyle():*
 		{
 			return _borderStyle;
@@ -181,7 +280,9 @@ package flashx.textLayout.format
 			_borderStyle = value;
 			_isDirty = true;
 		}
-		
+		/**
+		 * @see ITableStyle#borderColor
+		 */
 		public function get borderColor():*
 		{
 			return _borderColor;
@@ -193,7 +294,9 @@ package flashx.textLayout.format
 			_borderColor = value;
 			_isDirty = true;
 		}
-		
+		/**
+		 * @see ITableStyle#borderWidth
+		 */
 		public function get borderWidth():*
 		{
 			return _borderWidth;
@@ -205,7 +308,9 @@ package flashx.textLayout.format
 			_borderWidth = value;
 			_isDirty = true;
 		}
-		
+		/**
+		 * @see ITableStyle#borderCollapse
+		 */
 		public function get borderCollapse():String
 		{
 			return _borderCollapse;
@@ -217,7 +322,9 @@ package flashx.textLayout.format
 			_borderCollapse = value;
 			_isDirty = true;
 		}
-		
+		/**
+		 * @see ITableStyle#borderSpacing
+		 */
 		public function get borderSpacing():*
 		{
 			return _borderSpacing;
@@ -229,7 +336,9 @@ package flashx.textLayout.format
 			_borderSpacing = value;
 			_isDirty = true;
 		}
-		
+		/**
+		 * @see ITableStyle#backgroundColor
+		 */
 		public function get backgroundColor():*
 		{
 			return _backgroundColor;
@@ -241,7 +350,9 @@ package flashx.textLayout.format
 			_backgroundColor = value;
 			_isDirty = true;
 		}
-		
+		/**
+		 * @see ITableStyle#verticalAlign
+		 */
 		public function get verticalAlign():String
 		{
 			return _verticalAlign;
@@ -253,7 +364,9 @@ package flashx.textLayout.format
 			_verticalAlign = value;
 			_isDirty = true;
 		}
-		
+		/**
+		 * @see ITableStyle#padding
+		 */
 		public function get padding():Number
 		{
 			return _padding;
@@ -266,6 +379,10 @@ package flashx.textLayout.format
 			_isDirty = true;
 		}
 		
+		/**
+		 * Sets the propety value to undefined based on type. 
+		 * @param property String
+		 */
 		public function undefineStyleProperty( property:String ):void
 		{
 			if( this[property] is Number ) this[property] = Number.NaN;
@@ -275,6 +392,11 @@ package flashx.textLayout.format
 			}
 		}
 		
+		/**
+		 * Determines the value validity based on type. 
+		 * @param value Object
+		 * @return Boolean
+		 */
 		public function isUndefined( value:Object ):Boolean
 		{
 			if( value is Number ) return isNaN(Number(value));
@@ -283,6 +405,25 @@ package flashx.textLayout.format
 			return true;
 		}
 		
+		/**
+		 * Merges previously held property style with overlay style. 
+		 * @param style ITableStyle
+		 */
+		public function merge( style:ITableStyle ):void
+		{
+			var description:Vector.<String> = TableStyle.definition;
+			var property:String;
+			for each( property in description )
+			{
+				if( isUndefined( this[property] ) )
+					this[property] = style[property];
+			}
+		}
+		
+		/**
+		 * Pretty printing. 
+		 * @return String
+		 */
 		public function toString():String
 		{
 			return "borderWidth: " + _borderWidth + "\n" +
@@ -295,13 +436,17 @@ package flashx.textLayout.format
 				"verticalAlign: " + _verticalAlign + "\n";
 		}
 		
+		/**
+		 * Returns the list of property definitions related to this class for ease of traverse. 
+		 * @return Vector.<String>
+		 */
 		static public function get definition():Vector.<String>
 		{
 			if( !_description )
 			{
 				_description = new Vector.<String>();
 				var property:String;
-				var propertyList:XMLList = describeType( TableElementStyle )..accessor;
+				var propertyList:XMLList = describeType( TableStyle )..accessor;
 				var i:int;
 				for( i = 0; i < propertyList.length(); i++ )
 				{

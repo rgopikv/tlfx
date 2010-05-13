@@ -20,9 +20,12 @@ package flashx.textLayout.elements.table
 	import flashx.textLayout.events.TableElementStatusEvent;
 	import flashx.textLayout.events.TagParserCleanCompleteEvent;
 	import flashx.textLayout.events.TagParserCleanProgressEvent;
-	import flashx.textLayout.format.TableElementStyle;
 	import flashx.textLayout.model.attribute.IAttribute;
+	import flashx.textLayout.model.style.ITableStyle;
 	import flashx.textLayout.model.style.InlineStyles;
+	import flashx.textLayout.model.style.TableStyle;
+	import flashx.textLayout.model.table.ITableBaseDecorationContext;
+	import flashx.textLayout.model.table.ITableDecorationContext;
 	import flashx.textLayout.model.table.Table;
 	import flashx.textLayout.model.table.TableRow;
 	import flashx.textLayout.tlf_internal;
@@ -35,10 +38,8 @@ package flashx.textLayout.elements.table
 	 */
 	public class TableElement extends ContainerFormattedElement
 	{
-		public var attributes:IAttribute;
-		public var style:TableElementStyle;
-		
 		protected var _table:Table;
+		protected var _tableContext:ITableDecorationContext;
 		protected var _tableMapper:TableMapper;
 		protected var _fragment:*;
 		protected var _importer:ITagParser;
@@ -51,6 +52,7 @@ package flashx.textLayout.elements.table
 		
 		protected var _textFlow:TextFlow;
 		protected var _userStyles:Object;
+		protected var _pendingInitializationStyle:ITableStyle;
 		protected var _isInitialized:Boolean;
 		
 		public static const LINE_BREAK_IDENTIFIER:String = "|tlf_table_paste_break|";
@@ -61,7 +63,7 @@ package flashx.textLayout.elements.table
 		public function TableElement()
 		{
 			super();
-			style = new TableElementStyle();
+			_pendingInitializationStyle = new TableStyle();
 		}
 		
 		/**
@@ -119,6 +121,14 @@ package flashx.textLayout.elements.table
 			}
 		}
 		
+		/**
+		 * @inherit
+		 * 
+		 * Override to apply proper properties to copy. 
+		 * @param startPos int
+		 * @param endPos int
+		 * @return FlowElement
+		 */
 		override public function shallowCopy(startPos:int=0, endPos:int=-1):FlowElement
 		{
 			var copy:TableElement = super.shallowCopy(startPos, endPos) as TableElement;
@@ -126,8 +136,6 @@ package flashx.textLayout.elements.table
 			copy.exporter = _exporter;
 			copy.fragment = serialize();
 			copy.tableModel = _table;
-			copy.attributes = attributes;
-			copy.style = style;
 			return copy;
 		}
 		
@@ -141,7 +149,14 @@ package flashx.textLayout.elements.table
 			_tableMapper.map( children() );
 		}
 		
-		protected function undefinePreviousAppliedStyle( previousStyle:Object, tableStyle:TableElementStyle ):void
+		/**
+		 * @private
+		 * 
+		 * Undefines applied style properies from external style sheet. Ensuring only styles applied directly by user or within @style attribute are kept. 
+		 * @param previousStyle Object The ky/value pairs of applied style.
+		 * @param tableStyle ITableStyle The held style to undefine applied properties from.
+		 */
+		protected function undefinePreviousAppliedStyle( previousStyle:Object, tableStyle:ITableStyle ):void
 		{
 			var property:String;
 			for( property in previousStyle )
@@ -153,7 +168,7 @@ package flashx.textLayout.elements.table
 				}
 				catch( e:Error )
 				{
-					// unsupported style on TableElementStyle.
+					// unsupported style on ITableStyle.
 				}
 			}
 		}
@@ -212,6 +227,9 @@ package flashx.textLayout.elements.table
 			// Parse html string into a Table object using the importer.
 			// Table serves as a model for rows and columns and holds attribues and styles.
 			_table = _importer.parse( evt.xml.toString(), this ) as Table;
+			_tableContext = _table.getContextImplementation();
+			_tableContext.mergeStyle( _pendingInitializationStyle );
+			_pendingInitializationStyle = null;
 			
 			// Table Mapper handles taking this Element Model and converting rows and columns
 			// into iterators for fast manipulation of cell display.
@@ -227,9 +245,17 @@ package flashx.textLayout.elements.table
 			_textFlow.dispatchEvent( new TableElementStatusEvent( TableElementStatusEvent.INITIALIZED, this ) );
 		}
 		
+		/**
+		 * @private
+		 * 
+		 * Event handler for change in applied styles on inline styles held on userStyles. 
+		 * @param evt InlineStyleEvent
+		 */
 		protected function handleAppliedStyleChange( evt:InlineStyleEvent ):void
 		{
+			var style:ITableStyle = ( _tableContext ) ? _tableContext.style : _pendingInitializationStyle;
 			undefinePreviousAppliedStyle( evt.oldStyle, style );
+			
 			var appliedStyle:Object = evt.newStyle;
 			var property:String;	
 			var styleProperty:String;
@@ -251,19 +277,24 @@ package flashx.textLayout.elements.table
 					trace( "[" + getQualifiedClassName( this ) + "] :: Style property of type '" + property + "' cannot be set on " + getQualifiedClassName( style ) + "." );
 				}
 			}
-			
-			trace( "Applied computed style:\n" + style.getComputedStyle().toString() );
-			
+			// Run display refresh if available.
 			if( requiresUpdate && _isInitialized && _tableManager ) 
 				_tableManager.refresh();
 		}
 		
+		/**
+		 * @private
+		 * 
+		 * Event hanlde for change to explicit styles on InlineStyle object. This occurs when inline @style attribute is parse and applied. 
+		 * @param evt InlineStyleEvent
+		 */
 		protected function handleExplicitStyleChange( evt:InlineStyleEvent ):void
 		{
 			var explicitStyle:Object = evt.newStyle;
 			var property:String;	
 			var styleProperty:String;
 			var requiresUpdate:Boolean;
+			var style:ITableStyle = ( _tableContext ) ? _tableContext.style : _pendingInitializationStyle;
 			for( property in explicitStyle )
 			{
 				try 
@@ -277,9 +308,7 @@ package flashx.textLayout.elements.table
 					trace( "[" + getQualifiedClassName( this ) + "] :: Style property of type '" + property + "' cannot be set on " + getQualifiedClassName( style ) + "." );
 				}
 			}
-			
-			trace( "Explicit computed style:\n" + style.getComputedStyle().toString() );
-			
+			// Run refresh on display if available.
 			if( requiresUpdate && _isInitialized && _tableManager )
 				_tableManager.refresh();
 		}
@@ -376,6 +405,7 @@ package flashx.textLayout.elements.table
 			_tableManager = null;
 			
 			_userStyles = null;
+			_tableContext = null;
 		}
 		
 		/**
@@ -399,6 +429,30 @@ package flashx.textLayout.elements.table
 			return _targetContainer;
 		}
 		
+		/**
+		 * Returns the held concrete implmenebtaton of the ITableDecorationContext defained on the model. 
+		 * @return ITableDecorationContext
+		 */
+		public function getDecorationContext():ITableDecorationContext
+		{
+			return _tableContext;
+		}
+		
+		/**
+		 * Returns the held concrete implmenentation of the ITableStyle instance defined on the context model. 
+		 * @return ITableStyle
+		 */
+		public function getContextStyle():ITableStyle
+		{
+			return _tableContext.style;
+		}
+		
+		/**
+		 * @inherit
+		 * 
+		 * Override to apply defined InlineStyle object on user styles and establish event listeners to change on styles. 
+		 * @return Object
+		 */
 		override public function get userStyles():Object
 		{
 			if( _userStyles == null )

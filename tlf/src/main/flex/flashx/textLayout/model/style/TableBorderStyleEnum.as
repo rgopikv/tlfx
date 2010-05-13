@@ -1,5 +1,9 @@
-package flashx.textLayout.format
+package flashx.textLayout.model.style
 {
+	/**
+	 * TableBorderEnum is an enumeration of the border style values related to CSS of table. 
+	 * @author toddanderson
+	 */
 	public class TableBorderStyleEnum
 	{
 		public static const OUTSET:String = "outset";

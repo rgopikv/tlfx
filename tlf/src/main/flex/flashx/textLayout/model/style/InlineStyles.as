@@ -68,6 +68,10 @@ package flashx.textLayout.model.style
 			if( style.length > 0 ) explicitStyle = StyleAttributeUtil.parseStyles( style );
 		}
 		
+		/**
+		 * Accessor/Modifier for applied style object which is updated based on supplied external style sheet. 
+		 * @return *
+		 */
 		public function get appliedStyle():*
 		{
 			return _appliedStyle;
@@ -79,6 +83,10 @@ package flashx.textLayout.model.style
 			dispatchEvent( new InlineStyleEvent( InlineStyleEvent.APPLIED_STYLE_CHANGE, oldStyle, _appliedStyle ) );
 		}
 		
+		/**
+		 * Accessor/Modifier for explicit style object defined on the @style attribute for the target node element. 
+		 * @return Object
+		 */
 		public function get explicitStyle():Object
 		{
 			return _explicitStyle;

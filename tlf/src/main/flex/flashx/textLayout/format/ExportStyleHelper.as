@@ -18,7 +18,9 @@ package flashx.textLayout.format
 	import flashx.textLayout.formats.Direction;
 	import flashx.textLayout.formats.ITextLayoutFormat;
 	import flashx.textLayout.formats.TextAlign;
+	import flashx.textLayout.model.style.ITableStyle;
 	import flashx.textLayout.model.style.InlineStyles;
+	import flashx.textLayout.model.style.TableStyle;
 	import flashx.textLayout.utils.StyleAttributeUtil;
 
 	/**
@@ -44,10 +46,10 @@ package flashx.textLayout.format
 			if( element is TableElement )
 			{
 				var style:String = "";
-				var tableStyle:TableElementStyle = ( element as TableElement ).style;
+				var tableStyle:ITableStyle = ( element as TableElement ).getTableModel().context.style;
 				var appliedStyle:Object = ( element.userStyles.inline as InlineStyles ).appliedStyle;
 				var property:String;
-				var propertyList:Vector.<String> = TableElementStyle.definition;
+				var propertyList:Vector.<String> = TableStyle.definition;
 				// Run diff on applied style against current style for table.
 				// Append those that are definied and don't equate to applicaiton from external style sheet.
 				for each( property in propertyList )

@@ -1,13 +1,14 @@
 package flashx.textLayout.model.table
 {
 	import flashx.textLayout.elements.table.TableDataElement;
+	import flashx.textLayout.model.attribute.IAttribute;
 	import flashx.textLayout.model.attribute.TableRowAttribute;
 
 	/**
 	 * TableRow is a representation of a row of TableData (cells) in a Table. 
 	 * @author toddanderson
 	 */
-	public class TableRow extends TableBaseElement
+	public class TableRow extends TableModelBase
 	{
 		public var tableData:Vector.<TableDataElement>;
 		public var nextRow:TableRow;
@@ -34,9 +35,9 @@ package flashx.textLayout.model.table
 		/**
 		 * @inherit
 		 */
-		override protected function setDefaultAttributes():void
+		override protected function getDefaultAttributes():IAttribute
 		{
-			attributes = TableRowAttribute.getDefaultAttributes();
+			return TableRowAttribute.getDefaultAttributes();
 		}
 	}
 }

@@ -4,14 +4,17 @@ package flashx.textLayout.model.table
 	
 	import flashx.textLayout.converter.TableMapper;
 	import flashx.textLayout.elements.table.TableRowElement;
+	import flashx.textLayout.model.attribute.IAttribute;
 	import flashx.textLayout.model.attribute.TableAttribute;
+	import flashx.textLayout.model.style.ITableStyle;
+	import flashx.textLayout.model.style.TableStyle;
 
 	[Event(name="resize", type="flash.events.Event")]
 	/**
 	 * Table represents the data associated with a Table. 
 	 * @author toddanderson
 	 */
-	public class Table extends TableBaseElement
+	public class Table extends TableModelBase
 	{
 		public var rows:Vector.<TableRow>;
 		public var columns:Vector.<TableColumn>;
@@ -24,14 +27,30 @@ package flashx.textLayout.model.table
 		 * Constructor. 
 		 * @param rows Vector.<TableRow> The list of rows.
 		 */
-		public function Table() { super() }
+		public function Table() 
+		{ 
+			context = new TableDecorationContext( getDefaultAttributes(), getDefaultStyle() );
+		}
 		
 		/**
 		 * @inherit
 		 */
-		override protected function setDefaultAttributes():void
+		override protected function getDefaultAttributes():IAttribute
 		{
-			attributes = TableAttribute.getDefaultAttributes();
+			return TableAttribute.getDefaultAttributes();
+		}
+		
+		/**
+		 * @inherit
+		 */
+		override protected function getDefaultStyle():ITableStyle
+		{
+			return new TableStyle();
+		}
+		
+		public function getContextImplementation():ITableDecorationContext
+		{
+			return ( context as ITableDecorationContext );
 		}
 		
 		/**
@@ -40,8 +59,7 @@ package flashx.textLayout.model.table
 		 */
 		public function get cellspacing():int
 		{
-			if( attributes == null ) return TableAttribute.DEFAULTS[TableAttribute.CELLSPACING];
-			return attributes[TableAttribute.CELLSPACING];
+			return ( context as ITableDecorationContext ).determineCellSpacing();
 		}
 		
 		/**
@@ -50,8 +68,24 @@ package flashx.textLayout.model.table
 		 */
 		public function get cellpadding():int
 		{
-			if( attributes == null ) return TableAttribute.DEFAULTS[TableAttribute.CELLPADDING];
-			return attributes[TableAttribute.CELLPADDING];
+			return ( context as ITableDecorationContext ).determineCellPadding();
+		}
+		
+		/**
+		 * Returns the overall computed height of the table for display based on context and held properties. 
+		 * @return Number
+		 */
+		public function getComputedHeight():Number
+		{
+			return _height + context.style.getComputedHeightOfBorders() + ( cellspacing * 2 );
+		}
+		/**
+		 * Returns the overall computed width of the table for display based on context and held properties. 
+		 * @return Number
+		 */
+		public function getComputedWidth():Number
+		{
+			return _width + context.style.getComputedWidthOfBorders() + ( cellspacing * 2 );
 		}
 		
 		/**

@@ -6,7 +6,7 @@ package flashx.textLayout.model.table
 	 * TableColumn represents a column of cells within a Table model. 
 	 * @author toddanderson
 	 */
-	public class TableColumn extends TableBaseElement
+	public class TableColumn extends TableModelBase
 	{
 		public var tableData:Vector.<TableDataElement>;
 		public var nextColumn:TableColumn;
