@@ -36,10 +36,9 @@ package flashx.textLayout.elements.table
 	 * TableElement represents a table in the text flow. 
 	 * @author toddanderson
 	 */
-	public class TableElement extends ContainerFormattedElement
+	public class TableElement extends TableBaseElement
 	{
 		protected var _table:Table;
-		protected var _tableContext:ITableDecorationContext;
 		protected var _tableMapper:TableMapper;
 		protected var _fragment:*;
 		protected var _importer:ITagParser;
@@ -51,8 +50,6 @@ package flashx.textLayout.elements.table
 		protected var _targetContainer:TableDisplayContainer;
 		
 		protected var _textFlow:TextFlow;
-		protected var _userStyles:Object;
-		protected var _pendingInitializationStyle:ITableStyle;
 		protected var _isInitialized:Boolean;
 		
 		public static const LINE_BREAK_IDENTIFIER:String = "|tlf_table_paste_break|";
@@ -63,7 +60,6 @@ package flashx.textLayout.elements.table
 		public function TableElement()
 		{
 			super();
-			_pendingInitializationStyle = new TableStyle();
 		}
 		
 		/**
@@ -152,30 +148,6 @@ package flashx.textLayout.elements.table
 		/**
 		 * @private
 		 * 
-		 * Undefines applied style properies from external style sheet. Ensuring only styles applied directly by user or within @style attribute are kept. 
-		 * @param previousStyle Object The ky/value pairs of applied style.
-		 * @param tableStyle ITableStyle The held style to undefine applied properties from.
-		 */
-		protected function undefinePreviousAppliedStyle( previousStyle:Object, tableStyle:ITableStyle ):void
-		{
-			var property:String;
-			for( property in previousStyle )
-			{
-				try
-				{
-					if( tableStyle[property] == previousStyle[property] )
-						tableStyle.undefineStyleProperty( property );
-				}
-				catch( e:Error )
-				{
-					// unsupported style on ITableStyle.
-				}
-			}
-		}
-		
-		/**
-		 * @private
-		 * 
 		 * Event handler for enter frame of traget display to run a refresh on display list. 
 		 * @param evt Event
 		 */
@@ -227,8 +199,8 @@ package flashx.textLayout.elements.table
 			// Parse html string into a Table object using the importer.
 			// Table serves as a model for rows and columns and holds attribues and styles.
 			_table = _importer.parse( evt.xml.toString(), this ) as Table;
-			_tableContext = _table.getContextImplementation();
-			_tableContext.mergeStyle( _pendingInitializationStyle );
+			_context = _table.getContextImplementation();
+			_context.mergeStyle( _pendingInitializationStyle );
 			_pendingInitializationStyle = null;
 			
 			// Table Mapper handles taking this Element Model and converting rows and columns
@@ -246,71 +218,29 @@ package flashx.textLayout.elements.table
 		}
 		
 		/**
-		 * @private
-		 * 
-		 * Event handler for change in applied styles on inline styles held on userStyles. 
-		 * @param evt InlineStyleEvent
+		 * @inherit
 		 */
-		protected function handleAppliedStyleChange( evt:InlineStyleEvent ):void
+		override protected function handleAppliedStyleChange(evt:InlineStyleEvent):Boolean
 		{
-			var style:ITableStyle = ( _tableContext ) ? _tableContext.style : _pendingInitializationStyle;
-			undefinePreviousAppliedStyle( evt.oldStyle, style );
-			
-			var appliedStyle:Object = evt.newStyle;
-			var property:String;	
-			var styleProperty:String;
-			var requiresUpdate:Boolean;
-			for( property in appliedStyle )
-			{
-				try 
-				{
-					styleProperty = StyleAttributeUtil.camelize(property);
-					// Only ovewrite if not explicitly set which happens when reading in explicit style from @style attribute.
-					if( style.isUndefined( style[styleProperty] ) )
-					{
-						requiresUpdate = true;
-						style[styleProperty] = appliedStyle[property];
-					}
-				}
-				catch( e:Error )
-				{
-					trace( "[" + getQualifiedClassName( this ) + "] :: Style property of type '" + property + "' cannot be set on " + getQualifiedClassName( style ) + "." );
-				}
-			}
+			var requiresUpdate:Boolean = super.handleAppliedStyleChange( evt );
 			// Run display refresh if available.
 			if( requiresUpdate && _isInitialized && _tableManager ) 
 				_tableManager.refresh();
+			
+			return requiresUpdate;
 		}
 		
 		/**
-		 * @private
-		 * 
-		 * Event hanlde for change to explicit styles on InlineStyle object. This occurs when inline @style attribute is parse and applied. 
-		 * @param evt InlineStyleEvent
+		 * @inherit
 		 */
-		protected function handleExplicitStyleChange( evt:InlineStyleEvent ):void
+		override protected function handleExplicitStyleChange(evt:InlineStyleEvent):Boolean
 		{
-			var explicitStyle:Object = evt.newStyle;
-			var property:String;	
-			var styleProperty:String;
-			var requiresUpdate:Boolean;
-			var style:ITableStyle = ( _tableContext ) ? _tableContext.style : _pendingInitializationStyle;
-			for( property in explicitStyle )
-			{
-				try 
-				{
-					styleProperty = StyleAttributeUtil.camelize(property);
-					style[styleProperty] = explicitStyle[property];
-					requiresUpdate = true;
-				}
-				catch( e:Error )
-				{
-					trace( "[" + getQualifiedClassName( this ) + "] :: Style property of type '" + property + "' cannot be set on " + getQualifiedClassName( style ) + "." );
-				}
-			}
-			// Run refresh on display if available.
-			if( requiresUpdate && _isInitialized && _tableManager )
+			var requiresUpdate:Boolean = super.handleExplicitStyleChange( evt );
+			// Run display refresh if available.
+			if( requiresUpdate && _isInitialized && _tableManager ) 
 				_tableManager.refresh();
+			
+			return requiresUpdate;
 		}
 		
 		/**
@@ -390,8 +320,9 @@ package flashx.textLayout.elements.table
 		/**
 		 * Cleans table element for removal.
 		 */
-		public function dispose():void
+		override public function dispose():void
 		{
+			super.dispose();
 			_importer = null;
 			_exporter = null;
 			_tableMapper = null;
@@ -403,9 +334,6 @@ package flashx.textLayout.elements.table
 			
 			_tableManager.dispose();
 			_tableManager = null;
-			
-			_userStyles = null;
-			_tableContext = null;
 		}
 		
 		/**
@@ -435,36 +363,7 @@ package flashx.textLayout.elements.table
 		 */
 		public function getDecorationContext():ITableDecorationContext
 		{
-			return _tableContext;
-		}
-		
-		/**
-		 * Returns the held concrete implmenentation of the ITableStyle instance defined on the context model. 
-		 * @return ITableStyle
-		 */
-		public function getContextStyle():ITableStyle
-		{
-			return _tableContext.style;
-		}
-		
-		/**
-		 * @inherit
-		 * 
-		 * Override to apply defined InlineStyle object on user styles and establish event listeners to change on styles. 
-		 * @return Object
-		 */
-		override public function get userStyles():Object
-		{
-			if( _userStyles == null )
-			{
-				_userStyles = {};
-				var inline:InlineStyles = new InlineStyles();
-				inline.addEventListener( InlineStyleEvent.APPLIED_STYLE_CHANGE, handleAppliedStyleChange );
-				inline.addEventListener( InlineStyleEvent.EXPLICIT_STYLE_CHANGE, handleExplicitStyleChange );
-				_userStyles.inline = inline;
-				super.userStyles = _userStyles;
-			}
-			return super.userStyles;
+			return _context as ITableDecorationContext;
 		}
 		
 		/**

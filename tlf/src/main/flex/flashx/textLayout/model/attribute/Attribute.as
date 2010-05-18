@@ -138,5 +138,13 @@ package flashx.textLayout.model.attribute
 			// abstract
 			return null;
 		}
+		
+		public function isUndefined( property:String ):Boolean
+		{
+			var filled:Boolean = hasProperty( property );
+			var nonDefaultProperties:Object = getStrippedAttributes();
+			var propertyValueIsNotDefault:Boolean = ( nonDefaultProperties[property] != null );
+			return !filled && !propertyValueIsNotDefault;
+		}
 	}
 }

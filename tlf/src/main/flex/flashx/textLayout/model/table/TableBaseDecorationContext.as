@@ -10,6 +10,7 @@ package flashx.textLayout.model.table
 	 */
 	public class TableBaseDecorationContext implements ITableBaseDecorationContext
 	{
+		protected var _model:TableModelBase;
 		protected var _attributes:IAttribute;
 		protected var _style:ITableStyle;
 		
@@ -18,8 +19,9 @@ package flashx.textLayout.model.table
 		 * @param attributes IAttribute
 		 * @param style ITableStyle
 		 */
-		public function TableBaseDecorationContext( attributes:IAttribute = null, style:ITableStyle = null )
+		public function TableBaseDecorationContext( model:TableModelBase, attributes:IAttribute = null, style:ITableStyle = null )
 		{
+			_model = model;
 			_attributes = attributes;
 			_style = style;
 		}

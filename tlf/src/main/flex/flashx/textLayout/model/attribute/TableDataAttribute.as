@@ -40,8 +40,8 @@ package flashx.textLayout.model.attribute
 			attributes[TableDataAttribute.ALIGN] = TableDataAttribute.LEFT;
 			attributes[TableDataAttribute.ROWSPAN] = 1;
 			attributes[TableDataAttribute.COLSPAN] = 1;
-			attributes[TableDataAttribute.WIDTH] = TableDataAttribute.DEFAULT_DIMENSION;
-			attributes[TableDataAttribute.HEIGHT] = TableDataAttribute.DEFAULT_DIMENSION;
+//			attributes[TableDataAttribute.WIDTH] = TableDataAttribute.DEFAULT_DIMENSION;
+//			attributes[TableDataAttribute.HEIGHT] = TableDataAttribute.DEFAULT_DIMENSION;
 			TableDataAttribute.DEFAULTS = attributes;
 			return new TableDataAttribute( Attribute.clone( attributes ) );
 		}

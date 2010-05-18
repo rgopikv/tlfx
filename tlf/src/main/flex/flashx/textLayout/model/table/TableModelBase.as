@@ -18,7 +18,7 @@ package flashx.textLayout.model.table
 		 */
 		public function TableModelBase() 
 		{
-			context = new TableBaseDecorationContext( getDefaultAttributes(), getDefaultStyle() );
+			context = new TableBaseDecorationContext( this, getDefaultAttributes(), getDefaultStyle() );
 		}
 		
 		/**

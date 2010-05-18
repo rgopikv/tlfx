@@ -22,6 +22,7 @@ package flashx.textLayout.model.table
 		
 		protected var _width:Number;
 		protected var _height:Number;
+		protected var _maximumWidth:Number;
 		
 		/**
 		 * Constructor. 
@@ -29,7 +30,7 @@ package flashx.textLayout.model.table
 		 */
 		public function Table() 
 		{ 
-			context = new TableDecorationContext( getDefaultAttributes(), getDefaultStyle() );
+			context = new TableDecorationContext( this, getDefaultAttributes(), getDefaultStyle() );
 		}
 		
 		/**
@@ -114,10 +115,29 @@ package flashx.textLayout.model.table
 		}
 		public function set height( value:Number ):void
 		{
-			if( value == height ) return;
+			if( value == _height ) return;
 			
 			_height = value;
 			dispatchEvent( new Event( Event.RESIZE ) );
+		}
+		
+		public function get maximumWidth():Number
+		{
+			return _maximumWidth;
+		}
+		public function set maximumWidth( value:Number ):void
+		{
+			if( value == _maximumWidth ) return;
+			
+			_maximumWidth = value;
+			if( _width > _maximumWidth ) width = _maximumWidth;
+		}
+		
+		public function get maximumColumnWidth():Number
+		{
+			if( isNaN( _maximumWidth ) ) return 1000000;
+			
+			return _maximumWidth / columns.length;
 		}
 	}
 }

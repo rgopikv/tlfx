@@ -16,9 +16,9 @@ package flashx.textLayout.model.table
 		 * @param attributes IAttribute
 		 * @param style ITableStyle
 		 */
-		public function TableDecorationContext(attributes:IAttribute=null, style:ITableStyle=null)
+		public function TableDecorationContext(model:TableModelBase, attributes:IAttribute=null, style:ITableStyle=null)
 		{
-			super(attributes, style);
+			super(model, attributes, style);
 		}
 		
 		/**

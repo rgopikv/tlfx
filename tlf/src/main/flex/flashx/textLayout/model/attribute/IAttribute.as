@@ -16,6 +16,12 @@ package flashx.textLayout.model.attribute
 		 */
 		function hasProperty( property:String ):Boolean;
 		/**
+		 * Returns flag of attribute considered as undefined. 
+		 * @param property String
+		 * @return Boolean
+		 */
+		function isUndefined( property:String ):Boolean;
+		/**
 		 * Applies any propety values held on supplied object to current existing attributes. 
 		 * @param attributes Object A key/value pair object.
 		 */

@@ -58,8 +58,14 @@ package flashx.textLayout.model.style
 		 * Accessor/Modifier for the padding property. 
 		 * @param value Number
 		 */
-		function get padding():Number;
-		function set padding( value:Number ):void;
+		function get padding():*;
+		function set padding( value:* ):void;
+		
+		function get width():*;
+		function set width( value:* ):void;
+		
+		function get height():*;
+		function set height( value:* ):void;
 		
 		/**
 		 * Undefines property value for property. 

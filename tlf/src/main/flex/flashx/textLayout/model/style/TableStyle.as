@@ -19,8 +19,10 @@ package flashx.textLayout.model.style
 		protected var _borderCollapse:String;
 		protected var _borderSpacing:* = Number.NaN;
 		protected var _backgroundColor:* = Number.NaN;
+		protected var _padding:*;
 		protected var _verticalAlign:String;
-		protected var _padding:Number = Number.NaN;
+		protected var _width:*;
+		protected var _height:*;
 		
 		protected var _style:TableStyle;
 		protected var _isDirty:Boolean;
@@ -59,7 +61,7 @@ package flashx.textLayout.model.style
 				_style.borderWidth = ( _borderWidth ) ? normalizeBorderWidthUnits( evaluateUnitValue( _borderWidth ) ) : getDefaultBorderWidth();
 				_style.borderColor = ( _borderColor ) ? normalizeBorderColorUnits( evaluateUnitValue( _borderColor ) ) : getDefaultBorderColor();
 				_style.borderSpacing = ( _borderSpacing ) ? TableStyleUtil.normalizeBorderUnit(_borderSpacing) : getDefaultBorderSpacing();
-				_style.padding = _padding || 0;
+				_style.padding = ( _padding ) ? normalizeBorderWidthUnits( evaluateUnitValue( _padding ) ) : getDefaultPadding();
 				_style.backgroundColor = ( !isUndefined( _backgroundColor ) ) ? ColorValueUtil.normalizeForLayoutFormat(_backgroundColor) : Number.NaN;
 				_style.verticalAlign = _verticalAlign || TableVerticalAlignEnum.TOP;
 				modifyOnValueCriteria( _style );
@@ -174,7 +176,7 @@ package flashx.textLayout.model.style
 		 */
 		protected function getDefaultBorderStyle():Array
 		{
-			return [TableBorderStyleEnum.INSET, TableBorderStyleEnum.INSET, TableBorderStyleEnum.INSET, TableBorderStyleEnum.INSET];
+			return [TableBorderStyleEnum.OUTSET, TableBorderStyleEnum.OUTSET, TableBorderStyleEnum.OUTSET, TableBorderStyleEnum.OUTSET];
 		}
 		
 		/**
@@ -208,6 +210,17 @@ package flashx.textLayout.model.style
 		protected function getDefaultBorderCollapse():String
 		{
 			return TableCollapseStyleEnum.COLLAPSE_SEPARATE;
+		}
+		
+		/**
+		 * @private
+		 * 
+		 * Returns the default padding.  
+		 * @return Array
+		 */
+		protected function getDefaultPadding():Array
+		{
+			return [0, 0, 0, 0];
 		}
 		
 		/**
@@ -344,15 +357,39 @@ package flashx.textLayout.model.style
 		/**
 		 * @see ITableStyle#padding
 		 */
-		public function get padding():Number
+		public function get padding():*
 		{
 			return _padding;
 		}
-		public function set padding( value:Number ):void
+		public function set padding( value:* ):void
 		{
 			if( _padding == value ) return;
 			
 			_padding = value;
+			_isDirty = true;
+		}
+		
+		public function get width():*
+		{
+			return _width;
+		}
+		public function set width( value:* ):void
+		{
+			if( _width == value ) return;
+			
+			_width = value;
+			_isDirty = true;
+		}
+		
+		public function get height():*
+		{
+			return _height;
+		}
+		public function set height( value:* ):void
+		{
+			if( _height == value ) return;
+			
+			_height = value;
 			_isDirty = true;
 		}
 		

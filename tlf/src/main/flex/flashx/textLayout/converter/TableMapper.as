@@ -3,6 +3,8 @@ package flashx.textLayout.converter
 	import flashx.textLayout.elements.table.TableDataElement;
 	import flashx.textLayout.elements.table.TableElement;
 	import flashx.textLayout.elements.table.TableRowElement;
+	import flashx.textLayout.model.table.ITableBaseDecorationContext;
+	import flashx.textLayout.model.table.ITableDecorationContext;
 	import flashx.textLayout.model.table.Table;
 	import flashx.textLayout.model.table.TableColumn;
 	import flashx.textLayout.model.table.TableRow;
@@ -37,6 +39,7 @@ package flashx.textLayout.converter
 			var j:int;
 			var rowData:Vector.<TableDataElement>;
 			var tableData:TableDataElement;
+			var tableDataContext:ITableBaseDecorationContext;
 			var attributes:*;
 			
 			var rowMap:Array = [];
@@ -49,7 +52,8 @@ package flashx.textLayout.converter
 				for( j = 0; j < rowData.length; j++ )
 				{
 					tableData = ( rowData[j] as TableDataElement );
-					attributes = tableData.attributes as Object;
+					tableDataContext = tableData.getContext();
+					attributes = tableDataContext.attributes as Object;
 					// Update slot hash.
 					var colindex:int = j;
 					var colspanLength:int = attributes.colspan;
