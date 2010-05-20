@@ -1,29 +1,24 @@
 package flashx.textLayout.elements.list
 {
-	import flash.display.Sprite;
-	import flash.text.FontStyle;
+	import flash.events.Event;
 	import flash.text.engine.FontPosture;
 	import flash.text.engine.FontWeight;
 	import flash.utils.getDefinitionByName;
 	import flash.utils.getQualifiedClassName;
-	import flash.xml.XMLNode;
 	
-	import flashx.textLayout.accessibility.TextAccImpl;
-	import flashx.textLayout.conversion.HtmlExporter;
 	import flashx.textLayout.elements.ExtendedLinkElement;
 	import flashx.textLayout.elements.FlowElement;
-	import flashx.textLayout.elements.FlowGroupElement;
 	import flashx.textLayout.elements.FlowLeafElement;
 	import flashx.textLayout.elements.InlineGraphicElement;
 	import flashx.textLayout.elements.LinkElement;
 	import flashx.textLayout.elements.ParagraphElement;
 	import flashx.textLayout.elements.SpanElement;
-	import flashx.textLayout.elements.TextFlow;
+	import flashx.textLayout.elements.SubParagraphGroupElement;
+	import flashx.textLayout.events.UpdateEvent;
 	import flashx.textLayout.format.ExportStyleHelper;
 	import flashx.textLayout.formats.TextDecoration;
 	import flashx.textLayout.formats.TextLayoutFormat;
 	import flashx.textLayout.tlf_internal;
-	import flashx.textLayout.utils.StyleAttributeUtil;
 	
 	use namespace tlf_internal;
 	
@@ -63,20 +58,29 @@ package flashx.textLayout.elements.list
 			
 			_bulletSpan.format = _bulletFormat;
 			
-			update(false);
+			update();
 		}
 		
 		
 		
-		public function update( updateParent:Boolean = true ):void
+		public function update():void
 		{
-			if ( updateParent && this.parent && this.parent is ListElementX )
-				( this.parent as ListElementX ).update();
 			_bulletSpan.format = _bulletFormat;
 			_bulletSpan.text = getSeparator();
-			
-			if ( getTextFlow() )
-				getTextFlow().flowComposer.updateAllControllers();
+		}
+		
+		public function correctChildren():void
+		{
+			try {
+				try {
+					removeChild( _bulletSpan );
+				} catch ( e:* ) {
+					trace(e);
+				}
+				iaddChildAt(0, _bulletSpan);
+			} catch ( e:* ) {
+				trace(e);
+			}
 		}
 		
 		public override function addChild(child:FlowElement):FlowElement
@@ -120,12 +124,80 @@ package flashx.textLayout.elements.list
 			//	Nothing, to prevent extra line breaks
 		}
 		
+		/** @private */
+		tlf_internal override function normalizeRange(normalizeStart:uint,normalizeEnd:uint):void
+		{
+			var idx:int = findChildIndexAtPosition(normalizeStart);
+			if (idx != -1 && idx < numChildren)
+			{
+				var child:FlowElement = getChildAt(idx);
+				normalizeStart = normalizeStart-child.parentRelativeStart;
+				
+				CONFIG::debug { assert(normalizeStart >= 0, "bad normalizeStart in normalizeRange"); }
+				for (;;)
+				{
+					// watch out for changes in the length of the child
+					var origChildEnd:int = child.parentRelativeStart+child.textLength;
+					child.normalizeRange(normalizeStart,normalizeEnd-child.parentRelativeStart);
+					var newChildEnd:int = child.parentRelativeStart+child.textLength;
+					normalizeEnd += newChildEnd-origChildEnd;	// adjust
+					
+					// no zero length children
+					if (child.textLength == 0 && !child.bindableElement)
+						replaceChildren(idx,idx+1);
+					else if (child.mergeToPreviousIfPossible())
+					{
+//						var prevElement:FlowElement = this.getChildAt(idx-1);
+//						// possibly optimize the start to the length of prevelement before the merge
+//						prevElement.normalizeRange(0,prevElement.textLength);
+					}
+					else
+						idx++;
+					
+					if (idx == numChildren)
+					{
+						// check if last child is an empty SubPargraphBlock and remove it
+						if (idx != 0)
+						{
+							var lastChild:FlowElement = this.getChildAt(idx-1);
+							if (lastChild is SubParagraphGroupElement && lastChild.textLength == 1 && !lastChild.bindableElement)
+								replaceChildren(idx-1,idx);
+						}
+						break;
+					}
+					
+					// next child
+					child = getChildAt(idx);
+					
+					if (child.parentRelativeStart > normalizeEnd)
+						break;
+					
+					normalizeStart = 0;		// for the next child	
+				}
+			}
+			
+			// empty paragraphs not allowed after normalize
+			if (numChildren == 0 || textLength == 0)
+			{
+				var s:SpanElement = new SpanElement();
+				replaceChildren(0,0,s);
+				s.normalizeRange(0,s.textLength);
+			}
+		}
+		
 		public function export():XML
 		{
 			var xml:XML = <li/>;
 			var styleExporter:ExportStyleHelper = new ExportStyleHelper();
 			
+			//	Remove the paragraphStartIndent for applying styles
+			var origIndent:int = indent;
+			indent = 0;
+			
 			styleExporter.applyStyleAttributesFromElement( xml, this );
+			
+			//	Apply the indent once more
+			indent = origIndent;
 			
 			for ( var i:int = 1; i < numChildren; i++ )
 			{
@@ -179,11 +251,6 @@ package flashx.textLayout.elements.list
 			return xml.toXMLString() != '<li/>' ? xml : null;
 		}
 		
-//		public function toString():String
-//		{
-//			return '[ListItemElementX number: ' + number + ' | text: ' + text + ' | mode: ' + mode + ' | indent: ' + indent + ']';
-//		}
-		
 		protected function getSeparator():String
 		{
 			if ( mode == UNORDERED )
@@ -208,12 +275,17 @@ package flashx.textLayout.elements.list
 			}
 		}
 		
+		protected function iaddChildAt(index:uint, child:FlowElement):FlowElement
+		{
+			return super.addChildAt(index, child);
+		}
+		
 		
 		
 		public override function set paragraphStartIndent(paragraphStartIndentValue:*):void
 		{
 			super.paragraphStartIndent = paragraphStartIndentValue;
-			update( false );
+			update();
 		}
 		
 		public function set mode( value:String ):void
@@ -223,7 +295,7 @@ package flashx.textLayout.elements.list
 			if ( value != UNORDERED && value != ORDERED )
 				_mode = UNORDERED;
 			
-			update(false);
+			update();
 		}
 		public function get mode():String
 		{
@@ -242,14 +314,48 @@ package flashx.textLayout.elements.list
 		public function set text( value:String ):void
 		{
 			var i:int = numChildren;
+			var indexes:Vector.<int> = new Vector.<int>();
+			var children:Vector.<FlowElement> = new Vector.<FlowElement>();
 			while (--i > 0)
+			{
+				if ( getChildAt(i) is InlineGraphicElement || getChildAt(i) is ExtendedLinkElement || getChildAt(i) is LinkElement )
+				{
+					indexes.push( i );
+					children.push( getChildAt(i) );
+				}
+				else
+				{
+					var childSpan:SpanElement = getChildAt(i) as SpanElement;
+					var childSpanFormat:TextLayoutFormat = new TextLayoutFormat();
+					childSpanFormat.apply(childSpan.computedFormat);
+					if ( !(TextLayoutFormat.isEqual( computedFormat, childSpanFormat )) )
+					{
+						indexes.push( i );
+						children.push( getChildAt(i) );
+					}
+				}
 				removeChildAt(i);
+			}
+			
+			indexes.reverse();
+			children.reverse();
 			
 			var span:SpanElement = new SpanElement();
 			span.text = value;
 			addChild( span );
 			
-			update(false);
+			for ( i = 0; i < indexes.length; i++ )
+			{
+				var index:int = indexes[i];
+				var child:FlowElement = children[i];
+				
+				if ( index > numChildren-1 )
+					addChild(child);
+				else
+					addChildAt(index, child);
+			}
+			
+			update();
 		}
 		public function get text():String
 		{
@@ -272,6 +378,11 @@ package flashx.textLayout.elements.list
 			return getChildAt(0).getAbsoluteStart() + getChildAt(0).textLength;
 		}
 		
+		public function get seperatorLength():uint
+		{
+			return getChildAt(0).textLength;
+		}
+		
 		public function get modifiedTextLength():uint
 		{
 			return textLength - getChildAt(0).textLength;
@@ -279,7 +390,7 @@ package flashx.textLayout.elements.list
 		
 		public function set indent( value:uint ):void
 		{
-			paragraphStartIndent = value;
+			paragraphStartIndent = Math.max(0, Math.min(240, value));
 		}
 		public function get indent():uint
 		{

@@ -10,9 +10,12 @@ package flashx.textLayout.edit.helpers
 	import flashx.textLayout.elements.FlowElement;
 	import flashx.textLayout.elements.FlowGroupElement;
 	import flashx.textLayout.elements.ListElement;
+	import flashx.textLayout.elements.ListItemElement;
 	import flashx.textLayout.elements.ParagraphElement;
 	import flashx.textLayout.elements.SpanElement;
 	import flashx.textLayout.elements.TextFlow;
+	import flashx.textLayout.elements.list.ListElementX;
+	import flashx.textLayout.elements.list.ListItemElementX;
 
 	/**
 	 * Utility class for creating lists of the currently selected elements in a FlowGroupElement.
@@ -61,12 +64,21 @@ package flashx.textLayout.edit.helpers
 		}
 		
 		/**
-		 * Returns an Array containing all ListElements that are at least 
+		 * Returns an Array containing all ListElementXs that are at least 
 		 * partially contained within the TextFlow's current selection state.
 		 */
 		public static function getSelectedLists(tf:TextFlow, recurse:Boolean = true):Array 
 		{
-			return getSelectedElements(tf, null, [ListElement], recurse);
+			return getSelectedElements(tf, null, [ListElementX], recurse);
+		}
+		
+		/**
+		 * Returns an Array containing all ListItemElementXs that are at least 
+		 * partially contained within the TextFlow's current selection state.
+		 */
+		public static function getSelectedListItems(tf:TextFlow, recurse:Boolean = true):Array 
+		{
+			return getSelectedElements(tf, null, [ListItemElementX], recurse);
 		}
 		
 		/**

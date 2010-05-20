@@ -25,8 +25,12 @@ package flashx.textLayout.edit
 	import flashx.textLayout.elements.FlowLeafElement;
 	import flashx.textLayout.elements.ListElement;
 	import flashx.textLayout.elements.ListItemElement;
+	import flashx.textLayout.elements.ParagraphElement;
 	import flashx.textLayout.elements.SpanElement;
 	import flashx.textLayout.elements.TextFlow;
+	import flashx.textLayout.elements.list.ListElementX;
+	import flashx.textLayout.elements.list.ListItemElementX;
+	import flashx.textLayout.elements.list.ListPaddingElement;
 	import flashx.textLayout.elements.table.TableElement;
 	import flashx.textLayout.operations.PasteOperation;
 	import flashx.textLayout.tlf_internal;
@@ -66,261 +70,242 @@ package flashx.textLayout.edit
 			return controllers;
 		}
 		
-		override public function textInputHandler(event:TextEvent):void
-		{
-			var startElement:FlowLeafElement = textFlow.findLeaf( absoluteStart );
-			var endElement:FlowLeafElement = textFlow.findLeaf( absoluteEnd );
-			var item:ListItemElement = startElement.getParentByType( ListItemElement ) as ListItemElement;
-			var endItem:ListItemElement = endElement.getParentByType( ListItemElement ) as ListItemElement;
-			
-			if ( item )
-			{
-				var relStart:int = absoluteStart - item.span.getAbsoluteStart()
-				if ( isRangeSelection() )
-				{
-					if ( endItem && endItem != item )	//	Multiline
-					{
-						
-					}
-					else
-					{
-						
-					}
-				}
-				else
-				{
-					
-				}
-			}
-			else
-				super.textInputHandler(event);
-		}
-		
 		override public function keyDownHandler(event:KeyboardEvent):void
 		{
-			var startElement:FlowLeafElement = textFlow.findLeaf( absoluteStart );
-			var endElement	:FlowLeafElement = textFlow.findLeaf( absoluteEnd );
+			var items:Array = SelectionHelper.getSelectedListItems( textFlow, true );
+			var lists:Array = SelectionHelper.getSelectedLists( textFlow );
 			
-			var i:int = 0;
+			var startItem:ListItemElementX;
+			var endItem:ListItemElementX;
 			
-			var item:ListItemElement = startElement.getParentByType( ListItemElement ) as ListItemElement;
-			var endItem:ListItemElement = endElement.getParentByType( ListItemElement ) as ListItemElement;
-			var list:ListElement;
-			var selectedItems:Array = ListHelper.getSelectedListItemElements( textFlow );
+			var list:ListElementX;
+			var endList:ListElementX;
 			
-			var index:int = item ? item.parent.getChildIndex( item ) : -1;
-			var endIndex:int = endItem ? endItem.parent.getChildIndex( endItem ) : -1;
+			var start:int;
+			var end:int;
 			
-			var relStart1:int;
-			var relEnd1:int;
+			var i:int;
 			
 			switch ( event.keyCode )
 			{
 				case Keyboard.TAB:
-					if ( item )
+					if ( items.length > 0 )
 					{
-						var indent:int = int( item.paragraphStartIndent );
+						for each ( startItem in items )
+						{
+							if ( event.shiftKey )
+								startItem.indent = Math.max(0, startItem.indent-24);
+							else
+								startItem.indent = Math.min(240, startItem.indent+24);
+						}
 						
-						//	TODO: implement
+						for each ( list in lists )
+							list.update();
 					}
 					else
 						super.keyDownHandler(event);
 					break;
 				case Keyboard.ENTER:
-					if ( item )
+					if ( items.length > 0 )
 					{
-						list = item.parent as ListElement;
+						startItem = items[0] as ListItemElementX;
+						endItem = items[items.length-1] as ListItemElementX;
 						
-						var newItem:ListItemElement = new ListItemElement();
-						newItem.mode = list.mode;
+						list = startItem.parent as ListElementX;
+						endList = endItem.parent as ListElementX;
 						
-						relStart1 = absoluteStart - item.span.getAbsoluteStart() - item.seperatorLength;
-						if ( !endItem )
+						start = list.getChildIndex(startItem)+1;
+						end = endList.getChildIndex(endItem);
+						
+						var newItem:ListItemElementX;
+						
+						//	Single list
+						if ( list == endList )
 						{
-							relEnd1 = absoluteEnd - item.span.getAbsoluteStart() - item.seperatorLength;
-						}
-						else
-						{
-							relEnd1 = absoluteEnd - endItem.span.getAbsoluteStart() - endItem.seperatorLength;
-						}
-						
-						var addNew:Boolean = true;
-						
-						if ( !isRangeSelection() )	//	single line
-							newItem.text = item.text.substring( relEnd1, item.text.length );
-						else
-						{
-							if ( endItem && endItem != item )
-								endItem.text = endItem.text.substring( relEnd1, endItem.text.length );
-							else if ( endItem && endItem == item )
-								newItem.text = endItem.text.substring( relEnd1, endItem.text.length );
-							
-							for ( i = endIndex-1; i > index; i-- )
+							//	Multiline
+							if ( startItem != endItem )
 							{
-								if ( list.getChildAt(i) )
+								deleteText( new SelectionState( textFlow, absoluteStart, absoluteEnd ) );
+								
+								//	AbsoluteStart is cursor position, subtract from that the startItem's actual start (start of text)
+								//	Then add on the length of the seperator span (usually 3 or 4, depending on mode)
+								newItem = startItem.splitAtPosition( absoluteStart-startItem.actualStart+startItem.seperatorLength ) as ListItemElementX;
+								newItem.mode = startItem.mode;
+								newItem.indent = startItem.indent;
+								newItem.correctChildren();
+							}
+							//	Single line
+							else
+							{
+								deleteText( new SelectionState( textFlow, absoluteStart, absoluteEnd ) );
+								
+								//	AbsoluteStart is cursor position, subtract from that the startItem's actual start (start of text)
+								//	Then add on the length of the seperator span (usually 3 or 4, depending on mode)
+								newItem = startItem.splitAtPosition( absoluteStart-startItem.actualStart+startItem.seperatorLength ) as ListItemElementX;
+								newItem.mode = startItem.mode;
+								newItem.indent = startItem.indent;
+								newItem.correctChildren();
+							}
+							
+							list.update();
+							
+							setSelectionState( new SelectionState( textFlow, newItem.actualStart+newItem.text.length-1, newItem.actualStart+newItem.text.length-1 ) );
+							
+							textFlow.flowComposer.updateAllControllers();
+						}
+						//	Multiple lists
+						else
+						{
+							//	Delete text between lists
+							deleteText( new SelectionState( textFlow, list.getAbsoluteStart() + list.textLength, endList.getAbsoluteStart() ) );
+							
+							//	Handle removing / reseting items
+							for ( i = items.length-1; i > -1; i-- )
+							{
+								var item:ListItemElementX = items[i];
+								
+								//	Reset text (start)
+								if ( i == 0 )
 								{
-									addNew = false;
-									list.removeChildAt(i);
+									deleteText( new SelectionState( textFlow, absoluteStart, item.actualStart + item.text.length ) );
+								}
+								//	Reset text (end)
+								else if ( i == items.length-1 )
+								{
+									deleteText( new SelectionState( textFlow, item.actualStart, absoluteEnd ) );
+								}
+								//	Delete
+								else
+								{
+									item.parent.removeChild(item);
 								}
 							}
+							
+							//	Children to shift from endList to list
+							var children:Vector.<ListItemElementX> = new Vector.<ListItemElementX>();
+							
+							for ( i = endList.numChildren-2; i > 0; i-- )
+								children.push( endList.removeChildAt(i) as ListItemElementX );
+							
+							//	New child from hitting enter
+							newItem = new ListItemElementX();
+							newItem.mode = startItem.mode;
+							newItem.indent = startItem.indent;
+							children.push( newItem );
+							
+							children.reverse();
+							
+							var lastItem:ListItemElementX = list.getChildAt(list.numChildren-2) as ListItemElementX;
+							var firstItem:ListItemElementX = children[0];
+							
+							var increaseIndent:Boolean = lastItem.mode != firstItem.mode;
+							
+							for ( i = 0; i < children.length; i++ )
+							{
+								if ( increaseIndent )
+									children[i].indent += 24;
+								list.addChild( children[i] );
+							}
+							
+							list.update();
+							
+							setSelectionState( new SelectionState( textFlow, newItem.actualStart+newItem.text.length-1, newItem.actualStart+newItem.text.length-1 ) );
 						}
-						
-						item.text = item.text.substring(0, relStart1);
-						
-						if ( addNew )
-						{
-							list.addChildAt(index+1, newItem);
-							setSelectionState( new SelectionState( textFlow, newItem.span.getAbsoluteStart() + newItem.span.textLength-1, newItem.span.getAbsoluteStart() + newItem.span.textLength-1 ) );
-						}
-						else
-							setSelectionState( new SelectionState( textFlow, endItem ? endItem.span.getAbsoluteStart() + endItem.seperatorLength : item.span.getAbsoluteStart() + item.span.text.length-1, endItem ? endItem.span.getAbsoluteStart() + endItem.seperatorLength : item.span.getAbsoluteStart() + item.span.text.length-1 ) );
-						updateAllControllers();
 					}
 					else
 						super.keyDownHandler(event);
 					break;
 				case Keyboard.BACKSPACE:
-					if ( item )
-					{
-						list = item.parent as ListElement;
-						
-						if ( isRangeSelection() )
-						{
-							if ( endItem == item )
-								deleteText( getSelectionState() );
-							else
-							{
-								if ( endIndex == -1 )
-									endIndex = list.numChildren-1;
-								
-								relStart1 = absoluteStart - item.span.getAbsoluteStart() - item.seperatorLength;
-								if ( endItem )
-								{
-									relEnd1 = absoluteEnd - endItem.span.getAbsoluteStart() - endItem.seperatorLength;
-									endItem.text = endItem.text.substring(relEnd1, endItem.text.length);
-								}
-								
-								for ( i = endIndex-1; i > index; i-- )
-								{
-									if ( list.getChildAt(i) )
-										list.removeChildAt(i);
-								}
-								
-								item.text = item.text.substring(0, relStart1);
-								
-								updateAllControllers();
-								
-								//	TODO: Fix, it's setting the selection state too early
-								setSelectionState( new SelectionState( textFlow, item.span.getAbsoluteStart() + item.text.length-1, item.span.getAbsoluteStart() + item.text.length-1 ) );
-								
-								updateAllControllers();
-							}
-						}
-						else
-							deletePreviousCharacter( getSelectionState() );
-					}
-					else
-						super.keyDownHandler(event);
+					super.keyDownHandler(event);
 					break;
 				case Keyboard.DELETE:
-					if ( item )
-					{
-						list = item.parent as ListElement;
-						
-						if ( isRangeSelection() )
-						{
-							if ( endItem == item )
-								deleteText( getSelectionState() );
-							else
-							{
-								if ( endIndex == -1 )
-									endIndex = list.numChildren-1;
-								
-								relStart1 = absoluteStart - item.span.getAbsoluteStart() - item.seperatorLength;
-								if ( endItem )
-								{
-									relEnd1 = absoluteEnd - endItem.span.getAbsoluteStart() - endItem.seperatorLength;
-									endItem.text = endItem.text.substring(relEnd1, endItem.text.length);
-								}
-								
-								for ( i = endIndex-1; i > index; i-- )
-								{
-									if ( list.getChildAt(i) )
-										list.removeChildAt(i);
-								}
-								
-								item.text = item.text.substring(0, relStart1);
-								
-								updateAllControllers();
-								
-								//	TODO: Fix, it's setting the selection state too early
-								setSelectionState( new SelectionState( textFlow, item.span.getAbsoluteStart() + item.text.length-1, item.span.getAbsoluteStart() + item.text.length-1 ) );
-								
-								updateAllControllers();
-							}
-						}
-						else
-							deleteNextCharacter( getSelectionState() );
-					}
-					else
-						super.keyDownHandler(event);
+					super.keyDownHandler(event);
 					break;
 				default:
-//					//	Space or
-//					//	Numbers or
-//					//	characters
-//					//	Keypad or
-//					//	keypad punctuation & special chars or
-//					//	regular punctuation & special chars
-//					if ( event.keyCode == 32 ||
-//						(event.keyCode > 47 && event.keyCode < 58) ||
-//						(event.keyCode > 64 && event.keyCode < 91) ||
-//						(event.keyCode > 95 && event.keyCode < 108) ||
-//						(event.keyCode > 108 && event.keyCode < 112) ||
-//						(event.keyCode > 185 && event.keyCode < 192) ||
-//						(event.keyCode > 218 && event.keyCode < 223))
-					if ( !event.ctrlKey )
-					{
-						if ( item )
-						{
-							list = item.parent as ListElement;
-							if ( isRangeSelection() )
-							{
-								if ( endItem && endItem != item )	//	Multiline list selection
-								{
-									if ( endIndex == -1 )
-										endIndex = list.numChildren-1;
-									
-									relStart1 = absoluteStart - item.span.getAbsoluteStart() - item.seperatorLength;
-									if ( endItem )
-									{
-										relEnd1 = absoluteEnd - endItem.span.getAbsoluteStart() - endItem.seperatorLength;
-										var endText:String = endItem.text.substring(relEnd1, endItem.text.length);
-									}
-									
-									for ( i = endIndex; i > index; i-- )
-									{
-										if ( list.getChildAt(i) )
-											list.removeChildAt(i);
-									}
-									
-									//	Auto inserts text being entered... need to find out where that is happening
-									item.text = item.text.substring(0, relStart1) + endText;
-									
-									updateAllControllers();
-									
-									//	TODO: Fix, it's setting the selection state too early
-									setSelectionState( new SelectionState( textFlow, item.span.getAbsoluteStart() + item.text.length-1, item.span.getAbsoluteStart() + item.text.length-1 ) );
-									
-									updateAllControllers();
-									return;
-								}
-							}
-						}
-					}
-					
 					super.keyDownHandler( event );
 					break;
+			}
+			
+			setSelectionState( new SelectionState( textFlow, absoluteStart, absoluteStart, textFlow.format ) );
+			textFlow.flowComposer.updateAllControllers();
+		}
+		
+		private function cleanParagraphs( element:FlowGroupElement ):void
+		{
+			var j:int = 0;
+			var cc:FlowElement;
+			var cs:SpanElement;
+			for ( var i:int = 0; i < element.numChildren; i++ )
+			{
+				var child:FlowElement = element.getChildAt(i);
+				
+				//	Don't search ListElements or ListItemElements
+				if ( child is DivElement )
+					cleanParagraphs( child as DivElement );
+				else if ( child is ParagraphElement )
+				{
+					var separator:SpanElement;
+					if ( child is ListPaddingElement )
+					{
+						continue;
+					}
+					else if ( child is ListItemElementX )
+						continue;
+					else
+					{
+//						var p:ParagraphElement = child as ParagraphElement;
+//						for ( j = p.numChildren-1; j > -1; j-- )
+//						{
+//							cc = p.getChildAt(j);
+//							if ( cc is SpanElement )
+//							{
+//								cs = cc as SpanElement;
+//								if ( cs.text.indexOf('\n') > -1 )
+//									p.removeChildAt(j);
+//								else
+//									trace( 'p won\'t delete:', cs.text );
+//							}
+//						}
+					}
+				}
+			}
+		}
+		
+		private function preserveParagraphAppearance( element:FlowGroupElement ):void
+		{
+			var j:int = 0;
+			var cc:FlowElement;
+			var cs:SpanElement;
+			for ( var i:int = 0; i < element.numChildren; i++ )
+			{
+				var child:FlowElement = element.getChildAt(i);
+				
+				//	Don't search ListElements or ListItemElements
+				if ( child is DivElement )
+					preserveParagraphAppearance( child as DivElement );
+				else if ( child is ParagraphElement )
+				{
+					var separator:SpanElement;
+					if ( child is ListPaddingElement )
+					{
+						continue;
+//						var lpe:ListPaddingElement = child as ListPaddingElement;
+//						separator = new SpanElement();
+//						use namespace tlf_internal;
+//						separator.text = SpanElement.tlf_internal::kParagraphTerminator;
+//						lpe.addChild(separator);
+					}
+					else if ( child is ListItemElementX )
+						continue;
+					else
+					{
+//						var p:ParagraphElement = child as ParagraphElement;
+//						separator = new SpanElement();
+//						use namespace tlf_internal;
+//						separator.text = SpanElement.tlf_internal::kParagraphTerminator;
+//						p.addChild(separator);
+					}
+				}
 			}
 		}
 		
