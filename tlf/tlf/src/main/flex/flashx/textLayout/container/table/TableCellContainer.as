@@ -446,10 +446,11 @@ package flashx.textLayout.container.table
 		 * Call back for line creation to determine the estimated cell bounds. 
 		 * @param line DisplayObject
 		 */
-		protected function updateActualBounds( line:TextLine ):void
+		protected function updateActualBounds( line:DisplayObject ):void
 		{
-			var ascent:Number = line.ascent;
-			var descent:Number = line.descent;
+			// object could be background shape or line.
+			var ascent:Number = ( line is TextLine ) ? ( line as TextLine ).ascent : 0;
+			var descent:Number = ( line is TextLine ) ? ( line as TextLine ).descent : 0;
 			var bounds:Rectangle = line.getBounds( this );
 			_actualWidth = Math.max( getTargetWidth() - getUnifiedPadding(), Math.max( _actualWidth, bounds.width ) );
 			var pt:Point = localToGlobal( new Point( bounds.left, bounds.top ) );
