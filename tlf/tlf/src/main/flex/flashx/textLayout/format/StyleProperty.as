@@ -23,11 +23,46 @@ package flashx.textLayout.format
 		}
 		
 		/**
+		 * Determines the comparible value properties of two StyleProperty instances. 
+		 * @param formatProperty StyleProperty
+		 * @param explicitProperty StyleProperty
+		 * @return Boolean
+		 */
+		public static function isEqual( cssProperty:StyleProperty, explicitProperty:StyleProperty ):Boolean
+		{
+			// First catch, if they equal each other than move on.
+			if( cssProperty.value.toString() == explicitProperty.value.toString() ) return true;
+			// Next we check if differing format values are comparible.
+			var convertedProperty:StyleProperty = StyleProperty.normalizeForFormat( explicitProperty.property, explicitProperty.value );
+			convertedProperty = StyleProperty.normalizePropertyForCSS( convertedProperty.property, convertedProperty.value );
+			return ( cssProperty.property == convertedProperty.property && cssProperty.value == convertedProperty.value );
+		}
+		
+		/**
+		 * Converts size unit to equivalent number value. 
+		 * @param unit *
+		 * @return Number
+		 */
+		private static function convertSizeUnit( unit:* ):Number
+		{
+			var unitValue:String = unit.toString();
+			if( unitValue.indexOf( "px" ) != -1 )
+			{
+				unitValue = unitValue.replace( "px", "" );
+			}
+			else if( unitValue.indexOf( "pt" ) != -1 )
+			{
+				var size:Number = Number(unitValue.replace("pt","")) * 96 / 72;
+				unitValue = size.toString();
+			}	
+			return Number(unitValue);
+		}
+		
+		/**
 		 * Creates a new StyleProperty that relates to TLF formatting based on property and value. 
 		 * @param property
 		 * @param value
-		 * @return 
-		 * 
+		 * @return StyleProperty
 		 */
 		public static function normalizeForFormat( property:String, value:* ):StyleProperty
 		{
@@ -48,17 +83,7 @@ package flashx.textLayout.format
 				case "mso":
 					property = "fontSize";
 				case "fontSize":
-					var fontSizeValue:String = value.toString();
-					if( fontSizeValue.indexOf( "px" ) != -1 )
-					{
-						fontSizeValue = fontSizeValue.replace( "px", "" );
-					}
-					else if( fontSizeValue.indexOf( "pt" ) != -1 )
-					{
-						var size:Number = Number(fontSizeValue.replace("pt","")) * 96 / 72;
-						fontSizeValue = size.toString();
-					}	
-					value = Number(fontSizeValue);
+					value = StyleProperty.convertSizeUnit( value );
 					break;
 				case "marginLeft":
 					property = "paragraphStartIndent";
@@ -67,7 +92,11 @@ package flashx.textLayout.format
 					property = "paragraphEndIndent";
 					break;
 				case "textIndent":
-					value = value.replace( "px", "" );
+					value = StyleProperty.convertSizeUnit( value );
+					break;
+				case "letterSpacing":
+					property = "trackingRight";
+					value = StyleProperty.convertSizeUnit( value );
 					break;
 			}
 			return new StyleProperty( property, value );
@@ -120,6 +149,9 @@ package flashx.textLayout.format
 					{
 						property = "marginRight";
 					}
+					break;
+				case "trackingRight":
+					property = "letterSpacing";
 					break;
 			}	
 			return new StyleProperty( StyleAttributeUtil.dasherize(property), value )

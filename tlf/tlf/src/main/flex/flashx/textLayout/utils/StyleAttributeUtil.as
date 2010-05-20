@@ -134,7 +134,7 @@ package flashx.textLayout.utils
 				if( styles[i].indexOf(StyleAttributeUtil.STYLE_PROPERTY_DELIMITER) != -1 )
 				{
 					keyValue = styles[i].split( ":" );
-					styleObj[keyValue[0]] = StyleAttributeUtil.stripWhitespaces( keyValue[1] );
+					styleObj[StyleAttributeUtil.dasherize(keyValue[0])] = StyleAttributeUtil.stripWhitespaces( keyValue[1] );
 				}
 			}
 			return styleObj;
