@@ -35,6 +35,23 @@ package flashx.textLayout.format
 		public function ExportStyleHelper() {}
 		
 		/**
+		 * Returns the explicit styles set on the element id available. 
+		 * @param element FlowElement
+		 * @return Object
+		 */
+		protected function getExplicitStyleOfElement( element:FlowElement ):Object
+		{
+			if( element )
+			{
+				if( element.userStyles && ( element.userStyles.inline as InlineStyles ) )
+				{
+					return ( element.userStyles.inline as InlineStyles ).explicitStyle;
+				}
+			}
+			return null;
+		}
+		
+		/**
 		 * Returns the next possible parent from hiearchical list of possible parents in order to access computed format. 
 		 * @param element FlowElement
 		 * @param parentList Array An Array of Class type reprsenting the heiarchical strcutrue of parenting elements.
@@ -119,6 +136,7 @@ package flashx.textLayout.format
 			var styles:Array = []; /* StyleProperty[] */
 			var property:String;
 			var propertyList:XMLList = describeType( childFormat )..accessor;
+			var explicitStyle:Object = getExplicitStyleOfElement( element );
 			var styleProperty:StyleProperty;
 			var childPropertyValue:*;
 			var parentPropertyValue:*;
@@ -126,7 +144,7 @@ package flashx.textLayout.format
 			for( i = 0; i < propertyList.length(); i++ )
 			{
 				if( propertyList[i].@access == "writeonly" ) continue;
-				property = propertyList[i].@name;
+				property = propertyList[i].@name; 
 				if( childFormat[property] != undefined )
 				{
 					try
@@ -147,6 +165,14 @@ package flashx.textLayout.format
 						if( childPropertyValue != parentPropertyValue )
 						{
 							styleProperty = StyleProperty.normalizePropertyForCSS( property, childPropertyValue, childFormat );
+							// Reassign original set value
+							if( explicitStyle && explicitStyle[StyleAttributeUtil.dasherize( styleProperty.property )] != null )
+							{
+								var explicitProperty:String = StyleAttributeUtil.dasherize( styleProperty.property );
+								var explicitValue:* = explicitStyle[explicitProperty];
+								if( StyleProperty.isEqual( styleProperty, new StyleProperty( explicitProperty, explicitValue ) ) )
+									styleProperty.value = explicitValue;
+							}
 							styles.push( styleProperty );			
 						}
 					}

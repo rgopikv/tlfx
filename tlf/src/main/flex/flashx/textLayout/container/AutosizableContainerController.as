@@ -1,5 +1,6 @@
 package flashx.textLayout.container
 {
+	import flash.display.DisplayObject;
 	import flash.display.Loader;
 	import flash.display.Shape;
 	import flash.display.Sprite;
@@ -71,14 +72,14 @@ package flashx.textLayout.container
 		 * Method handler for factory of TextLine creation to determine the size of the container based on line bounds. 
 		 * @param line TextLine
 		 */
-		protected function handleLineCreation( line:TextLine ):void
+		protected function handleLineCreation( line:DisplayObject ):void
 		{
 			var bounds:Rectangle = line.getBounds( container );
 			var pt:Point = container.localToGlobal( new Point( bounds.left, bounds.top ) );
-			_actualHeight = pt.y + bounds.height + line.descent;
+			_actualHeight = pt.y + bounds.height + ( ( line is TextLine ) ? ( line as TextLine ).descent : 0 );
 			
-			if( ++_numLines == 1 )
-				_topElementAscent = line.ascent - line.descent;
+			if( ++_numLines == 1 && line is TextLine )
+				_topElementAscent = ( line as TextLine ).ascent - ( line as TextLine ).descent;
 		}
 		
 		/**
