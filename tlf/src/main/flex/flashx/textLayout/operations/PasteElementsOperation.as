@@ -14,6 +14,7 @@ package flashx.textLayout.operations
 	import flashx.textLayout.elements.ParagraphElement;
 	import flashx.textLayout.elements.TextFlow;
 	import flashx.textLayout.elements.table.TableDataElement;
+	import flashx.textLayout.events.ModelChange;
 	import flashx.textLayout.tlf_internal;
 	
 	use namespace tlf_internal;
@@ -75,10 +76,13 @@ package flashx.textLayout.operations
 			}
 			length = _elementInsertIndex + _elementsToPaste.length;
 			index = 0;
+			var element:FlowElement;
 			// Update the text flow with required elements in past operation.
 			for( i = _elementInsertIndex; i < length; i++ )
 			{
-				textFlow.addChildAt( i, _elementsToPaste[index++] );
+				element = _elementsToPaste[index++];
+				element.modelChanged( ModelChange.ELEMENT_ADDED, element.getAbsoluteStart(), element.textLength );
+				textFlow.addChildAt( i, element );
 			}
 		}
 		
@@ -95,7 +99,11 @@ package flashx.textLayout.operations
 			var head:Array = content.slice( 0, i );
 			head = head.concat( elements );
 			var tail:Array = content.slice( i, endIndex );
-			element.mxmlChildren = head.concat(tail);
+			var newChildren:Array = head.concat( tail );
+			for( i = 0; i < newChildren.length; i++ )
+			{
+				element.addChild( newChildren[i] as FlowElement );
+			}
 		}
 		
 		/**
@@ -116,7 +124,10 @@ package flashx.textLayout.operations
 			groupElement.mxmlChildren = content.slice( 0, index );
 			var newGroupChildren:Array = content.slice( index, length );
 			var newGroup:FlowGroupElement = ( groupElement.shallowCopy() as FlowGroupElement );
-			newGroup.mxmlChildren = newGroupChildren;
+			for( var i:int = 0; i < newGroupChildren.length; i++ )
+			{
+				newGroup.addChild( ( newGroupChildren[i] as FlowElement ) );
+			}
 			return newGroup;
 		}
 		
