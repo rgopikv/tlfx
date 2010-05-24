@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <flexLibProperties includeAllClasses="false" version="3">
   <includeClasses>
     <classEntry path="flash.text.ime.CompositionAttributeRange"/>
@@ -133,6 +133,7 @@
     <classEntry path="flashx.textLayout.elements.table.TableHeadingElement"/>
     <classEntry path="flashx.textLayout.elements.table.TableRowElement"/>
     <classEntry path="flashx.textLayout.events.AutosizableContainerEvent"/>
+    <classEntry path="flashx.textLayout.events.CSSStyleApplicationEvent"/>
     <classEntry path="flashx.textLayout.events.CompositionCompleteEvent"/>
     <classEntry path="flashx.textLayout.events.DamageEvent"/>
     <classEntry path="flashx.textLayout.events.FlowElementMouseEvent"/>
@@ -153,8 +154,11 @@
     <classEntry path="flashx.textLayout.factory.TextLineFactoryBase"/>
     <classEntry path="flashx.textLayout.factory.TruncationOptions"/>
     <classEntry path="flashx.textLayout.format.ExportStyleHelper"/>
+    <classEntry path="flashx.textLayout.format.IExportStyleHelper"/>
+    <classEntry path="flashx.textLayout.format.IImportStyleHelper"/>
     <classEntry path="flashx.textLayout.format.IStyle"/>
     <classEntry path="flashx.textLayout.format.ImportStyleHelper"/>
+    <classEntry path="flashx.textLayout.format.StyleProperty"/>
     <classEntry path="flashx.textLayout.format.TableStyle"/>
     <classEntry path="flashx.textLayout.formats.BackgroundColor"/>
     <classEntry path="flashx.textLayout.formats.BaselineOffset"/>
@@ -245,18 +249,6 @@
     <classEntry path="flashx.undo.IOperation"/>
     <classEntry path="flashx.undo.IUndoManager"/>
     <classEntry path="flashx.undo.UndoManager"/>
-    <classEntry path="flashx.textLayout.model.style.InlineStyles"/>
-    <classEntry path="flashx.textLayout.format.ImportStyleHelper"/>
-    <classEntry path="flashx.textLayout.format.ExportStyleHelper"/>
-    <classEntry path="flashx.textLayout.elements.ExtendedConfiguration"/>
-    <classEntry path="flashx.textLayout.elements.IManagedInlineGraphicSource"/>
-    <classEntry path="flashx.textLayout.operations.InsertEditableInlineGraphicOperation"/>
-    <classEntry path="flashx.textLayout.edit.ExtendedTextClipboard"/>
-    <classEntry path="flashx.textLayout.operations.ExtendedCopyOperation"/>
-    <classEntry path="flashx.textLayout.format.IImportStyleHelper"/>
-    <classEntry path="flashx.textLayout.format.IExportStyleHelper"/>
-    <classEntry path="flashx.textLayout.format.StyleProperty"/>
-    <classEntry path="flashx.textLayout.events.CSSStyleApplicationEvent"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests>
