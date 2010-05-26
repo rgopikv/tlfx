@@ -770,8 +770,8 @@ package flashx.textLayout.compose
 			
 			var startController:ContainerController;
 			
-			try
-			{	
+//			try
+//			{	
 				var cont:ContainerController;	// scratch
 				if (textFlow && numControllers != 0)
 				{
@@ -786,12 +786,12 @@ package flashx.textLayout.compose
 						}
 					}
 				}
-			}
-			catch (e:Error)
-			{
-				_composing = false;
-				throw(e);
-			}
+//			}
+//			catch (e:Error)
+//			{
+//				_composing = false;
+//				throw(e);
+//			}
 			_composing = false;
 			
 			if (lastController)

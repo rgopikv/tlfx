@@ -245,18 +245,16 @@
     <classEntry path="flashx.undo.IOperation"/>
     <classEntry path="flashx.undo.IUndoManager"/>
     <classEntry path="flashx.undo.UndoManager"/>
-    <classEntry path="flashx.textLayout.model.style.InlineStyles"/>
-    <classEntry path="flashx.textLayout.format.ImportStyleHelper"/>
-    <classEntry path="flashx.textLayout.format.ExportStyleHelper"/>
-    <classEntry path="flashx.textLayout.elements.ExtendedConfiguration"/>
-    <classEntry path="flashx.textLayout.elements.IManagedInlineGraphicSource"/>
-    <classEntry path="flashx.textLayout.operations.InsertEditableInlineGraphicOperation"/>
-    <classEntry path="flashx.textLayout.edit.ExtendedTextClipboard"/>
-    <classEntry path="flashx.textLayout.operations.ExtendedCopyOperation"/>
     <classEntry path="flashx.textLayout.format.IImportStyleHelper"/>
     <classEntry path="flashx.textLayout.format.IExportStyleHelper"/>
     <classEntry path="flashx.textLayout.format.StyleProperty"/>
     <classEntry path="flashx.textLayout.events.CSSStyleApplicationEvent"/>
+    <classEntry path="flashx.textLayout.model.style.TextTransform"/>
+    <classEntry path="flashx.textLayout.elements.VarElement"/>
+    <classEntry path="flashx.textLayout.events.variable.VariableEditEvent"/>
+    <classEntry path="flashx.textLayout.elements.IVarElement"/>
+    <classEntry path="flashx.textLayout.operations.InsertFlowLeafElementOperation"/>
+    <classEntry path="flashx.textLayout.operations.ExtendedInsertFlowLeafElementOperation"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests>

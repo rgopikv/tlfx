@@ -10,6 +10,8 @@
 //////////////////////////////////////////////////////////////////////////////////
 package flashx.textLayout.edit
 {
+	import flash.utils.getDefinitionByName;
+	
 	import flashx.textLayout.container.ContainerController;
 	import flashx.textLayout.debug.assert;
 	import flashx.textLayout.elements.FlowElement;
@@ -255,7 +257,55 @@ package flashx.textLayout.edit
 				imgElem.format = imageElemFormat;
 			}
 			return imgElem;			
-		}		
+		}	
+		
+		// [TA] 05-25-2010 :: New static function to add element to flow within a selection.
+		public static function createElement( flowBlock:FlowGroupElement, flowSelBegIdx:int, elementClass:String, pointFormat:ITextLayoutFormat ):FlowLeafElement
+		{
+			//first, split the element that we are on
+			var curComposeNode:FlowElement = flowBlock.findLeaf(flowSelBegIdx);
+			var posInCurComposeNode:int = 0;
+			if (curComposeNode != null)
+			{
+				posInCurComposeNode = flowSelBegIdx - curComposeNode.getElementRelativeStart(flowBlock); // curComposeNode.parentRelativeStart;
+			}			
+			
+			if ((curComposeNode != null) && (posInCurComposeNode > 0) && (posInCurComposeNode < curComposeNode.textLength))
+			{
+				//it is a LeafElement, and not position 0. It has to be a Span 
+				(curComposeNode as SpanElement).splitAtPosition(posInCurComposeNode);
+			}
+			
+			//the FlowElement or FlowGroupElement is now split.  Insert the element now.
+			var clazz:Class = getDefinitionByName( elementClass ) as Class;
+			var element:FlowLeafElement = new clazz() as FlowLeafElement;
+			
+			while (curComposeNode && curComposeNode.parent != flowBlock)
+			{
+				curComposeNode = curComposeNode.parent;
+			}
+			
+			var elementIdx:int = curComposeNode != null ? flowBlock.getChildIndex(curComposeNode) : flowBlock.numChildren;
+			if (curComposeNode && posInCurComposeNode > 0)
+				elementIdx++;
+			flowBlock.replaceChildren(elementIdx,elementIdx,element);
+			
+			//clone characterFormat from the left OR iff the the first element the right
+			var p:ParagraphElement = element.getParagraph();
+			var attrElem:FlowLeafElement = element.getPreviousLeaf(p);
+			if (!attrElem)
+				attrElem = element.getNextLeaf(p);
+			CONFIG::debug { assert(attrElem != null, "no element to get attributes from"); }
+			
+			if (attrElem.format || pointFormat)
+			{
+				var elemFormat:TextLayoutFormat = new TextLayoutFormat(attrElem.format);
+				if (pointFormat)
+					elemFormat.apply(pointFormat);
+				element.format = elemFormat;
+			}
+			return element;			
+		}
 		
 		/** Merge changed attributes into this
 		 */

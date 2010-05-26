@@ -11,6 +11,7 @@ package flashx.textLayout.format
 	import flashx.textLayout.elements.ParagraphElement;
 	import flashx.textLayout.elements.SpanElement;
 	import flashx.textLayout.elements.TextFlow;
+	import flashx.textLayout.elements.VarElement;
 	import flashx.textLayout.elements.table.TableDataElement;
 	import flashx.textLayout.elements.table.TableElement;
 	import flashx.textLayout.elements.table.TableHeadingElement;
@@ -84,6 +85,7 @@ package flashx.textLayout.format
 			switch( type )
 			{
 				case SpanElement:
+				case VarElement:
 					parentList = [LinkElement, ParagraphElement, DivElement, TextFlow];
 					break;
 				case LinkElement:

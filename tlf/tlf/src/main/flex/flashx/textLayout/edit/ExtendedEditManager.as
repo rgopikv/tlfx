@@ -51,29 +51,6 @@ package flashx.textLayout.edit
 			_extendedClipboard = new ExtendedTextClipboard( _htmlImporter, _htmlExporter );
 		}
 		
-		// TODO: Hack to ensure won't throw error on delete including table cells.
-		protected function getTableCellControllersInRange():Array
-		{
-			var selectionState:SelectionState = this.getSelectionState();
-			var anchor:int = selectionState.anchorPosition;
-			var active:int = selectionState.activePosition;
-			var anchorIndex:int = ( anchor > active ) ? active : anchor;
-			var activeIndex:int = ( anchor > active ) ? anchor : active;
-			var start:int = textFlow.flowComposer.findControllerIndexAtPosition( anchorIndex );
-			var end:int = textFlow.flowComposer.findControllerIndexAtPosition( activeIndex );
-			// Allow for delete in single cell for table.
-			if( start == end ) return [];
-			var controllers:Array = [];
-			for( var i:int = start; i < end + 1; i++ )
-			{
-				if( textFlow.flowComposer.getControllerAt( i ) is TableCellContainerController )
-				{
-					controllers.push( textFlow.flowComposer.getControllerAt( i ) );
-				}
-			}
-			return controllers;
-		}
-		
 		override public function textInputHandler(event:TextEvent):void
 		{
 			var startElement:FlowLeafElement = textFlow.findLeaf( absoluteStart );

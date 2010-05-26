@@ -46,6 +46,7 @@ package flashx.textLayout.edit
 	import flashx.textLayout.operations.DeleteAndInsertTextOperation;
 	import flashx.textLayout.operations.DeleteTextOperation;
 	import flashx.textLayout.operations.FlowOperation;
+	import flashx.textLayout.operations.InsertFlowLeafElementOperation;
 	import flashx.textLayout.operations.InsertInlineGraphicOperation;
 	import flashx.textLayout.operations.InsertTextOperation;
 	import flashx.textLayout.operations.ModifyInlineGraphicOperation;
@@ -1203,6 +1204,21 @@ package flashx.textLayout.edit
 
 			doOperation(new InsertInlineGraphicOperation(operationState, source, width, height, options));
 		}	
+		
+		// [TA] 05-25-2010 :: Support to insert an element.
+		/**
+		 * Inserts a flow leaf element into the flow. 
+		 * @param elementClass String The full-qualified classname of the FlowLeafElement to insert into the flow.
+		 * @param operationState SelectionState
+		 */
+		public function insertElement( text:String, elementClass:String, operationState:SelectionState = null ):void
+		{
+			operationState = defaultOperationState(operationState);
+			if( !operationState )
+				return;
+			
+			doOperation( new InsertFlowLeafElementOperation( operationState, text, elementClass ) );
+		}
 		
 		/** 
 		 * @copy IEditManager#modifyInlineGraphic()
