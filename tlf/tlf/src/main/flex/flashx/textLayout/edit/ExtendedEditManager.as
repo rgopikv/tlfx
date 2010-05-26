@@ -344,5 +344,11 @@ package flashx.textLayout.edit
 			}
 			doOperation(new PasteOperation(operationState, scrapToPaste));
 		}
+
+		public function get htmlImporter():IHTMLImporter
+		{
+			return _htmlImporter;
+		}
+
 	}
 }
