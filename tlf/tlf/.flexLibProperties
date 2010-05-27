@@ -106,6 +106,7 @@
     <classEntry path="flashx.textLayout.elements.FlowLeafElement"/>
     <classEntry path="flashx.textLayout.elements.FlowValueHolder"/>
     <classEntry path="flashx.textLayout.elements.GlobalSettings"/>
+    <classEntry path="flashx.textLayout.elements.GreetingElement"/>
     <classEntry path="flashx.textLayout.elements.IConfiguration"/>
     <classEntry path="flashx.textLayout.elements.IFormatResolver"/>
     <classEntry path="flashx.textLayout.elements.IListElement"/>
@@ -150,6 +151,7 @@
     <classEntry path="flashx.textLayout.events.UpdateCompleteEvent"/>
     <classEntry path="flashx.textLayout.events.table.TableCellContainerEvent"/>
     <classEntry path="flashx.textLayout.events.table.TableCellFocusEvent"/>
+    <classEntry path="flashx.textLayout.events.variable.GreetingEditEvent"/>
     <classEntry path="flashx.textLayout.events.variable.VariableEditEvent"/>
     <classEntry path="flashx.textLayout.external.WeakRef"/>
     <classEntry path="flashx.textLayout.factory.StringTextLineFactory"/>
@@ -216,6 +218,7 @@
     <classEntry path="flashx.textLayout.operations.DeleteTextOperation"/>
     <classEntry path="flashx.textLayout.operations.ExtendedCopyOperation"/>
     <classEntry path="flashx.textLayout.operations.ExtendedInsertFlowLeafElementOperation"/>
+    <classEntry path="flashx.textLayout.operations.ExtendedInsertTextOperation"/>
     <classEntry path="flashx.textLayout.operations.FlowElementOperation"/>
     <classEntry path="flashx.textLayout.operations.FlowOperation"/>
     <classEntry path="flashx.textLayout.operations.FlowTextOperation"/>

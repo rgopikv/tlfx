@@ -43,7 +43,6 @@ package flashx.textLayout.edit
 	import flashx.textLayout.operations.ClearFormatOperation;
 	import flashx.textLayout.operations.CompositeOperation;
 	import flashx.textLayout.operations.CutOperation;
-	import flashx.textLayout.operations.DeleteAndInsertTextOperation;
 	import flashx.textLayout.operations.DeleteTextOperation;
 	import flashx.textLayout.operations.FlowOperation;
 	import flashx.textLayout.operations.InsertFlowLeafElementOperation;

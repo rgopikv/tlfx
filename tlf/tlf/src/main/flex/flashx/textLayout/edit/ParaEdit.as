@@ -306,6 +306,7 @@ package flashx.textLayout.edit
 			}
 			return element;			
 		}
+		// [END TA]
 		
 		/** Merge changed attributes into this
 		 */

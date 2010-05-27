@@ -7,6 +7,7 @@ package flashx.textLayout.format
 	import flashx.textLayout.elements.DivElement;
 	import flashx.textLayout.elements.ExtendedLinkElement;
 	import flashx.textLayout.elements.FlowElement;
+	import flashx.textLayout.elements.GreetingElement;
 	import flashx.textLayout.elements.LinkElement;
 	import flashx.textLayout.elements.ParagraphElement;
 	import flashx.textLayout.elements.SpanElement;
@@ -86,6 +87,7 @@ package flashx.textLayout.format
 			{
 				case SpanElement:
 				case VarElement:
+				case GreetingElement:
 					parentList = [LinkElement, ParagraphElement, DivElement, TextFlow];
 					break;
 				case LinkElement:

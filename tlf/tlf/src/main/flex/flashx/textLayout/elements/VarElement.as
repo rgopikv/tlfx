@@ -13,6 +13,7 @@ package flashx.textLayout.elements
 	import flash.ui.ContextMenuItem;
 	
 	import flashx.textLayout.compose.TextFlowLine;
+	import flashx.textLayout.edit.ISelectionManager;
 	import flashx.textLayout.edit.SelectionState;
 	import flashx.textLayout.events.ModelChange;
 	import flashx.textLayout.events.SelectionEvent;
@@ -32,15 +33,14 @@ package flashx.textLayout.elements
 		protected var _listenersAdded:Boolean;
 		
 		protected var _textFlow:TextFlow;
+		protected var _previousSelectionStart:int;
+		protected var _previousSelectionEnd:int;
+		protected var _selected:Boolean;
 		
 		/**
 		 * Constructor.
 		 */
-		public function VarElement()
-		{
-			super();
-			setTextLength(0);
-		}
+		public function VarElement() { super(); }
 		
 		/**
 		 * @private 
@@ -62,7 +62,22 @@ package flashx.textLayout.elements
 			removeListeners();
 			_menuInteractiveObject.contextMenu = null;
 			_menuInteractiveObject = null;
+			
+			var eventMirror:EventDispatcher = getEventMirror();
+			eventMirror.removeEventListener(MouseEvent.MOUSE_DOWN, handleMouseDown, false);
 		}
+		
+		/**
+		 * @inherit 
+		 * 
+		 * Override to add event handlers to event mirror.
+		 */
+		override tlf_internal function createContentElement():void
+		{
+			super.createContentElement();
+			var eventMirror:EventDispatcher = getEventMirror();
+			eventMirror.addEventListener(MouseEvent.MOUSE_DOWN, handleMouseDown, false, 0, true);
+		} 
 		
 		/**
 		 * @private
@@ -184,30 +199,70 @@ package flashx.textLayout.elements
 		{
 			if( getTextFlow() == null ) return;
 			
+			var interactionManager:ISelectionManager = getTextFlow().interactionManager;
+			var anchorSelection:int = evt.selectionState.anchorPosition;
+			var activeSelection:int = evt.selectionState.activePosition;
+			
 			var selStart:int = evt.selectionState.absoluteStart;
 			var selEnd:int = evt.selectionState.absoluteEnd;
 			var start:int = getAbsoluteStart() + 1;
 			var end:int = getAbsoluteStart() + textLength;
-			var selectionState:SelectionState = getTextFlow().interactionManager.getSelectionState();
+			var selectionState:SelectionState = interactionManager.getSelectionState();
 			var isRightToLeft:Boolean = ( selectionState.activePosition < selectionState.anchorPosition );
-			if( selStart >= start && selEnd <= end )
+			// only update selection if the user has not selection the whole element, which occurs on a mouse down operation through the event mirror.
+			if( _selected )
 			{
-				selectionState.anchorPosition = ( isRightToLeft ) ? end : start - 1;
-				selectionState.activePosition = ( isRightToLeft ) ? start - 1 : end;
-				getTextFlow().interactionManager.setSelectionState( selectionState );
+				selectionState.anchorPosition = getAbsoluteStart();
+				selectionState.activePosition = getAbsoluteStart() + textLength;
+				interactionManager.setSelectionState( selectionState );
+				interactionManager.setFocus()
+				_selected = false;
 			}
-			else if( selStart < start && ( selEnd >= start && selEnd <= end ) )
+			else
 			{
-				selectionState.anchorPosition = ( isRightToLeft ) ? end : Math.min( selStart, start - 1 );
-				selectionState.activePosition = ( isRightToLeft ) ? Math.min( start - 1, selStart ) : end;
-				getTextFlow().interactionManager.setSelectionState( selectionState );
-			} 
-			else if( selStart >= start && selStart < end )
-			{
-				selectionState.anchorPosition = ( isRightToLeft ) ? Math.max( selEnd, end ) : start - 1;
-				selectionState.activePosition = ( isRightToLeft ) ? start - 1 : Math.max( selEnd, end );
-				getTextFlow().interactionManager.setSelectionState( selectionState );
+				if( selStart >= start && selEnd <= end - 1 )
+				{
+					// skip to ends.
+					if( anchorSelection < _previousSelectionStart )
+					{
+						selectionState.anchorPosition = selectionState.activePosition = getAbsoluteStart();	
+					}
+					else
+					{
+						selectionState.anchorPosition = selectionState.activePosition = getAbsoluteStart() + textLength;
+					}
+					interactionManager.setSelectionState( selectionState );
+					interactionManager.setFocus()
+				}
+				else if( selStart < start && ( selEnd >= start && selEnd <= end ) )
+				{
+					selectionState.anchorPosition = ( isRightToLeft ) ? end : Math.min( selStart, start - 1 );
+					selectionState.activePosition = ( isRightToLeft ) ? Math.min( start - 1, selStart ) : end;
+					interactionManager.setSelectionState( selectionState );
+					interactionManager.setFocus()
+				} 
+				else if( selStart >= start && selStart < end )
+				{
+					selectionState.anchorPosition = ( isRightToLeft ) ? Math.max( selEnd, end ) : start - 1;
+					selectionState.activePosition = ( isRightToLeft ) ? start - 1 : Math.max( selEnd, end );
+					interactionManager.setSelectionState( selectionState );
+					interactionManager.setFocus()
+				}
 			}
+			
+			_previousSelectionStart = anchorSelection;
+			_previousSelectionEnd = activeSelection;
+		}
+		
+		/**
+		 * @private
+		 * 
+		 * Event handler for mouse down in text line area. 
+		 * @param evt MouseEvent
+		 */
+		protected function handleMouseDown( evt:MouseEvent ):void
+		{
+			_selected = true;
 		}
 		
 		/**
