@@ -1,5 +1,6 @@
 package flashx.textLayout.format
 {
+	import flash.utils.getDefinitionByName;
 	import flash.utils.getQualifiedClassName;
 	
 	import flashx.textLayout.elements.FlowElement;
@@ -17,9 +18,6 @@ package flashx.textLayout.format
 	 */
 	public class ImportStyleHelper implements IImportStyleHelper
 	{
-		// TODO: Use text flow to traverse for stylesheets?
-		// TODO: Store stylesheets here?
-		
 		protected var _pendingStyledElements:Vector.<PendingStyleElement>;
 		
 		/**
@@ -54,6 +52,27 @@ package flashx.textLayout.format
 		/**
 		 * @private
 		 * 
+		 * Checks to see if the element is managing other elements, as is the case with InlineGraphicElement source being an IManagedInlineGraphicSource with variables.
+		 * If the element is managing another element, pass along the InlineStyles. 
+		 * @param element FlowElement
+		 */
+		protected function applyManagedStyles( element:FlowElement ):void
+		{
+			var type:Class = Class( getDefinitionByName( getQualifiedClassName( element ) ) );
+			switch( type )
+			{
+				case InlineGraphicElement:
+					if( ( element as InlineGraphicElement ).source is IManagedInlineGraphicSource )
+					{
+						var src:IManagedInlineGraphicSource = ( ( element as InlineGraphicElement ).source as IManagedInlineGraphicSource );
+					}
+					break;
+			}
+		}
+		
+		/**
+		 * @private
+		 * 
 		 * Applies the inline style attirbute to the flow element. 
 		 * @param styleAttribute String The full inline @style attribute.
 		 * @param element FlowElement
@@ -80,7 +99,6 @@ package flashx.textLayout.format
 		 */
 		public function getFormatFromStyleAttribute( styleAttribute:String, heldFormat:ITextLayoutFormat = null ):ITextLayoutFormat
 		{
-			// TODO: Do lookup on style sheets and apply styles to element.
 			if( StyleAttributeUtil.isValidStyleString( styleAttribute ) )
 			{
 				var format:ITextLayoutFormat = ( heldFormat ) ? heldFormat : new TextLayoutFormat();
@@ -105,6 +123,7 @@ package flashx.textLayout.format
 			var userStyles:Object = ( element.userStyles ) ? element.userStyles : {};
 			userStyles.inline = new InlineStyles( node );
 			element.userStyles = userStyles;
+			
 			// Push to queue for pending.
 			_pendingStyledElements.push( new PendingStyleElement( node, element ) );
 		}

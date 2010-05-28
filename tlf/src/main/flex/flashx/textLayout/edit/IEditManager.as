@@ -12,14 +12,13 @@ package flashx.textLayout.edit
 {
 	import flash.geom.Rectangle;
 	
-	import flashx.undo.UndoManager;
 	import flashx.textLayout.elements.FlowElement;
 	import flashx.textLayout.formats.Float;
 	import flashx.textLayout.formats.ITextLayoutFormat;
 	import flashx.textLayout.operations.CompositeOperation;
 	import flashx.textLayout.operations.FlowOperation;
-	
 	import flashx.undo.IOperation;
+	import flashx.undo.UndoManager;
 	
 	/** 
 	 * IEditManager defines the interface for handling edit operations of a text flow.
@@ -328,6 +327,15 @@ package flashx.textLayout.edit
  	 	 * @langversion 3.0
  		 */			
 		function insertInlineGraphic(source:Object, width:Object, height:Object, options:Object = null, operationState:SelectionState = null):void;
+		
+		// [TA] 05-25-2010 :: Support to insert an element.
+		/**
+		 * Inserts a flow leaf element into the flow. 
+		 * @param text String
+		 * @param elementClass String The full-qualified classname of the FlowLeafElement to insert into the flow.
+		 * @param operationState SelectionState
+		 */
+		function insertElement( text:String, elementClass:String, operationState:SelectionState = null ):void;
 		
 		/** 
 		 * Modifies an existing inline graphic.

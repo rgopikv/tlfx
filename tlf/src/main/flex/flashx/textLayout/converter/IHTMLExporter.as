@@ -1,5 +1,6 @@
 package flashx.textLayout.converter
 {
+	import flashx.textLayout.elements.FlowElement;
 	import flashx.textLayout.elements.TextFlow;
 	import flashx.textLayout.format.ExportStyleHelper;
 	import flashx.textLayout.format.IExportStyleHelper;
@@ -24,6 +25,13 @@ package flashx.textLayout.converter
 		 * @param elements Array
 		 */
 		function exportElementsToFragment( node:XML, elements:Array /* FlowElement[] */ ):void;	
+		
+		/**
+		 * Returns a markup model in XML of elements relationship in TextFlow. 
+		 * @param element FlowElement
+		 * @return XML
+		 */
+		function getSimpleMarkupModelForElement( element:FlowElement ):XML;
 		
 		/**
 		 * Returns the export style helper instanced used by the exporter. 
