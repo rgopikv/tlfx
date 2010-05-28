@@ -115,9 +115,6 @@ package flashx.textLayout.operations
 					}
 				} 
 			} 
-			
-			// Wasteful, but it gives us the leanLeft logic for insert - which we only want to do if this is a point selection.
-			
 			var range:ElementRange;
 			var useExistingLeaf:Boolean = false;
 			// favor using leaf we have if it's valid (i.e., it has a paragraph in its parent chain and it is still inside a TextFlow)
