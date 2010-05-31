@@ -483,6 +483,7 @@ package flashx.textLayout.edit
 			} else {
 				endIdx = NavigationUtil.updateEndIfInReadOnlyElement(_textFlow, endIdx);
 			}			
+			
 		 	return new SelectionState(textFlow, begIdx, endIdx);
 		 }		 		 		 
 		 

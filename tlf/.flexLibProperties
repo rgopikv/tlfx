@@ -106,10 +106,12 @@
     <classEntry path="flashx.textLayout.elements.FlowLeafElement"/>
     <classEntry path="flashx.textLayout.elements.FlowValueHolder"/>
     <classEntry path="flashx.textLayout.elements.GlobalSettings"/>
+    <classEntry path="flashx.textLayout.elements.GreetingElement"/>
     <classEntry path="flashx.textLayout.elements.IConfiguration"/>
     <classEntry path="flashx.textLayout.elements.IFormatResolver"/>
     <classEntry path="flashx.textLayout.elements.IListElement"/>
     <classEntry path="flashx.textLayout.elements.IManagedInlineGraphicSource"/>
+    <classEntry path="flashx.textLayout.elements.IVarElement"/>
     <classEntry path="flashx.textLayout.elements.InlineGraphicElement"/>
     <classEntry path="flashx.textLayout.elements.InlineGraphicElementStatus"/>
     <classEntry path="flashx.textLayout.elements.LinkElement"/>
@@ -127,8 +129,8 @@
     <classEntry path="flashx.textLayout.elements.TabElement"/>
     <classEntry path="flashx.textLayout.elements.TextFlow"/>
     <classEntry path="flashx.textLayout.elements.TextRange"/>
+    <classEntry path="flashx.textLayout.elements.VarElement"/>
     <classEntry path="flashx.textLayout.elements.table.ITableElementManager"/>
-    <classEntry path="flashx.textLayout.elements.table.TableBaseElement"/>
     <classEntry path="flashx.textLayout.elements.table.TableDataElement"/>
     <classEntry path="flashx.textLayout.elements.table.TableElement"/>
     <classEntry path="flashx.textLayout.elements.table.TableHeadingElement"/>
@@ -139,7 +141,6 @@
     <classEntry path="flashx.textLayout.events.DamageEvent"/>
     <classEntry path="flashx.textLayout.events.FlowElementMouseEvent"/>
     <classEntry path="flashx.textLayout.events.FlowOperationEvent"/>
-    <classEntry path="flashx.textLayout.events.InlineStyleEvent"/>
     <classEntry path="flashx.textLayout.events.ModelChange"/>
     <classEntry path="flashx.textLayout.events.SelectionEvent"/>
     <classEntry path="flashx.textLayout.events.StatusChangeEvent"/>
@@ -150,7 +151,8 @@
     <classEntry path="flashx.textLayout.events.UpdateCompleteEvent"/>
     <classEntry path="flashx.textLayout.events.table.TableCellContainerEvent"/>
     <classEntry path="flashx.textLayout.events.table.TableCellFocusEvent"/>
-    <classEntry path="flashx.textLayout.events.table.TableStyleEvent"/>
+    <classEntry path="flashx.textLayout.events.variable.GreetingEditEvent"/>
+    <classEntry path="flashx.textLayout.events.variable.VariableEditEvent"/>
     <classEntry path="flashx.textLayout.external.WeakRef"/>
     <classEntry path="flashx.textLayout.factory.StringTextLineFactory"/>
     <classEntry path="flashx.textLayout.factory.TextFlowTextLineFactory"/>
@@ -191,24 +193,10 @@
     <classEntry path="flashx.textLayout.model.attribute.TableDataAttribute"/>
     <classEntry path="flashx.textLayout.model.attribute.TableHeadingAttribute"/>
     <classEntry path="flashx.textLayout.model.attribute.TableRowAttribute"/>
-    <classEntry path="flashx.textLayout.model.style.ITableStyle"/>
     <classEntry path="flashx.textLayout.model.style.InlineStyles"/>
-    <classEntry path="flashx.textLayout.model.style.TableBorderStyleEnum"/>
-    <classEntry path="flashx.textLayout.model.style.TableCollapseStyleEnum"/>
-    <classEntry path="flashx.textLayout.model.style.TableStyle"/>
-    <classEntry path="flashx.textLayout.model.style.TableVerticalAlignEnum"/>
-    <classEntry path="flashx.textLayout.model.table.ITableBaseDecorationContext"/>
-    <classEntry path="flashx.textLayout.model.table.ITableDataDecorationContext"/>
-    <classEntry path="flashx.textLayout.model.table.ITableDecorationContext"/>
+    <classEntry path="flashx.textLayout.model.style.TextTransform"/>
     <classEntry path="flashx.textLayout.model.table.Table"/>
-    <classEntry path="flashx.textLayout.model.table.TableBaseDecorationContext"/>
-    <classEntry path="flashx.textLayout.model.table.TableBorderLeg"/>
-    <classEntry path="flashx.textLayout.model.table.TableBorderRenderer"/>
     <classEntry path="flashx.textLayout.model.table.TableColumn"/>
-    <classEntry path="flashx.textLayout.model.table.TableData"/>
-    <classEntry path="flashx.textLayout.model.table.TableDataDecorationContext"/>
-    <classEntry path="flashx.textLayout.model.table.TableDecorationContext"/>
-    <classEntry path="flashx.textLayout.model.table.TableModelBase"/>
     <classEntry path="flashx.textLayout.model.table.TableRow"/>
     <classEntry path="flashx.textLayout.operations.ApplyElementIDOperation"/>
     <classEntry path="flashx.textLayout.operations.ApplyElementStyleNameOperation"/>
@@ -226,10 +214,13 @@
     <classEntry path="flashx.textLayout.operations.DeleteElementsOperation"/>
     <classEntry path="flashx.textLayout.operations.DeleteTextOperation"/>
     <classEntry path="flashx.textLayout.operations.ExtendedCopyOperation"/>
+    <classEntry path="flashx.textLayout.operations.ExtendedInsertFlowLeafElementOperation"/>
+    <classEntry path="flashx.textLayout.operations.ExtendedInsertTextOperation"/>
     <classEntry path="flashx.textLayout.operations.FlowElementOperation"/>
     <classEntry path="flashx.textLayout.operations.FlowOperation"/>
     <classEntry path="flashx.textLayout.operations.FlowTextOperation"/>
     <classEntry path="flashx.textLayout.operations.InsertEditableInlineGraphicOperation"/>
+    <classEntry path="flashx.textLayout.operations.InsertFlowLeafElementOperation"/>
     <classEntry path="flashx.textLayout.operations.InsertInlineGraphicOperation"/>
     <classEntry path="flashx.textLayout.operations.InsertTextOperation"/>
     <classEntry path="flashx.textLayout.operations.ModifyInlineGraphicOperation"/>
@@ -260,12 +251,10 @@
     <classEntry path="flashx.textLayout.utils.LocaleUtil"/>
     <classEntry path="flashx.textLayout.utils.NavigationUtil"/>
     <classEntry path="flashx.textLayout.utils.StyleAttributeUtil"/>
-    <classEntry path="flashx.textLayout.utils.TableStyleUtil"/>
     <classEntry path="flashx.textLayout.utils.TextLayoutFormatUtils"/>
     <classEntry path="flashx.undo.IOperation"/>
     <classEntry path="flashx.undo.IUndoManager"/>
     <classEntry path="flashx.undo.UndoManager"/>
-    <classEntry path="flashx.textLayout.model.table.TableCellBorderRenderer"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests>

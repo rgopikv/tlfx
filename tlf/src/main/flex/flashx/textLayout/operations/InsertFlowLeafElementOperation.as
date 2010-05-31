@@ -1,38 +1,40 @@
 package flashx.textLayout.operations
 {
-	import flashx.textLayout.converter.IHTMLExporter;
-	import flashx.textLayout.converter.IHTMLImporter;
 	import flashx.textLayout.edit.ElementRange;
 	import flashx.textLayout.edit.ParaEdit;
 	import flashx.textLayout.edit.SelectionState;
 	import flashx.textLayout.elements.FlowElement;
 	import flashx.textLayout.elements.FlowGroupElement;
 	import flashx.textLayout.elements.FlowLeafElement;
-	import flashx.textLayout.elements.IManagedInlineGraphicSource;
-	import flashx.textLayout.elements.InlineGraphicElement;
+	import flashx.textLayout.elements.SpanElement;
 	import flashx.textLayout.elements.SubParagraphGroupElement;
-	import flashx.textLayout.format.IImportStyleHelper;
 	import flashx.textLayout.formats.ITextLayoutFormat;
 	import flashx.textLayout.formats.TextLayoutFormat;
 	import flashx.textLayout.tlf_internal;
-	
+
 	use namespace tlf_internal;
-	public class InsertEditableInlineGraphicOperation extends InsertInlineGraphicOperation
+	public class InsertFlowLeafElementOperation extends FlowTextOperation
 	{
-		protected var _htmlImporter:IHTMLImporter;
-		protected var _htmlExporter:IHTMLExporter;
+		protected var delSelOp:DeleteTextOperation;
+		protected var selPos:int = 0;
+		protected var _text:String;
+		protected var _elementClass:String;
+		protected var _createdElement:FlowLeafElement;
 		
-		public function InsertEditableInlineGraphicOperation(operationState:SelectionState, source:Object, width:Object, height:Object, 
-															 htmlImporter:IHTMLImporter, htmlExporter:IHTMLExporter, options:Object=null)
+		public function InsertFlowLeafElementOperation( operationState:SelectionState, text:String, elementClass:String )
 		{
-			super(operationState, source, width, height, options);
-			_htmlImporter = htmlImporter;
-			_htmlExporter = htmlExporter;
+			super(operationState);
+			
+			if (absoluteStart != absoluteEnd)
+				delSelOp = new DeleteTextOperation(operationState);
+			
+			_text = text;
+			_elementClass = elementClass;
 		}
 		
+		/** @private */
 		public override function doOperation():Boolean
 		{
-			/* Straight paste */
 			var pointFormat:ITextLayoutFormat;
 			
 			selPos = absoluteStart;
@@ -62,18 +64,47 @@ package flashx.textLayout.operations
 				}
 			}
 			
-			/* To get to applying managed inline graphic element if applicable. */
-			var imgElem:InlineGraphicElement = ParaEdit.createImage(leafNodeParent, selPos - leafNodeParent.getAbsoluteStart(), _source, imageWidth, imageHeight, options, pointFormat);
-			if( source is IManagedInlineGraphicSource )
+			_createdElement = ParaEdit.createElement( leafNodeParent, selPos - leafNodeParent.getAbsoluteStart(), _elementClass, pointFormat);
+			if( _createdElement is SpanElement )
 			{
-				( source as IManagedInlineGraphicSource ).inlineGraphicElement = imgElem;
-			} 
-			_htmlImporter.importStyleHelper.assignInlineStyle( _htmlExporter.getSimpleMarkupModelForElement( imgElem ), imgElem );
-				
+				( _createdElement as SpanElement ).replaceText( 0, 0, _text );
+			}
+			
 			if (textFlow.interactionManager)
 				textFlow.interactionManager.notifyInsertOrDelete(absoluteStart, 1);
 			
 			return true;
+		}
+		
+		/** @private */
+		public override function undo():SelectionState
+		{
+			var leafNode:FlowElement = textFlow.findLeaf(selPos);
+			var leafNodeParent:FlowGroupElement = leafNode.parent;
+			var elementIdx:int = leafNode.parent.getChildIndex(leafNode);
+			leafNodeParent.replaceChildren(elementIdx, elementIdx + 1, null);			
+			
+			_createdElement = null;
+			
+			if (textFlow.interactionManager)
+				textFlow.interactionManager.notifyInsertOrDelete(absoluteStart, -1);
+			
+			return delSelOp ? delSelOp.undo() : originalSelectionState; 
+		}
+		
+		/**
+		 * Re-executes the operation after it has been undone.
+		 * 
+		 * <p>This function is called by the edit manager, when necessary.</p>
+		 * 
+		 * @playerversion Flash 10
+		 * @playerversion AIR 1.5
+		 * @langversion 3.0 
+		 */
+		public override function redo():SelectionState
+		{ 
+			doOperation();
+			return new SelectionState(textFlow,selPos+1,selPos+1,null);
 		}
 	}
 }

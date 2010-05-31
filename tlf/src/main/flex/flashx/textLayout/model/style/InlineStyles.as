@@ -56,16 +56,18 @@ package flashx.textLayout.model.style
 		 */
 		public function deserialize( tag:XML ):void
 		{
+			id = null;
+			styleClass = null;
 			node = tag;
 			
-			var id:String = tag.@id;
-			if( id.length > 0 ) styleId = id;
+			var id:String = ( tag ) ? tag.@id : null;
+			if( id && id.length > 0 ) styleId = id;
 			
-			var clazz:String = tag["@class"];
-			if( clazz.length > 0 ) styleClass = clazz; 
+			var clazz:String = ( tag ) ? tag["@class"] : null;
+			if( clazz && clazz.length > 0 ) styleClass = clazz; 
 			
-			var style:String = tag.@style;
-			if( style.length > 0 ) explicitStyle = StyleAttributeUtil.parseStyles( style );
+			var style:String = ( tag ) ? tag.@style : null;
+			if( style && style.length > 0 ) explicitStyle = StyleAttributeUtil.parseStyles( style );
 		}
 		
 		/**

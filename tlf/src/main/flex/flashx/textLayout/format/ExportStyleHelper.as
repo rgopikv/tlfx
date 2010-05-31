@@ -7,10 +7,12 @@ package flashx.textLayout.format
 	import flashx.textLayout.elements.DivElement;
 	import flashx.textLayout.elements.ExtendedLinkElement;
 	import flashx.textLayout.elements.FlowElement;
+	import flashx.textLayout.elements.GreetingElement;
 	import flashx.textLayout.elements.LinkElement;
 	import flashx.textLayout.elements.ParagraphElement;
 	import flashx.textLayout.elements.SpanElement;
 	import flashx.textLayout.elements.TextFlow;
+	import flashx.textLayout.elements.VarElement;
 	import flashx.textLayout.elements.table.TableDataElement;
 	import flashx.textLayout.elements.table.TableElement;
 	import flashx.textLayout.elements.table.TableHeadingElement;
@@ -18,9 +20,7 @@ package flashx.textLayout.format
 	import flashx.textLayout.formats.Direction;
 	import flashx.textLayout.formats.ITextLayoutFormat;
 	import flashx.textLayout.formats.TextAlign;
-	import flashx.textLayout.model.style.ITableStyle;
 	import flashx.textLayout.model.style.InlineStyles;
-	import flashx.textLayout.model.style.TableStyle;
 	import flashx.textLayout.utils.StyleAttributeUtil;
 
 	/**
@@ -29,46 +29,28 @@ package flashx.textLayout.format
 	 */
 	public class ExportStyleHelper implements IExportStyleHelper
 	{
+		// TODO: Run diffs on stylesheets.
+		
 		/**
 		 * Constrcutor.
 		 */
 		public function ExportStyleHelper() {}
 		
 		/**
-		 * @private
-		 * 
-		 * Appends to the @style attribute all possible key/value pairs related to optional custom styles of elements. 
-		 * @param node XML
+		 * Returns the explicit styles set on the element id available. 
 		 * @param element FlowElement
+		 * @return Object
 		 */
-		protected function extendStyleAttributeFromCustomStyle( node:XML, element:FlowElement ):void
+		protected function getExplicitStyleOfElement( element:FlowElement ):Object
 		{
-			if( element is TableElement )
+			if( element )
 			{
-				var style:String = "";
-				var tableStyle:ITableStyle = ( element as TableElement ).getTableModel().context.style;
-				var appliedStyle:Object = ( element.userStyles.inline as InlineStyles ).appliedStyle;
-				var property:String;
-				var propertyList:Vector.<String> = TableStyle.definition;
-				// Run diff on applied style against current style for table.
-				// Append those that are definied and don't equate to applicaiton from external style sheet.
-				for each( property in propertyList )
+				if( element.userStyles && ( element.userStyles.inline as InlineStyles ) )
 				{
-					if( !tableStyle.isUndefined( tableStyle[property] ) )
-					{
-						if( appliedStyle == null || tableStyle[property] != appliedStyle[property] )
-							style += StyleAttributeUtil.assembleStyleProperty( property, tableStyle[property] );
-					}
-				}
-				// If we have a valid string for the @style attribute, append or apply to node.
-				if( StyleAttributeUtil.isValidStyleString( style ) )
-				{
-					if( StyleAttributeUtil.isValidStyleString( node.@style ) )
-						node.@style += style;
-					else
-						node.@style = style;
+					return ( element.userStyles.inline as InlineStyles ).explicitStyle;
 				}
 			}
+			return null;
 		}
 		
 		/**
@@ -104,6 +86,8 @@ package flashx.textLayout.format
 			switch( type )
 			{
 				case SpanElement:
+				case VarElement:
+				case GreetingElement:
 					parentList = [LinkElement, ParagraphElement, DivElement, TextFlow];
 					break;
 				case LinkElement:
@@ -156,15 +140,15 @@ package flashx.textLayout.format
 			var styles:Array = []; /* StyleProperty[] */
 			var property:String;
 			var propertyList:XMLList = describeType( childFormat )..accessor;
+			var explicitStyle:Object = getExplicitStyleOfElement( element );
 			var styleProperty:StyleProperty;
 			var childPropertyValue:*;
 			var parentPropertyValue:*;
 			var i:int;
-			// Start adding style properties based on different formats.
 			for( i = 0; i < propertyList.length(); i++ )
 			{
 				if( propertyList[i].@access == "writeonly" ) continue;
-				property = propertyList[i].@name;
+				property = propertyList[i].@name; 
 				if( childFormat[property] != undefined )
 				{
 					try
@@ -185,6 +169,14 @@ package flashx.textLayout.format
 						if( childPropertyValue != parentPropertyValue )
 						{
 							styleProperty = StyleProperty.normalizePropertyForCSS( property, childPropertyValue, childFormat );
+							// Reassign original set value
+							if( explicitStyle && explicitStyle[StyleAttributeUtil.dasherize( styleProperty.property )] != null )
+							{
+								var explicitProperty:String = StyleAttributeUtil.dasherize( styleProperty.property );
+								var explicitValue:* = explicitStyle[explicitProperty];
+								if( StyleProperty.isEqual( styleProperty, new StyleProperty( explicitProperty, explicitValue ) ) )
+									styleProperty.value = explicitValue;
+							}
 							styles.push( styleProperty );			
 						}
 					}
@@ -265,10 +257,6 @@ package flashx.textLayout.format
 			// Apply @style if key/value pairs are available.
 			if( StyleAttributeUtil.isValidStyleString( style ) ) 
 				node.@style = style;
-			
-			// Append to @style nased on custom styles held on element.
-			extendStyleAttributeFromCustomStyle( node, element );
-			
 			// Apply other attributes that relate to style like id and class.
 			var requiresInlineStyleAttributes:Boolean;
 			if( element )

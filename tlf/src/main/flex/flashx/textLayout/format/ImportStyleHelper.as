@@ -1,5 +1,6 @@
 package flashx.textLayout.format
 {
+	import flash.utils.getDefinitionByName;
 	import flash.utils.getQualifiedClassName;
 	
 	import flashx.textLayout.elements.FlowElement;
@@ -17,9 +18,6 @@ package flashx.textLayout.format
 	 */
 	public class ImportStyleHelper implements IImportStyleHelper
 	{
-		// TODO: Use text flow to traverse for stylesheets?
-		// TODO: Store stylesheets here?
-		
 		protected var _pendingStyledElements:Vector.<PendingStyleElement>;
 		
 		/**
@@ -48,6 +46,27 @@ package flashx.textLayout.format
 			catch( e:Error )
 			{
 				trace( "[" + getQualifiedClassName( this ) + "] :: Style property of type '" + property + "' can not be set on " + getQualifiedClassName( format ) + "." );
+			}
+		}
+		
+		/**
+		 * @private
+		 * 
+		 * Checks to see if the element is managing other elements, as is the case with InlineGraphicElement source being an IManagedInlineGraphicSource with variables.
+		 * If the element is managing another element, pass along the InlineStyles. 
+		 * @param element FlowElement
+		 */
+		protected function applyManagedStyles( element:FlowElement ):void
+		{
+			var type:Class = Class( getDefinitionByName( getQualifiedClassName( element ) ) );
+			switch( type )
+			{
+				case InlineGraphicElement:
+					if( ( element as InlineGraphicElement ).source is IManagedInlineGraphicSource )
+					{
+						var src:IManagedInlineGraphicSource = ( ( element as InlineGraphicElement ).source as IManagedInlineGraphicSource );
+					}
+					break;
 			}
 		}
 		

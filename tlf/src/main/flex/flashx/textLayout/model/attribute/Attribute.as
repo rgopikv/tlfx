@@ -46,6 +46,12 @@ package flashx.textLayout.model.attribute
 			return attributes[name];
 		}
 		
+		override flash_proxy function deleteProperty(name:*):Boolean
+		{
+			delete attributes[name];
+			return true;
+		}
+		
 		/**
 		 * Override to return item from the flat list of attributes. 
 		 * @param index int
