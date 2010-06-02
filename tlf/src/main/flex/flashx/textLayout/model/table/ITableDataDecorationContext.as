@@ -60,6 +60,9 @@ package flashx.textLayout.model.table
 		function getDefinedWidth():Number;
 		function getDefinedHeight():Number;
 		
+		function setDefinedWidth( value:int ):void;
+		function setDefinedHeight( value:int ):void;
+		
 		function getAllotedWidth( cell:ICellContainer ):Number;
 		function getAllotedHeight( cell:ICellContainer ):Number;
 	}

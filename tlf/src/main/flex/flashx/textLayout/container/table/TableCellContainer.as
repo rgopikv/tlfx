@@ -3,6 +3,7 @@ package flashx.textLayout.container.table
 	import flash.display.BlendMode;
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
+	import flash.display.InteractiveObject;
 	import flash.display.Loader;
 	import flash.display.Shape;
 	import flash.display.Sprite;
@@ -62,14 +63,15 @@ package flashx.textLayout.container.table
 		protected var background:Sprite;
 		protected var selectionBackground:Sprite;
 		protected var border:Shape;
+		protected var actualBorder:Shape;
 		protected var _tableBorderRenderer:TableCellBorderRenderer;
 		
 		protected var targetDisplay:TableCellDisplay;
 		protected var _defaultConfiguration:Configuration;
 		protected var _controller:ContainerController;
 		
-		protected var _width:Number = 0;
-		protected var _height:Number = 0;
+		protected var _width:Number = Number.NaN;
+		protected var _height:Number = Number.NaN;
 		
 		protected var _actualWidth:Number = 0;
 		protected var _actualHeight:Number = 0;
@@ -129,7 +131,6 @@ package flashx.textLayout.container.table
 			// create background graphic.
 			background = new Sprite();
 			addChild( background );
-			background.addEventListener( MouseEvent.CLICK, handleClick, false, 0, true );
 			
 			// Create selection display.
 			selectionBackground = new Sprite();
@@ -139,6 +140,9 @@ package flashx.textLayout.container.table
 			border = new Shape();
 			addChild( border );
 			
+			actualBorder = new Shape();
+			addChild( actualBorder );
+			
 			// Create renderer for borders.
 			_tableBorderRenderer = new TableCellBorderRenderer( border, _tableDataContext );
 			
@@ -146,10 +150,13 @@ package flashx.textLayout.container.table
 			targetDisplay = new TableCellDisplay( this );
 			addChild( targetDisplay );
 			
+			// Add handlers
+			addHandlers();
+			
 			// Set default values.
 			var widthPadding:Number = _tableDataContext.getComputedWidthOfPaddingAndBorders();
 			var heightPadding:Number = _tableDataContext.getComputedHeightOfPaddingAndBorders();
-			_width = getDefinedWidth( widthPadding );
+			_width = getDefinedWidth( widthPadding ); 
 			_height = getDefinedHeight( heightPadding );
 			_actualWidth = Math.max( widthPadding, _width - widthPadding );
 			_actualHeight = Math.max( heightPadding, _height - heightPadding );
@@ -164,11 +171,34 @@ package flashx.textLayout.container.table
 		/**
 		 * @private 
 		 * 
+		 * Assigns event handlers for interaction on this instance.
+		 */
+		protected function addHandlers():void
+		{
+			background.addEventListener( MouseEvent.CLICK, handleClick, false, 0, true );
+			selectionBackground.addEventListener( MouseEvent.CLICK, handleClick, false, 0, true );
+			border.addEventListener( MouseEvent.CLICK, handleClick, false, 0, true );
+		}
+		
+		/**
+		 * @private 
+		 * 
+		 * Removes event handlers for interaction on this instance.
+		 */
+		protected function removeHandlers():void
+		{
+			background.removeEventListener( MouseEvent.CLICK, handleClick, false );
+			selectionBackground.removeEventListener( MouseEvent.CLICK, handleClick, false );
+			border.removeEventListener( MouseEvent.CLICK, handleClick, false );
+		}
+		
+		/**
+		 * @private 
+		 * 
 		 * Validates the measured size of the container.
 		 */
 		protected function invalidateSize():void
 		{
-			_actualWidth = getDefinedWidth() - _tableDataContext.getComputedWidthOfPaddingAndBorders();
 			decorate();
 			positionTarget();
 		}
@@ -467,9 +497,26 @@ package flashx.textLayout.container.table
 					targetDisplay.y = _tableDataContext.getTopPadding();
 					break;
 			}
+			
+			switch( attributes.align )
+			{
+				case TableDataAttribute.LEFT:
+					targetDisplay.x = _tableDataContext.getLeftPadding();
+					break;
+				case TableDataAttribute.RIGHT:
+					targetDisplay.x = _width - _actualWidth - _tableDataContext.getRightPadding();
+					break;
+				case TableDataAttribute.CENTER:
+				default:
+					targetDisplay.x = ( _width - _actualWidth ) / 2;
+					break;
+			}
 			// Default.
 			targetDisplay.y += _descent - 1;
-			targetDisplay.x = _tableDataContext.getLeftPadding()
+			
+			actualBorder.graphics.clear();
+			actualBorder.graphics.lineStyle( 1, 0 );
+			actualBorder.graphics.drawRect( targetDisplay.x, targetDisplay.y, _actualWidth, _actualHeight );
 		}
 		
 		/**
@@ -499,8 +546,7 @@ package flashx.textLayout.container.table
 			var ascent:Number = ( line is TextLine ) ? ( line as TextLine ).ascent : 0;
 			var descent:Number = ( line is TextLine ) ? ( line as TextLine ).descent : 0;
 			var bounds:Rectangle = line.getBounds( this );
-			var widthPadding:Number = _tableDataContext.getComputedWidthOfPaddingAndBorders();
-			_actualWidth = Math.max( getDefinedWidth() - widthPadding, Math.max( _actualWidth, bounds.width ) );
+			_actualWidth = Math.max( _actualWidth, bounds.width );
 			var pt:Point = localToGlobal( new Point( bounds.left, bounds.top ) );
 			_actualHeight = pt.y + bounds.height + descent;//( descent * 2 );// ( ascent + descent );
 			
@@ -522,6 +568,7 @@ package flashx.textLayout.container.table
 		 */
 		protected function handleClick( evt:MouseEvent ):void
 		{
+			var target:InteractiveObject = ( evt.target as InteractiveObject );
 			dispatchEvent( new TableCellFocusEvent( controller ) );
 		}
 		
@@ -586,7 +633,8 @@ package flashx.textLayout.container.table
 		{
 			// Compose cell based on determined width.
 			var widthPadding:Number = _tableDataContext.getComputedWidthOfPadding();
-			composeCell( _actualWidth + widthPadding, notify );
+			var fixed:Number = Math.max( getDefinedWidth( _width ), getTargetWidth( _width ) ) - widthPadding;
+			composeCell( fixed, notify );
 		}
 		
 		/**
@@ -595,8 +643,8 @@ package flashx.textLayout.container.table
 		public function preprocess():void
 		{
 			// Request to compose cell in order to gain measured and actual size prior to processing.
-			composeCell( getTargetWidth( 1000000 ) );
-//			_width = _actualWidth + widthPadding;
+			var widthPadding:Number = _tableDataContext.getComputedWidthOfPadding();
+			composeCell( getTargetWidth( 1000000 ) - widthPadding );
 		}
 		
 		/**
@@ -606,7 +654,8 @@ package flashx.textLayout.container.table
 		public function update():void
 		{
 			var widthPadding:Number = _tableDataContext.getComputedWidthOfPaddingAndBorders();
-			composeCell( _actualWidth + widthPadding );
+			var fixed:Number = Math.max( getDefinedWidth( _width ), getTargetWidth( _width ) ) - widthPadding;
+			composeCell( fixed );
 		}
 		
 		/**
@@ -744,8 +793,8 @@ package flashx.textLayout.container.table
 		}
 		public function set explicitWidth( value:Number ):void
 		{
-			_tableDataContext.style.width = Math.round( value );
-			measuredWidth = Math.ceil( value );
+			_tableDataContext.setDefinedWidth( Math.round( value ) );
+//			measuredWidth = Math.ceil( value );
 			process( false );
 		}
 		
@@ -760,8 +809,8 @@ package flashx.textLayout.container.table
 		}
 		public function set explicitHeight( value:Number ):void
 		{
-			_tableDataContext.style.height = Math.round( value );
-			measuredHeight = Math.ceil( value );
+			_tableDataContext.setDefinedHeight( Math.round( value ) );
+//			measuredHeight = Math.ceil( value );
 			process( false );
 		}
 		

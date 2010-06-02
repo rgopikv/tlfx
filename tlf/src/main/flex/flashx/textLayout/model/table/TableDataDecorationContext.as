@@ -145,9 +145,35 @@ package flashx.textLayout.model.table
 			{
 				width = _attributes[TableDataAttribute.WIDTH];
 				_style.width = width;
-				delete _attributes[TableDataAttribute.HEIGHT];
+				delete _attributes[TableDataAttribute.WIDTH];
 			}
 			return width;
+		}
+		
+		public function getDefinedHeight():Number
+		{
+			var height:Number = Number.NaN;
+			if( !_style.isUndefined( _style.height ) )
+			{
+				height = _style.height;
+			}
+			else if( !_attributes.isUndefined( TableDataAttribute.HEIGHT ) )
+			{
+				height = _attributes[TableDataAttribute.HEIGHT];
+				_style.height = height;
+				delete _attributes[TableDataAttribute.HEIGHT];
+			}
+			return height;
+		}
+		
+		public function setDefinedWidth( value:int ):void
+		{
+			_style.width = value;
+		}
+		
+		public function setDefinedHeight( value:int ):void
+		{
+			_style.height = value;
 		}
 		
 		public function getAllotedHeight( cell:ICellContainer ):Number
@@ -178,22 +204,6 @@ package flashx.textLayout.model.table
 				}
 			}
 			return width;
-		}
-		
-		public function getDefinedHeight():Number
-		{
-			var height:Number = Number.NaN;
-			if( !_style.isUndefined( _style.height ) )
-			{
-				height = _style.height;
-			}
-			else if( !_attributes.isUndefined( TableDataAttribute.HEIGHT ) )
-			{
-				height = _attributes[TableDataAttribute.HEIGHT];
-				_style.height = height;
-				delete _attributes[TableDataAttribute.HEIGHT];
-			}
-			return height;
 		}
 	}
 }
