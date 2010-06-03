@@ -119,10 +119,11 @@ package flashx.textLayout.elements.list
 			return child;
 		}
 		
-		tlf_internal override function ensureTerminatorAfterReplace(oldLastLeaf:FlowLeafElement):void
-		{
-			//	Nothing, to prevent extra line breaks
-		}
+		//	KK - Removed on 05/24/2010 - it was causing selection issues (could never select the last atom of any ListItemElement)
+//		tlf_internal override function ensureTerminatorAfterReplace(oldLastLeaf:FlowLeafElement):void
+//		{
+//			//	Nothing, to prevent extra line breaks
+//		}
 		
 		/** @private */
 		tlf_internal override function normalizeRange(normalizeStart:uint,normalizeEnd:uint):void
@@ -147,6 +148,7 @@ package flashx.textLayout.elements.list
 						replaceChildren(idx,idx+1);
 					else if (child.mergeToPreviousIfPossible())
 					{
+						//	KK - Removed to stop elements merging together
 //						var prevElement:FlowElement = this.getChildAt(idx-1);
 //						// possibly optimize the start to the length of prevelement before the merge
 //						prevElement.normalizeRange(0,prevElement.textLength);

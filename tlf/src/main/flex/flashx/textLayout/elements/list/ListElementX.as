@@ -124,22 +124,22 @@ package flashx.textLayout.elements.list
 				
 				ensureIndentation();
 				
-				addChildAt(0, padding);
-				addChildAt(numChildren, padding);
+				addChildAt(0, new ListPaddingElement());
+				super.addChild(new ListPaddingElement());
+				
+//				if ( getTextFlow() )
+//					getTextFlow().flowComposer.updateAllControllers();
 			}
-			
-			if ( getTextFlow() )
-				getTextFlow().flowComposer.updateAllControllers();
 		}
 		
 		protected function ensureIndentation():void
 		{
 			var items:Array = listItems;
+			var groups:Array = [];
+			var group:Array;
+			var prevItem:ListItemElementX;
 			if ( items.length > 0 )
 			{
-				var groups:Array = [[]];
-				var prevItem:ListItemElementX;
-				
 				for ( var i:int = 0; i < items.length; i++ )
 				{
 					var item:ListItemElementX = items[i] as ListItemElementX;
@@ -149,36 +149,68 @@ package flashx.textLayout.elements.list
 					{
 						if ( item.indent > prevItem.indent )
 						{
-							ind = (item.indent-prevItem.indent)/24;
-							
-							//	Ensure that all slots are filled
-							while ( ind > 0 )
+							if ( groups[item.indent/24] )
 							{
-								groups.push([]);
-								ind--;
+								(groups[item.indent/24] as Array).push(item);
 							}
-							
-							(groups[groups.length-1] as Array).push(item);
+							else
+							{
+								ind = (item.indent-prevItem.indent)/24;
+								
+								//	Ensure that all slots are filled
+								while ( ind > 0 )
+								{
+									groups.push([]);
+									ind--;
+								}
+								
+								(groups[groups.length-1] as Array).push(item);
+							}
 						}
 						else if ( item.indent < prevItem.indent )
+						{
+							if ( !groups[item.indent/24] )
+							{
+								ind = (item.indent/24)-(groups.length-1);
+								while ( ind > 0 )
+								{
+									groups.push([]);
+									ind--;
+								}
+							}
 							(groups[item.indent/24] as Array).push(item);
+						}
 						else if ( item.mode != prevItem.mode )
 						{
 							groups.push([]);
 							(groups[groups.length-1] as Array).push(item);
 						}
 						else
+						{
+							if ( !groups[item.indent/24] )
+							{
+								ind = (item.indent/24)-(groups.length-1);
+								while ( ind > 0 )
+								{
+									groups.push([]);
+									ind--;
+								}
+							}
 							(groups[item.indent/24] as Array).push(item);
+						}
 					}
 					else
-						(groups[0] as Array).push(item);
+					{
+						groups.push([]);
+						(groups[groups.length-1] as Array).push(item);
+					}
 					
 					prevItem = item;
 				}
 				
 				for ( i = 0; i < groups.length; i++ )
 				{
-					var group:Array = groups[i] as Array;
+					group = groups[i] as Array;
 					for ( var j:int = 0; j < group.length; j++ )
 					{
 						item = group[j] as ListItemElementX;
@@ -257,7 +289,15 @@ package flashx.textLayout.elements.list
 					}
 				}
 				else
+				{
 					xmlStr += item.mode == ListItemElementX.UNORDERED ? '<ul>' : '<ol>';
+					ind = item.indent;
+					while (ind > 0)
+					{
+						xmlStr = new String(item.mode == ListItemElementX.UNORDERED ? '<ul>' : '<ol>') + xmlStr;
+						ind-=24;
+					}
+				}
 				
 				var itemXML:XML = item.export();
 				xmlStr += itemXML ? itemXML.toXMLString() : '';
@@ -345,11 +385,6 @@ package flashx.textLayout.elements.list
 		}
 		
 		
-		
-		public function get padding():ListPaddingElement
-		{
-			return new ListPaddingElement();
-		}
 		
 		public function get listItems():Array
 		{
