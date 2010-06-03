@@ -25,6 +25,8 @@ package flashx.textLayout.model.style
 		{
 			_defaultPadding = defaultPadding;
 			_padding = padding;
+			
+			_weightedRules = [];
 		}
 		
 		/**

@@ -22,6 +22,12 @@ package flashx.textLayout.model.style
 		function merge( style:IBoxModelUnitStyle ):void;
 		
 		/**
+		 * Defines the weight of rules to use during computation of style. 
+		 * @param weightedRules Array An Array of style rule names.
+		 */
+		function defineWeight( weightedRules:Array ):void;
+		
+		/**
 		 * Pretty printing. 
 		 * @return String
 		 */

@@ -6,7 +6,7 @@ package flashx.textLayout.model.table
 	
 	import flashx.textLayout.model.style.IBorderStyle;
 	import flashx.textLayout.model.style.ITableStyle;
-	import flashx.textLayout.model.style.TableBorderStyleEnum;
+	import flashx.textLayout.model.style.BorderStyleEnum;
 	import flashx.textLayout.model.table.ITableDecorationContext;
 	import flashx.textLayout.operations.PasteOperation;
 	
@@ -42,7 +42,7 @@ package flashx.textLayout.model.table
 		 */
 		protected function isBorderDrawable( leg:TableBorderLeg ):Boolean
 		{
-			return leg.thickness > 0 && leg.style != TableBorderStyleEnum.NONE && leg.style != TableBorderStyleEnum.HIDDEN && leg.style != TableBorderStyleEnum.UNDEFINED;
+			return leg.thickness > 0 && leg.style != BorderStyleEnum.NONE && leg.style != BorderStyleEnum.HIDDEN && leg.style != BorderStyleEnum.UNDEFINED;
 		}
 		
 		/**
@@ -237,11 +237,11 @@ package flashx.textLayout.model.table
 			{
 				case 0:
 				case 3:
-					leg.color = ( leg.style == TableBorderStyleEnum.OUTSET ) ? applyAlpha(leg.color) : leg.color;
+					leg.color = ( leg.style == BorderStyleEnum.OUTSET ) ? applyAlpha(leg.color) : leg.color;
 					break;
 				case 1:
 				case 2:
-					leg.color = ( leg.style == TableBorderStyleEnum.INSET ) ? applyAlpha(leg.color) : leg.color;
+					leg.color = ( leg.style == BorderStyleEnum.INSET ) ? applyAlpha(leg.color) : leg.color;
 					break;
 			}
 			return leg.color;
@@ -261,13 +261,13 @@ package flashx.textLayout.model.table
 			{
 				case 0:
 				case 3:
-					colors.push( ( leg.style == TableBorderStyleEnum.GROOVE ) ? leg.color : applyAlpha(leg.color) );
-					colors.push( ( leg.style == TableBorderStyleEnum.GROOVE ) ? applyAlpha(leg.color) : leg.color );
+					colors.push( ( leg.style == BorderStyleEnum.GROOVE ) ? leg.color : applyAlpha(leg.color) );
+					colors.push( ( leg.style == BorderStyleEnum.GROOVE ) ? applyAlpha(leg.color) : leg.color );
 					break;
 				case 1:
 				case 2:
-					colors.push( ( leg.style == TableBorderStyleEnum.RIDGE ) ? leg.color : applyAlpha(leg.color) );
-					colors.push( ( leg.style == TableBorderStyleEnum.RIDGE ) ? applyAlpha(leg.color) : leg.color );
+					colors.push( ( leg.style == BorderStyleEnum.RIDGE ) ? leg.color : applyAlpha(leg.color) );
+					colors.push( ( leg.style == BorderStyleEnum.RIDGE ) ? applyAlpha(leg.color) : leg.color );
 					break;
 			}
 			return colors;
@@ -485,13 +485,13 @@ package flashx.textLayout.model.table
 			var direction:uint = ( border.index % 2 == 0 ) ? TableBorderRenderer.DIRECTION_HORIZONTAL : TableBorderRenderer.DIRECTION_VERTICAL;
 			switch( border.style )
 			{
-				case TableBorderStyleEnum.DOTTED:
+				case BorderStyleEnum.DOTTED:
 					drawDottedLine( border, direction, rect );
 					break;
-				case TableBorderStyleEnum.DASHED:
+				case BorderStyleEnum.DASHED:
 					drawDashedLine( border, direction, rect );
 					break;
-				case TableBorderStyleEnum.DOUBLE:
+				case BorderStyleEnum.DOUBLE:
 					drawDoubleLine( border, direction, rect );
 					break;
 			}
@@ -510,18 +510,18 @@ package flashx.textLayout.model.table
 			var borderStyle:String = border.style;
 			switch( borderStyle )
 			{
-				case TableBorderStyleEnum.INSET:
-				case TableBorderStyleEnum.OUTSET:
-				case TableBorderStyleEnum.SOLID:
+				case BorderStyleEnum.INSET:
+				case BorderStyleEnum.OUTSET:
+				case BorderStyleEnum.SOLID:
 					drawAngledBorder( border, tableWidth, tableHeight );
 					break;
-				case TableBorderStyleEnum.DOTTED:
-				case TableBorderStyleEnum.DASHED:
-				case TableBorderStyleEnum.DOUBLE:
+				case BorderStyleEnum.DOTTED:
+				case BorderStyleEnum.DASHED:
+				case BorderStyleEnum.DOUBLE:
 					drawStraightBorder( border, tableWidth, tableHeight );
 					break;
-				case TableBorderStyleEnum.RIDGE:
-				case TableBorderStyleEnum.GROOVE:
+				case BorderStyleEnum.RIDGE:
+				case BorderStyleEnum.GROOVE:
 					drawStackedAngledBorder( border, tableWidth, tableHeight );
 					break;
 			}

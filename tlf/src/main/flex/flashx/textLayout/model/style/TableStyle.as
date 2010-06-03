@@ -30,7 +30,7 @@ package flashx.textLayout.model.style
 		
 		protected var _isDirty:Boolean;
 		
-		protected var _defaultBorderStyle:String = TableBorderStyleEnum.OUTSET;
+		protected var _defaultBorderStyle:String = BorderStyleEnum.OUTSET;
 		protected var _defaultBorderColor:uint = 0x808080;
 		protected var _defaultBorderWidth:int = 0;
 		protected var _defaultPadding:int = 0;
@@ -44,6 +44,8 @@ package flashx.textLayout.model.style
 		{
 			_borderStyle = new BorderStyle( getDefaultBorderStyle(), _defaultBorderColor, _defaultBorderWidth, border );
 			_paddingStyle = new PaddingStyle( _defaultPadding, padding );
+			
+			_weightedRules = [];
 		}
 		
 		protected function getDefaultBorderStyle():String
@@ -270,6 +272,11 @@ package flashx.textLayout.model.style
 			}
 			_borderStyle.merge( tableStyle.getBorderStyle() );
 			_paddingStyle.merge( tableStyle.getPaddingStyle() );
+		}
+		
+		override public function defineWeight( weightedRules:Array ):void
+		{
+			_borderStyle.defineWeight( weightedRules );	
 		}
 		
 		/**

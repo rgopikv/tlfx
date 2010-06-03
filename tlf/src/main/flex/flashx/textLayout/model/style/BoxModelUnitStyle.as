@@ -7,6 +7,8 @@ package flashx.textLayout.model.style
 
 	dynamic public class BoxModelUnitStyle extends Proxy implements IBoxModelUnitStyle
 	{
+		protected var _weightedRules:Array;
+		
 		public function BoxModelUnitStyle() {}
 		
 		/**
@@ -117,6 +119,11 @@ package flashx.textLayout.model.style
 		 * @param style IBoxModelUnitStyle
 		 */
 		public function merge( style:IBoxModelUnitStyle ):void
+		{
+			// abstract.
+		}
+		
+		public function defineWeight( weightedRules:Array ):void
 		{
 			// abstract.
 		}

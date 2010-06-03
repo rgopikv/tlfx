@@ -29,7 +29,7 @@ package flashx.textLayout.utils
 			if (value.substr(0, 1) == "#")
 				value = "0x" + value.substr(1, value.length-1);
 			
-			return (value.toLowerCase().substr(0, 2) == "0x") ? parseInt(value) : NaN;
+			return (value.toLowerCase().substr(0, 2) == "0x") ? parseInt(value) : Number.NaN;
 		}
 		
 		static public function normalizeForCSS( value:Number ):String

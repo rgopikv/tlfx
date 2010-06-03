@@ -82,6 +82,15 @@ package flashx.textLayout.elements.table
 					trace( "[" + getQualifiedClassName( this ) + "] :: Style property of type '" + property + "' cannot be set on " + getQualifiedClassName( tableStyle ) + "." );
 				}
 			}
+			// styleNames property assumes that it is a list of declared rules of a style in the order that they appeared reversed.
+			if( appliedStyle && appliedStyle.styleNames )
+			{
+				tableStyle.defineWeight( ( appliedStyle.styleNames as Array ).reverse() );
+			}
+			else
+			{
+				tableStyle.defineWeight( [] );
+			}
 			return requiresUpdate;
 		}
 		

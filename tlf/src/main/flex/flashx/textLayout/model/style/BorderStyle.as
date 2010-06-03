@@ -4,7 +4,9 @@ package flashx.textLayout.model.style
 	import flash.utils.flash_proxy;
 	
 	import flashx.textLayout.utils.BoxModelStyleUtil;
+	import flashx.textLayout.utils.BoxModelUnitShorthandUtil;
 	import flashx.textLayout.utils.ColorValueUtil;
+	import flashx.textLayout.utils.StyleAttributeUtil;
 
 	use namespace flash_proxy;
 	dynamic public class BorderStyle extends BoxModelUnitStyle implements IBorderStyle
@@ -48,6 +50,8 @@ package flashx.textLayout.model.style
 			_defaultColor = defaultBorderColor;
 			_defaultWidth = defaultBorderWidth;
 			_border = border;
+			
+			_weightedRules = [];
 		}
 		
 		/**
@@ -83,9 +87,16 @@ package flashx.textLayout.model.style
 			if( ( !_style || _isDirty ) || forceNew )
 			{
 				_style = new BorderStyle( _defaultStyle, _defaultColor, _defaultWidth );
-				var borderStyleList:Array = ( _borderStyle ) ? normalizeUnits( evaluateUnitValue( _borderStyle ) ) : getDefaultBorderStyle();
-				var borderWidthList:Array = ( _borderWidth ) ? normalizeIntUnits( evaluateUnitValue( _borderWidth ) ) : getDefaultBorderWidth();
-				var borderColorList:Array = ( _borderColor ) ? normalizeColorUnits( evaluateUnitValue( _borderColor ) ) : getDefaultBorderColor();
+				
+				var borderStyleList:Array = getDefaultBorderStyle();
+				var borderWidthList:Array = getDefaultBorderWidth();
+				var borderColorList:Array = getDefaultBorderColor();
+				
+				var i:int;
+				for( i = 0; i < _weightedRules.length; i++ )
+				{
+					modifyStyleOnRule( _style, _weightedRules[i] );
+				}
 				
 				normalizeBorderStyleStyle( _style, borderStyleList );
 				normalizeBorderWidthStyle( _style, borderWidthList );
@@ -94,6 +105,95 @@ package flashx.textLayout.model.style
 				_isDirty = false;
 			}
 			return _style;
+		}
+		
+		/**
+		 * @private
+		 * 
+		 * Modified specific styles on supplied style based on rule property name. 
+		 * @param style IBorderStyle
+		 * @param propertyName String
+		 */
+		protected function modifyStyleOnRule( style:IBorderStyle, propertyName:String ):void
+		{
+			var styleArray:Array;
+			var shorthandModel:BoxModelShorthand;
+			var value:* = this[propertyName];
+			switch( propertyName )
+			{
+				case "borderStyle":
+					styleArray = normalizeUnits( evaluateUnitValue( value ) );
+					style.borderTopStyle = styleArray[0];
+					style.borderRightStyle = styleArray[1];
+					style.borderBottomStyle = styleArray[2];
+					style.borderLeftStyle = styleArray[3];
+					break;
+				case "borderWidth":
+					styleArray = normalizeIntUnits( evaluateUnitValue( value ) );
+					style.borderTopWidth = styleArray[0];
+					style.borderRightWidth = styleArray[1];
+					style.borderBottomWidth = styleArray[2];
+					style.borderLeftWidth = styleArray[3];
+					break;
+				case "borderColor":
+					styleArray = normalizeColorUnits( evaluateUnitValue( value ) );
+					style.borderTopColor = styleArray[0];
+					style.borderRightColor = styleArray[1];
+					style.borderBottomColor = styleArray[2];
+					style.borderLeftColor = styleArray[3];
+					break;
+				case "border":
+					shorthandModel = BoxModelUnitShorthandUtil.deserializeShortHand( value );
+					if( shorthandModel.style )
+					{
+						style.borderTopStyle = shorthandModel.style;
+						style.borderRightStyle = shorthandModel.style;
+						style.borderBottomStyle = shorthandModel.style;
+						style.borderLeftStyle = shorthandModel.style;
+					}
+					if( shorthandModel.width )
+					{
+						style.borderTopWidth = shorthandModel.width;
+						style.borderRightWidth = shorthandModel.width;
+						style.borderBottomWidth = shorthandModel.width;
+						style.borderLeftWidth = shorthandModel.width;
+					}
+					if( shorthandModel.color )
+					{
+						style.borderTopColor = shorthandModel.color;
+						style.borderRightColor = shorthandModel.color;
+						style.borderBottomColor = shorthandModel.color;
+						style.borderLeftColor = shorthandModel.color;
+					}
+					break;
+				case "borderTop":
+					shorthandModel = BoxModelUnitShorthandUtil.deserializeShortHand( value );
+					if( shorthandModel.style ) style.borderTopStyle = shorthandModel.style;
+					if( shorthandModel.width ) style.borderTopWidth = shorthandModel.width;
+					if( shorthandModel.color ) style.borderTopColor = shorthandModel.color;
+					break;
+				case "borderRight":
+					shorthandModel = BoxModelUnitShorthandUtil.deserializeShortHand( value );
+					if( shorthandModel.style ) style.borderRightStyle = shorthandModel.style;
+					if( shorthandModel.width ) style.borderRightWidth = shorthandModel.width;
+					if( shorthandModel.color ) style.borderRightColor = shorthandModel.color;
+					break;
+				case "borderBottom":
+					shorthandModel = BoxModelUnitShorthandUtil.deserializeShortHand( value );
+					if( shorthandModel.style ) style.borderBottomStyle = shorthandModel.style;
+					if( shorthandModel.width ) style.borderBottomWidth = shorthandModel.width;
+					if( shorthandModel.color ) style.borderBottomColor = shorthandModel.color;
+					break;
+				case "borderLeft":
+					shorthandModel = BoxModelUnitShorthandUtil.deserializeShortHand( value );
+					if( shorthandModel.style ) style.borderLeftStyle = shorthandModel.style;
+					if( shorthandModel.width ) style.borderLeftWidth = shorthandModel.width;
+					if( shorthandModel.color ) style.borderLeftColor = shorthandModel.color;
+					break;
+				default:
+					style[propertyName] = this[propertyName];
+					break;
+			}
 		}
 		
 		/**
@@ -136,9 +236,9 @@ package flashx.textLayout.model.style
 		{
 			switch( style )
 			{
-				case TableBorderStyleEnum.NONE:
-				case TableBorderStyleEnum.HIDDEN:
-				case TableBorderStyleEnum.UNDEFINED:
+				case BorderStyleEnum.NONE:
+				case BorderStyleEnum.HIDDEN:
+				case BorderStyleEnum.UNDEFINED:
 					return presetValue;
 				default:
 					return ( presetValue == 0 ) ? 3 : presetValue;
@@ -150,17 +250,17 @@ package flashx.textLayout.model.style
 		public function computeBorderStyleBasedOnWidth( width:int, presetStyle:String ):String
 		{
 			if( width > 0 )
-				return ( presetStyle != TableBorderStyleEnum.UNDEFINED ) ? presetStyle : _defaultStyle;
+				return ( presetStyle != BorderStyleEnum.UNDEFINED ) ? presetStyle : _defaultStyle;
 			
-			return TableBorderStyleEnum.UNDEFINED; 
+			return BorderStyleEnum.UNDEFINED; 
 		}
 		
 		protected function normalizeBorderStyleStyle( style:IBorderStyle, list:Array ):void
 		{
-			if( _borderTopStyle != undefined ) list[0] = BoxModelStyleUtil.normalizeBorderUnit( _borderTopStyle );
-			if( _borderRightStyle != undefined ) list[1] = BoxModelStyleUtil.normalizeBorderUnit( _borderRightStyle );
-			if( _borderBottomStyle != undefined ) list[2] = BoxModelStyleUtil.normalizeBorderUnit( _borderBottomStyle );
-			if( _borderLeftStyle != undefined ) list[3] = BoxModelStyleUtil.normalizeBorderUnit( _borderLeftStyle );
+			if( style.borderTopStyle != undefined ) list[0] = style.borderTopStyle;
+			if( style.borderRightStyle != undefined ) list[1] = style.borderRightStyle;
+			if( style.borderBottomStyle != undefined ) list[2] = style.borderBottomStyle;
+			if( style.borderLeftStyle != undefined ) list[3] = style.borderLeftStyle;
 			
 			style.borderTopStyle = list[0];
 			style.borderRightStyle = list[1];
@@ -172,10 +272,10 @@ package flashx.textLayout.model.style
 		
 		protected function normalizeBorderWidthStyle( style:IBorderStyle, list:Array ):void
 		{
-			if( _borderTopWidth != undefined ) list[0] = BoxModelStyleUtil.normalizeBorderUnit( _borderTopWidth );
-			if( _borderRightWidth != undefined ) list[1] = BoxModelStyleUtil.normalizeBorderUnit( _borderRightWidth );
-			if( _borderBottomWidth != undefined ) list[2] = BoxModelStyleUtil.normalizeBorderUnit( _borderBottomWidth );
-			if( _borderLeftWidth != undefined ) list[3] = BoxModelStyleUtil.normalizeBorderUnit( _borderLeftWidth );
+			if( style.borderTopWidth != undefined ) list[0] = BoxModelStyleUtil.normalizeBorderUnit( style.borderTopWidth );
+			if( style.borderRightWidth != undefined ) list[1] = BoxModelStyleUtil.normalizeBorderUnit( style.borderRightWidth );
+			if( style.borderBottomWidth != undefined ) list[2] = BoxModelStyleUtil.normalizeBorderUnit( style.borderBottomWidth );
+			if( style.borderLeftWidth != undefined ) list[3] = BoxModelStyleUtil.normalizeBorderUnit( style.borderLeftWidth );
 			
 			style.borderTopWidth = list[0];
 			style.borderRightWidth = list[1];
@@ -187,10 +287,10 @@ package flashx.textLayout.model.style
 		
 		protected function normalizeBorderColorStyle( style:IBorderStyle, list:Array ):void
 		{
-			if( _borderTopColor != undefined ) list[0] = ColorValueUtil.normalizeForLayoutFormat( _borderTopColor );
-			if( _borderRightColor != undefined ) list[1] = ColorValueUtil.normalizeForLayoutFormat( _borderRightColor );
-			if( _borderBottomColor != undefined ) list[2] = ColorValueUtil.normalizeForLayoutFormat( _borderBottomColor );
-			if( _borderLeftColor != undefined ) list[3] = ColorValueUtil.normalizeForLayoutFormat( _borderLeftColor );
+			if( style.borderTopColor != undefined ) list[0] = style.borderTopColor;
+			if( style.borderRightColor != undefined ) list[1] = style.borderRightColor;
+			if( style.borderBottomColor != undefined ) list[2] = style.borderBottomColor;
+			if( style.borderLeftColor != undefined ) list[3] = style.borderLeftColor;
 			
 			style.borderTopColor = list[0];
 			style.borderRightColor = list[1];
@@ -208,7 +308,7 @@ package flashx.textLayout.model.style
 		 */
 		protected function getDefaultBorderStyle():Array
 		{
-			return [TableBorderStyleEnum.UNDEFINED, TableBorderStyleEnum.UNDEFINED, TableBorderStyleEnum.UNDEFINED, TableBorderStyleEnum.UNDEFINED];
+			return [BorderStyleEnum.UNDEFINED, BorderStyleEnum.UNDEFINED, BorderStyleEnum.UNDEFINED, BorderStyleEnum.UNDEFINED];
 		}
 		
 		/**
@@ -489,6 +589,21 @@ package flashx.textLayout.model.style
 				if( isUndefined( this[property] ) )
 					this[property] = borderStyle[property];
 			}
+		}
+		
+		override public function defineWeight( weightedRules:Array ):void
+		{
+			var definition:Vector.<String> = BorderStyle.definition;
+			_weightedRules = [];
+			var i:int;
+			var propertyRule:String;
+			for( i = 0; i < weightedRules.length; i++ )
+			{
+				propertyRule = StyleAttributeUtil.camelize( weightedRules[i] );
+				if( definition.indexOf( propertyRule ) != -1 )
+					_weightedRules.push( propertyRule );
+			}
+			trace( "Border weighted rules: " + _weightedRules );
 		}
 		
 		/**

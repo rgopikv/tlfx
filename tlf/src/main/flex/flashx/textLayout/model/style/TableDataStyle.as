@@ -9,7 +9,7 @@ package flashx.textLayout.model.style
 		
 		override protected function getDefaultBorderStyle():String
 		{
-			_defaultBorderStyle = TableBorderStyleEnum.INSET;
+			_defaultBorderStyle = BorderStyleEnum.INSET;
 			return _defaultBorderStyle;
 		}
 	}
