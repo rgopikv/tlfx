@@ -40,6 +40,7 @@ package flashx.textLayout.container.table
 	import flashx.textLayout.model.attribute.IAttribute;
 	import flashx.textLayout.model.attribute.TableAttribute;
 	import flashx.textLayout.model.attribute.TableDataAttribute;
+	import flashx.textLayout.model.style.IBorderStyle;
 	import flashx.textLayout.model.style.ITableStyle;
 	import flashx.textLayout.model.table.ITableBaseDecorationContext;
 	import flashx.textLayout.model.table.ITableDataDecorationContext;
@@ -472,12 +473,13 @@ package flashx.textLayout.container.table
 			var color:uint;
 			var borderStyle:String;
 			var borderWidth:Array = _tableDataContext.determineBorderWidth();
+			var cellBorderStyle:IBorderStyle = tableStyle.getBorderStyle();
 			// Determine the border legs to be drawn.
 			for( i = 0; i < borderWidth.length; i++ )
 			{
 				thickness = borderWidth[i];
-				color = tableStyle.borderColor[i];
-				borderStyle = tableStyle.borderStyle[i];
+				color = cellBorderStyle.borderColor[i];
+				borderStyle = cellBorderStyle.computeBorderStyleBasedOnWidth( thickness, cellBorderStyle.borderStyle[i] );
 				legs.push( new TableBorderLeg( i, thickness, color, borderStyle ) );
 			}
 			// Draw the legs to the display based on availability.

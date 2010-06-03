@@ -4,7 +4,10 @@ package flashx.textLayout.model.table
 	import flashx.textLayout.model.attribute.IAttribute;
 	import flashx.textLayout.model.attribute.TableAttribute;
 	import flashx.textLayout.model.attribute.TableDataAttribute;
+	import flashx.textLayout.model.style.IBorderStyle;
+	import flashx.textLayout.model.style.IPaddingStyle;
 	import flashx.textLayout.model.style.ITableStyle;
+	import flashx.textLayout.utils.BoxModelStyleUtil;
 	
 	public class TableDataDecorationContext extends TableBaseDecorationContext implements ITableDataDecorationContext
 	{
@@ -20,15 +23,16 @@ package flashx.textLayout.model.table
 		
 		public function determinePadding():Array
 		{
+			var paddingStyle:IPaddingStyle = _style.getPaddingStyle();
 			var padding:Array;
-			if( _style.isUndefined( _style.padding ) )
+			if( paddingStyle.isUndefined( paddingStyle.padding ) )
 			{
 				var cellpadding:Number = _tableContext.attributes[TableAttribute.CELLPADDING];
 				padding = [cellpadding, cellpadding, cellpadding, cellpadding]; 
 			}
 			else
 			{
-				padding = _style.getComputedStyle().padding;	
+				padding = paddingStyle.getComputedStyle().padding;	
 			}
 			return padding;
 		}
@@ -108,12 +112,15 @@ package flashx.textLayout.model.table
 		 */
 		public function determineBorderWidth():Array
 		{
-			var borderWidth:Array = _style.getComputedStyle().borderWidth;
-			if( _style.isUndefined( _style.borderWidth ) )
+			var borderStyle:IBorderStyle = _style.getBorderStyle();
+			var borderWidth:Array = _style.getComputedStyle().getBorderStyle().borderWidth;
+			if( borderStyle.isUndefined( borderStyle.borderWidth ) )
 			{
 				if( _tableContext.attributes.hasProperty( "border" ) )
 				{
-					borderWidth = [1, 1, 1, 1];
+					var b:Number = BoxModelStyleUtil.normalizeBorderUnit( _tableContext.attributes["border"] );
+					b = ( b != TableAttribute.DEFAULT_BORDER ) ? 1 : 0;
+					borderWidth = [b, b, b, b];
 				}
 			}
 			return borderWidth;

@@ -2,17 +2,15 @@ package flashx.textLayout.model.style
 {
 	public class TableDataStyle extends TableStyle
 	{
-		public function TableDataStyle(borderStyle:Array=null, borderWidth:Array=null, borderColor:Array=null, borderSpacing:Number=Number.NaN, borderCollapse:String=null)
+		public function TableDataStyle( border:* = undefined, padding:* = undefined )
 		{
-			super(borderStyle, borderWidth, borderColor, borderSpacing, borderCollapse);
+			super( border, padding );
 		}
 		
-		/**
-		* @inherit
-		*/
-		override protected function getDefaultBorderStyle():Array
+		override protected function getDefaultBorderStyle():String
 		{
-			return [TableBorderStyleEnum.INSET, TableBorderStyleEnum.INSET, TableBorderStyleEnum.INSET, TableBorderStyleEnum.INSET];
+			_defaultBorderStyle = TableBorderStyleEnum.INSET;
+			return _defaultBorderStyle;
 		}
 	}
 }

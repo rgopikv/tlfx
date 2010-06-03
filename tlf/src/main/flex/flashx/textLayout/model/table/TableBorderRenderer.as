@@ -4,6 +4,7 @@ package flashx.textLayout.model.table
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	
+	import flashx.textLayout.model.style.IBorderStyle;
 	import flashx.textLayout.model.style.ITableStyle;
 	import flashx.textLayout.model.style.TableBorderStyleEnum;
 	import flashx.textLayout.model.table.ITableDecorationContext;
@@ -41,7 +42,7 @@ package flashx.textLayout.model.table
 		 */
 		protected function isBorderDrawable( leg:TableBorderLeg ):Boolean
 		{
-			return leg.thickness > 0 && leg.style != TableBorderStyleEnum.NONE && leg.style != TableBorderStyleEnum.HIDDEN;
+			return leg.thickness > 0 && leg.style != TableBorderStyleEnum.NONE && leg.style != TableBorderStyleEnum.HIDDEN && leg.style != TableBorderStyleEnum.UNDEFINED;
 		}
 		
 		/**
@@ -448,7 +449,7 @@ package flashx.textLayout.model.table
 		 * @param tableWidth Number
 		 * @param tableHeight Number
 		 */
-		protected function drawStackedAngledBorder( border:TableBorderLeg, style:String, tableWidth:Number, tableHeight:Number ):void
+		protected function drawStackedAngledBorder( border:TableBorderLeg, tableWidth:Number, tableHeight:Number ):void
 		{
 			var stack:Array = composeStackedPoints( border, tableWidth, tableHeight ); /* Vector.<Point>[] */
 			var colors:Array = computeBorderColors( border );
@@ -478,11 +479,11 @@ package flashx.textLayout.model.table
 		 * @param tableWidth Number
 		 * @param tableHeight Number
 		 */
-		protected function drawStraightBorder( border:TableBorderLeg, style:String, tableWidth:Number, tableHeight:Number ):void
+		protected function drawStraightBorder( border:TableBorderLeg, tableWidth:Number, tableHeight:Number ):void
 		{
 			var rect:Rectangle = composeRectangle( border, tableWidth, tableHeight );
 			var direction:uint = ( border.index % 2 == 0 ) ? TableBorderRenderer.DIRECTION_HORIZONTAL : TableBorderRenderer.DIRECTION_VERTICAL;
-			switch( style )
+			switch( border.style )
 			{
 				case TableBorderStyleEnum.DOTTED:
 					drawDottedLine( border, direction, rect );
@@ -506,8 +507,7 @@ package flashx.textLayout.model.table
 		{
 			if( !isBorderDrawable( border ) ) return;
 			
-			var style:ITableStyle = _context.style.getComputedStyle();
-			var borderStyle:String = style.borderStyle[border.index];
+			var borderStyle:String = border.style;
 			switch( borderStyle )
 			{
 				case TableBorderStyleEnum.INSET:
@@ -518,11 +518,11 @@ package flashx.textLayout.model.table
 				case TableBorderStyleEnum.DOTTED:
 				case TableBorderStyleEnum.DASHED:
 				case TableBorderStyleEnum.DOUBLE:
-					drawStraightBorder( border, borderStyle, tableWidth, tableHeight );
+					drawStraightBorder( border, tableWidth, tableHeight );
 					break;
 				case TableBorderStyleEnum.RIDGE:
 				case TableBorderStyleEnum.GROOVE:
-					drawStackedAngledBorder( border, borderStyle, tableWidth, tableHeight );
+					drawStackedAngledBorder( border, tableWidth, tableHeight );
 					break;
 			}
 		}

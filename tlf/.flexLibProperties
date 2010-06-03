@@ -256,6 +256,12 @@
     <classEntry path="flashx.undo.IUndoManager"/>
     <classEntry path="flashx.undo.UndoManager"/>
     <classEntry path="flashx.textLayout.model.style.TableDataStyle"/>
+    <classEntry path="flashx.textLayout.model.style.BorderStyle"/>
+    <classEntry path="flashx.textLayout.model.style.PaddingStyle"/>
+    <classEntry path="flashx.textLayout.model.style.IBorderStyle"/>
+    <classEntry path="flashx.textLayout.model.style.IPaddingStyle"/>
+    <classEntry path="flashx.textLayout.model.style.BoxModelUnitStyle"/>
+    <classEntry path="flashx.textLayout.model.style.IBoxModelUnitStyle"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests>

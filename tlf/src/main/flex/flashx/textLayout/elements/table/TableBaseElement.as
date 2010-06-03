@@ -4,6 +4,7 @@ package flashx.textLayout.elements.table
 	
 	import flashx.textLayout.elements.ContainerFormattedElement;
 	import flashx.textLayout.events.InlineStyleEvent;
+	import flashx.textLayout.model.style.IBoxModelUnitStyle;
 	import flashx.textLayout.model.style.ITableStyle;
 	import flashx.textLayout.model.style.InlineStyles;
 	import flashx.textLayout.model.style.TableStyle;
@@ -32,15 +33,15 @@ package flashx.textLayout.elements.table
 		 * @param previousStyle Object The ky/value pairs of applied style.
 		 * @param tableStyle ITableStyle The held style to undefine applied properties from.
 		 */
-		protected function undefinePreviousAppliedStyle( previousStyle:Object, tableStyle:ITableStyle ):void
+		protected function undefinePreviousAppliedStyle( previousStyle:Object, style:IBoxModelUnitStyle ):void
 		{
 			var property:String;
 			for( property in previousStyle )
 			{
 				try
 				{
-					if( tableStyle[property] == previousStyle[property] )
-						tableStyle.undefineStyleProperty( property );
+					if( style[property] == previousStyle[property] )
+						style.undefineStyleProperty( property );
 				}
 				catch( e:Error )
 				{
@@ -57,8 +58,8 @@ package flashx.textLayout.elements.table
 		 */
 		protected function handleAppliedStyleChange( evt:InlineStyleEvent ):Boolean
 		{
-			var style:ITableStyle = ( _context ) ? _context.style : _pendingInitializationStyle;
-			undefinePreviousAppliedStyle( evt.oldStyle, style );
+			var tableStyle:ITableStyle = ( _context ) ? _context.style : _pendingInitializationStyle;
+			undefinePreviousAppliedStyle( evt.oldStyle, tableStyle );
 			
 			var appliedStyle:Object = evt.newStyle;
 			var property:String;	
@@ -70,15 +71,15 @@ package flashx.textLayout.elements.table
 				{
 					styleProperty = StyleAttributeUtil.camelize(property);
 					// Only ovewrite if not explicitly set which happens when reading in explicit style from @style attribute.
-					if( style.isUndefined( style[styleProperty] ) )
+					if( tableStyle.isUndefined( tableStyle[styleProperty] ) )
 					{
 						requiresUpdate = true;
-						style[styleProperty] = appliedStyle[property];
+						tableStyle[styleProperty] = appliedStyle[property];
 					}
 				}
 				catch( e:Error )
 				{
-					trace( "[" + getQualifiedClassName( this ) + "] :: Style property of type '" + property + "' cannot be set on " + getQualifiedClassName( style ) + "." );
+					trace( "[" + getQualifiedClassName( this ) + "] :: Style property of type '" + property + "' cannot be set on " + getQualifiedClassName( tableStyle ) + "." );
 				}
 			}
 			return requiresUpdate;

@@ -1,6 +1,6 @@
 package flashx.textLayout.utils
 {
-	public class TableStyleUtil
+	public class BoxModelStyleUtil
 	{
 		public static const THIN:String = "thin";
 		public static const MEDIUM:String = "medium";
@@ -22,13 +22,13 @@ package flashx.textLayout.utils
 				{
 					switch( value )
 					{
-						case TableStyleUtil.THIN:
+						case BoxModelStyleUtil.THIN:
 							value = 1;
 							break;
-						case TableStyleUtil.MEDIUM:
+						case BoxModelStyleUtil.MEDIUM:
 							value = 3;
 							break;
-						case TableStyleUtil.THICK:
+						case BoxModelStyleUtil.THICK:
 							value = 5;
 							break;
 					}
@@ -42,7 +42,7 @@ package flashx.textLayout.utils
 			var i:int = units.length;
 			while( --i > -1 )
 			{
-				units[i] = TableStyleUtil.normalizeBorderUnit( units[i] );
+				units[i] = BoxModelStyleUtil.normalizeBorderUnit( units[i] );
 			}
 			return units;
 		}

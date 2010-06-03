@@ -2,8 +2,10 @@ package flashx.textLayout.model.table
 {
 	import flashx.textLayout.model.attribute.IAttribute;
 	import flashx.textLayout.model.attribute.TableAttribute;
+	import flashx.textLayout.model.style.IBorderStyle;
 	import flashx.textLayout.model.style.ITableStyle;
 	import flashx.textLayout.model.style.TableCollapseStyleEnum;
+	import flashx.textLayout.utils.BoxModelStyleUtil;
 	
 	/**
 	 * TableDecorationContext is an implementation of ITableDecorationContext that extends TableBaseDecorationContext to expose methods related to the context of attrbributes and styles for parenting Table element. 
@@ -46,14 +48,16 @@ package flashx.textLayout.model.table
 		 */
 		public function determineBorderWidth():Array
 		{
-			var borderWidth:Array = _style.getComputedStyle().borderWidth;
+			var borderStyle:IBorderStyle = _style.getBorderStyle();
+			var borderWidth:Array = _style.getComputedStyle().getBorderStyle().borderWidth;
 			var attributeOverridesStyle:Boolean;
-			if( _style.isUndefined( _style.borderWidth ) )
+			if( borderStyle.isUndefined( borderStyle.borderWidth ) )
 			{
 				if( _attributes.hasProperty( "border" ) )
 				{
-					var border:Number = Number(_attributes["border"] );
-					borderWidth = [border, border, border, border];
+					var b:int = BoxModelStyleUtil.normalizeBorderUnit( _attributes["border"] );
+					if( b != TableAttribute.DEFAULT_BORDER )
+						borderWidth = [b, b, b, b];
 				}
 			}
 			return borderWidth;

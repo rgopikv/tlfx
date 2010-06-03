@@ -33,6 +33,8 @@ package flashx.textLayout.model.attribute
 		public static const DEFAULT_WIDTH:String = "NaN";
 		public static const DEFAULT_HEIGHT:String = "NaN";
 		
+		public static const DEFAULT_BORDER:int = -1;
+		
 		/**
 		 * Returns a default filled in attribute object for a Table Data object.
 		 * @return TableDataAttribute
@@ -40,7 +42,7 @@ package flashx.textLayout.model.attribute
 		public static function getDefaultAttributes():TableAttribute
 		{
 			var attributes:Object = {};
-			attributes[TableAttribute.BORDER] = 0;
+			attributes[TableAttribute.BORDER] = TableAttribute.DEFAULT_BORDER;
 			attributes[TableAttribute.CELLPADDING] = 1;
 			attributes[TableAttribute.CELLSPACING] = 2;
 			attributes[TableAttribute.WIDTH] = TableAttribute.DEFAULT_WIDTH;

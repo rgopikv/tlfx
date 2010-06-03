@@ -16,5 +16,6 @@ package flashx.textLayout.model.style
 		public static const DOUBLE:String = "double";
 		public static const RIDGE:String = "ridge";
 		public static const GROOVE:String = "groove";
+		public static const UNDEFINED:String = "undefined";
 	}
 }
