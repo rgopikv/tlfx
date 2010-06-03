@@ -255,6 +255,7 @@
     <classEntry path="flashx.undo.IOperation"/>
     <classEntry path="flashx.undo.IUndoManager"/>
     <classEntry path="flashx.undo.UndoManager"/>
+    <classEntry path="flashx.textLayout.model.style.TableDataStyle"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests>

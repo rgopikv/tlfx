@@ -13,6 +13,7 @@ package flashx.textLayout.elements.table
 	import flashx.textLayout.formats.TextLayoutFormatValueHolder;
 	import flashx.textLayout.model.attribute.IAttribute;
 	import flashx.textLayout.model.attribute.TableDataAttribute;
+	import flashx.textLayout.model.style.TableDataStyle;
 	import flashx.textLayout.model.table.ITableBaseDecorationContext;
 	import flashx.textLayout.model.table.ITableDataDecorationContext;
 	import flashx.textLayout.model.table.TableData;
@@ -26,6 +27,7 @@ package flashx.textLayout.elements.table
 		public function TableDataElement()
 		{
 			super();
+			_pendingInitializationStyle = new TableDataStyle();
 		}
 		
 		/**

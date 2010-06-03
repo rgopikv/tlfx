@@ -3,6 +3,7 @@ package flashx.textLayout.model.table
 	import flashx.textLayout.model.attribute.IAttribute;
 	import flashx.textLayout.model.attribute.TableDataAttribute;
 	import flashx.textLayout.model.style.ITableStyle;
+	import flashx.textLayout.model.style.TableDataStyle;
 	import flashx.textLayout.model.style.TableStyle;
 
 	/**
@@ -34,7 +35,7 @@ package flashx.textLayout.model.table
 		 */
 		override protected function getDefaultStyle():ITableStyle
 		{
-			return new TableStyle();
+			return new TableDataStyle();
 		}
 		
 		public function getContextImplementation():ITableDataDecorationContext

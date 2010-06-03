@@ -100,6 +100,9 @@ package flashx.textLayout.container.table
 		protected var _proposedHeight:Number;
 		protected var _previousHeight:Number;
 		
+		protected var _pendingRecompose:Boolean;
+		protected var _pendingRecomposeWidth:Number;
+		
 		private var _uid:String;
 		public static const UID_PREFIX:String = "TableCellContainer";
 		protected static var ID:int;
@@ -394,6 +397,16 @@ package flashx.textLayout.container.table
 				CellElementPool.returnCellElement( cellElement );
 			}
 			
+			// If we ran through construction and an image was found at a size larger than the detemrined fixed width, we need to run it again and make sure it fits.
+			if( _pendingRecompose )
+			{
+				_width = _pendingRecomposeWidth + _tableDataContext.getComputedWidthOfPaddingAndBorders();
+				_pendingRecompose = false;
+				_pendingRecomposeWidth = -1;
+				update();
+				return;
+			}
+			
 			// Update measured properties.
 			updateMeasuredBounds();
 			// Update visual display.
@@ -558,6 +571,19 @@ package flashx.textLayout.container.table
 			_minimumHeight = _actualHeight;
 			
 			_numLines++;
+			
+			// If we have encountered an image and its width is greater than we alloted for composition, we need to track it and recompose later.
+			if( ( line is TextLine ) )
+			{
+				if( ( line as TextLine ).hasGraphicElement )
+				{
+					if( bounds.width > getDeterminedFixedWidth() )
+					{
+						_pendingRecompose = true;
+						_pendingRecomposeWidth = bounds.width;
+					}
+				}
+			}
 		}
 		
 		/**
@@ -589,7 +615,7 @@ package flashx.textLayout.container.table
 			var definedWidth:Number = _tableDataContext.getDefinedWidth();
 			definedWidth = ( isNaN( definedWidth ) ) ? orDefault : definedWidth;
 			definedWidth = ( isNaN( definedWidth ) ) ? _width : definedWidth;
-			return Math.round( definedWidth );
+			return Math.ceil( definedWidth );
 		}
 		
 		protected function getDefinedHeight( orDefault:Number = Number.NaN ):Number
@@ -597,7 +623,7 @@ package flashx.textLayout.container.table
 			var definedHeight:Number = _tableDataContext.getDefinedHeight();
 			definedHeight = ( isNaN( definedHeight ) ) ? orDefault : definedHeight;
 			definedHeight = ( isNaN( definedHeight ) ) ? _height : definedHeight;
-			return Math.round( definedHeight );
+			return Math.ceil( definedHeight );
 		}
 		
 		/**
@@ -627,13 +653,25 @@ package flashx.textLayout.container.table
 		}
 		
 		/**
+		 * @private
+		 * 
+		 * Returns the determined fixed width to start composition. 
+		 * @return Number
+		 */
+		protected function getDeterminedFixedWidth():Number
+		{
+			var widthPadding:Number = _tableDataContext.getComputedWidthOfPaddingAndBorders();
+			return Math.max( getDefinedWidth( _width ), getTargetWidth( _width ) ) - widthPadding;
+		}
+		
+		/**
 		 * Processes the supplied data into content elements used for display of cell.
 		 */
 		public function process( notify:Boolean = true ):void
 		{
+			_actualWidth = _actualHeight = 0;
 			// Compose cell based on determined width.
-			var widthPadding:Number = _tableDataContext.getComputedWidthOfPadding();
-			var fixed:Number = Math.max( getDefinedWidth( _width ), getTargetWidth( _width ) ) - widthPadding;
+			var fixed:Number = getDeterminedFixedWidth();
 			composeCell( fixed, notify );
 		}
 		
@@ -642,6 +680,7 @@ package flashx.textLayout.container.table
 		 */
 		public function preprocess():void
 		{
+			_actualWidth = _actualHeight = 0;
 			// Request to compose cell in order to gain measured and actual size prior to processing.
 			var widthPadding:Number = _tableDataContext.getComputedWidthOfPadding();
 			composeCell( getTargetWidth( 1000000 ) - widthPadding );
@@ -653,8 +692,8 @@ package flashx.textLayout.container.table
 		 */
 		public function update():void
 		{
-			var widthPadding:Number = _tableDataContext.getComputedWidthOfPaddingAndBorders();
-			var fixed:Number = Math.max( getDefinedWidth( _width ), getTargetWidth( _width ) ) - widthPadding;
+			_actualWidth = _actualHeight = 0;
+			var fixed:Number = getDeterminedFixedWidth();
 			composeCell( fixed );
 		}
 		
@@ -793,7 +832,7 @@ package flashx.textLayout.container.table
 		}
 		public function set explicitWidth( value:Number ):void
 		{
-			_tableDataContext.setDefinedWidth( Math.round( value ) );
+			_tableDataContext.setDefinedWidth( Math.ceil( value ) );
 //			measuredWidth = Math.ceil( value );
 			process( false );
 		}
@@ -809,7 +848,7 @@ package flashx.textLayout.container.table
 		}
 		public function set explicitHeight( value:Number ):void
 		{
-			_tableDataContext.setDefinedHeight( Math.round( value ) );
+			_tableDataContext.setDefinedHeight( Math.ceil( value ) );
 //			measuredHeight = Math.ceil( value );
 			process( false );
 		}
