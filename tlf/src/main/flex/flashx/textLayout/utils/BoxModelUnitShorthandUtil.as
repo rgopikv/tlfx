@@ -52,8 +52,11 @@ package flashx.textLayout.utils
 		protected static function indexOfWidthUnit( units:Array ):int
 		{
 			var i:int;
+			var value:String;
 			for( i = 0; i < units.length; i++ )
 			{
+				value = units[i].toString();
+				if( value.charAt(0) == "#" || value.substr(0,3) == "rgb" ) continue;
 				if( isWidthUnit( units[i] ) )
 					return i;
 			}
@@ -69,6 +72,12 @@ package flashx.textLayout.utils
 			var width:*;
 			
 			var units:Array = value.toString().split( " " );
+			var wIndex:int = BoxModelUnitShorthandUtil.indexOfWidthUnit( units );
+			if( wIndex >= 0 )
+			{
+				width = BoxModelStyleUtil.normalizeBorderUnit( units[wIndex] );
+				units.splice( wIndex, 1 );
+			}
 			var cIndex:int = BoxModelUnitShorthandUtil.indexOfColorUnit( units );
 			if( cIndex >= 0 )
 			{
@@ -81,11 +90,7 @@ package flashx.textLayout.utils
 				style = units[sIndex]
 				units.splice( sIndex, 1 );	
 			}
-			var wIndex:int = BoxModelUnitShorthandUtil.indexOfWidthUnit( units );
-			if( wIndex >= 0 )
-			{
-				width = BoxModelStyleUtil.normalizeBorderUnit( units[wIndex] )
-			}
+			
 			
 			return new BoxModelShorthand( color, style, width );
 		}

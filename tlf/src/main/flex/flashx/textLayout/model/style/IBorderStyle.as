@@ -8,6 +8,8 @@ package flashx.textLayout.model.style
 		 */
 		function getComputedStyle( forceNew:Boolean = false ):IBorderStyle;
 		
+		function getDeterminedBorderWidth():Array;
+		
 		function computeBorderWidthBasedOnStyle( style:String, presetValue:Number ):Number;
 		function computeBorderStyleBasedOnWidth( width:int, presetStyle:String ):String
 		

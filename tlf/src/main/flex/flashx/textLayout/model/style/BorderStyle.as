@@ -107,6 +107,43 @@ package flashx.textLayout.model.style
 			return _style;
 		}
 		
+		public function getDeterminedBorderWidth():Array
+		{
+			var boxBorder:BoxBorder;
+			var shorthandModel:BoxModelShorthand;
+			var propertyName:String;
+			var value:*;
+			var i:int;
+			for( i = 0; i < _weightedRules.length; i++ )
+			{
+				propertyName = _weightedRules[i];
+				if( !hasOwnProperty( propertyName ) ) continue;
+				
+				value = this[propertyName];
+				shorthandModel = BoxModelUnitShorthandUtil.deserializeShortHand( value );
+				if( !shorthandModel.width ) continue;
+				
+				if( boxBorder == null ) boxBorder = new BoxBorder();
+				if( propertyName == "border" )
+				{
+					boxBorder.top = boxBorder.bottom = boxBorder.left = boxBorder.right = shorthandModel.width;
+				}
+				else if( propertyName == "borderTop" )
+				{
+					boxBorder.top = shorthandModel.width;
+				}
+				else if( propertyName == "borderRight" )
+				{
+					boxBorder.right = shorthandModel.width;
+				}
+				else if( propertyName == "borderBottom" )
+				{
+					boxBorder.bottom = shorthandModel.width;
+				}
+			}
+			return (boxBorder) ? boxBorder.toBorderModel() : null;
+		}
+		
 		/**
 		 * @private
 		 * 
@@ -654,5 +691,20 @@ package flashx.textLayout.model.style
 			return _description;
 		}
 
+	}
+}
+
+class BoxBorder {
+	
+	public var top:int;
+	public var left:int;
+	public var right:int;
+	public var bottom:int;
+	
+	public function BoxBorder() {}
+	
+	public function toBorderModel():Array
+	{
+		return [top, right, bottom, left];
 	}
 }

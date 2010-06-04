@@ -116,7 +116,12 @@ package flashx.textLayout.model.table
 			var borderWidth:Array = _style.getComputedStyle().getBorderStyle().borderWidth;
 			if( borderStyle.isUndefined( borderStyle.borderWidth ) )
 			{
-				if( _tableContext.attributes.hasProperty( "border" ) )
+				// Get determined border width. This fills an array of border based on super styles like border, borderTop, etc.
+				// If we have a determined border width object, we can use that.
+				var determinedBorderWidth:Array = borderStyle.getDeterminedBorderWidth();
+				if( determinedBorderWidth ) return determinedBorderWidth;
+				// Else search for undefined border and equate to either parent table border or computed border for default.
+				else if( _tableContext.attributes.hasProperty( "border" ) )
 				{
 					var b:Number = BoxModelStyleUtil.normalizeBorderUnit( _tableContext.attributes["border"] );
 					b = ( b != TableAttribute.DEFAULT_BORDER ) ? 1 : 0;
