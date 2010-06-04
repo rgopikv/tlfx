@@ -11,10 +11,12 @@ package flashx.textLayout.converter
 	import flashx.textLayout.elements.table.TableRowElement;
 	import flashx.textLayout.events.TagParserCleanCompleteEvent;
 	import flashx.textLayout.events.TagParserCleanProgressEvent;
+	import flashx.textLayout.model.attribute.IAttribute;
 	import flashx.textLayout.model.attribute.TableDataAttribute;
 	import flashx.textLayout.model.table.Table;
 	import flashx.textLayout.model.table.TableColumn;
 	import flashx.textLayout.model.table.TableData;
+	import flashx.textLayout.model.table.TableHeading;
 	import flashx.textLayout.model.table.TableRow;
 	import flashx.textLayout.tlf_internal;
 	import flashx.textLayout.utils.StyleAttributeUtil;
@@ -103,8 +105,8 @@ package flashx.textLayout.converter
 			{
 				cell.addChild( content[i] as FlowElement );
 			}
-			cell.getContext().attributes.modifyAttributes( parentingAttributes );
-			cell.getContext().attributes.modifyAttributes( parseAttributes( td ) );
+//			cell.getContext().attributes.modifyAttributes( parentingAttributes );
+			cell.getContext().modifyAttributes( parseAttributes( td ) );
 			_htmlImporter.importStyleHelper.assignInlineStyle( td, cell );
 			return cell;
 		}
@@ -120,7 +122,7 @@ package flashx.textLayout.converter
 		protected function parseTableHeading( th:XML, parentingAttributes:Object, table:Table ):TableDataElement
 		{
 			var cell:TableDataElement = new TableHeadingElement();
-			cell.tableDataModel = new TableData( table );
+			cell.tableDataModel = new TableHeading( table );
 			
 			var content:Array = parseToFlow( th.children() ).mxmlChildren;
 			var i:int;
@@ -128,8 +130,8 @@ package flashx.textLayout.converter
 			{
 				cell.addChild( content[i] as FlowElement );
 			}
-			cell.getContext().attributes.modifyAttributes( parentingAttributes );
-			cell.getContext().attributes.modifyAttributes( parseAttributes( th ) );
+//			cell.getContext().attributes.modifyAttributes( parentingAttributes );
+			cell.getContext().modifyAttributes( parseAttributes( th ) );
 			_htmlImporter.importStyleHelper.assignInlineStyle( th, cell );
 			return cell;
 		}
@@ -165,7 +167,8 @@ package flashx.textLayout.converter
 				if( tableData ) row.addChild( tableData );
 				tableData = null;
 			}
-			row.attributes.modifyAttributes( attributes );
+			row.tableRowModel = new TableRow( row.children() );
+			row.getContext().modifyAttributes( attributes );
 			// Styling.
 			// If there is a parent node, which can happen with tfoot, tbody and thead, concat styles with tr overridding.
 			if( parentNode != null )
@@ -371,7 +374,7 @@ package flashx.textLayout.converter
 				var xml:XML = XML( fragment );
 				// instantiate a new Table instance.
 				table = new Table();
-				table.context.modifyAttributes( parseAttributes( xml ) );
+				table.getContextImplementation().modifyAttributes( parseAttributes( xml ) );
 				
 				_htmlImporter.importStyleHelper.assignInlineStyle( xml, tableElement );
 				// parse into flat row array.

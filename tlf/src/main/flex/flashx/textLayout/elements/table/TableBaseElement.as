@@ -4,6 +4,7 @@ package flashx.textLayout.elements.table
 	
 	import flashx.textLayout.elements.ContainerFormattedElement;
 	import flashx.textLayout.events.InlineStyleEvent;
+	import flashx.textLayout.model.attribute.IAttribute;
 	import flashx.textLayout.model.style.IBoxModelUnitStyle;
 	import flashx.textLayout.model.style.ITableStyle;
 	import flashx.textLayout.model.style.InlineStyles;
@@ -11,7 +12,7 @@ package flashx.textLayout.elements.table
 	import flashx.textLayout.model.table.ITableBaseDecorationContext;
 	import flashx.textLayout.utils.StyleAttributeUtil;
 	
-	public class TableBaseElement extends ContainerFormattedElement
+	public class TableBaseElement extends ContainerFormattedElement implements ITableBaseElement
 	{
 		protected var _userStyles:Object;
 		protected var _context:ITableBaseDecorationContext;
@@ -159,6 +160,16 @@ package flashx.textLayout.elements.table
 		public function getContextStyle():ITableStyle
 		{
 			return _context.style;
+		}
+		
+		/**
+		 * Returns computed attributes of element and parentin elements. 
+		 * @return IAttribute
+		 */
+		public function getComputedAttributes():IAttribute
+		{
+			// abstract.
+			return _context.getDefinedAttributes();
 		}
 		
 		/**

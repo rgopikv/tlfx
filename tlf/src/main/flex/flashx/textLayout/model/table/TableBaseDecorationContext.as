@@ -1,7 +1,6 @@
 package flashx.textLayout.model.table
 {
 	import flashx.textLayout.model.attribute.IAttribute;
-	import flashx.textLayout.model.attribute.TableAttribute;
 	import flashx.textLayout.model.style.ITableStyle;
 	
 	/**
@@ -33,13 +32,22 @@ package flashx.textLayout.model.table
 		{
 			_attributes.modifyAttributes( overlay );
 		}
-		/**
-		 * @see ITableBaseDecorationContext#getStrippedAttributes
-		 */
-		public function getStrippedAttributes():Object
+		
+		public function getDefinedAttributes():IAttribute
 		{
-			return _attributes.getStrippedAttributes();
+			return _attributes.getDefinedAttributes();
 		}
+		
+		public function getDefaultAttributes():IAttribute
+		{
+			return _attributes.getDefaultAttributes();
+		}
+		
+		public function getFormattableAttributes():IAttribute
+		{
+			return _attributes.getFormattableAttributes();
+		}
+		
 		/**
 		 * @see ITableBaseDecorationContext#mergeStyle
 		 */

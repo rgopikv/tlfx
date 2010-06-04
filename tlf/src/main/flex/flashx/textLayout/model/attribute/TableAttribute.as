@@ -4,8 +4,6 @@ package flashx.textLayout.model.attribute
 
 	public class TableAttribute extends Attribute
 	{
-		public static var DEFAULTS:Object;
-		
 		public static const BORDER:String = "border"; // number
 		public static const CELLPADDING:String = "cellpadding"; // number
 		public static const CELLSPACING:String = "cellspacing"; // number
@@ -39,7 +37,7 @@ package flashx.textLayout.model.attribute
 		 * Returns a default filled in attribute object for a Table Data object.
 		 * @return TableDataAttribute
 		 */
-		public static function getDefaultAttributes():TableAttribute
+		override protected function getDefault():Object
 		{
 			var attributes:Object = {};
 			attributes[TableAttribute.BORDER] = TableAttribute.DEFAULT_BORDER;
@@ -50,40 +48,16 @@ package flashx.textLayout.model.attribute
 			attributes[TableAttribute.RULES] = TableAttribute.RULES_NONE;
 			attributes[TableAttribute.VALIGN] = TableAttribute.TOP;
 			attributes[TableAttribute.ALIGN] = TableAttribute.LEFT;
-			TableAttribute.DEFAULTS = attributes;
-			return new TableAttribute( Attribute.clone( attributes ) );
+			return attributes;
 		}
 		
 		/**
 		 * Constructor. 
 		 * @param attributes Object Optional initial attributes.
 		 */
-		public function TableAttribute( attributes:Object = null )
+		public function TableAttribute()
 		{
-			this.attributes = attributes || {};
-		}
-		
-		/**
-		 * @inherit
-		 */
-		override public function applyAttributesToFormat( format:TextLayoutFormat ):void
-		{
-			format.textAlign = attributes[TableAttribute.ALIGN];
-		}
-		
-		/**
-		 * @inherit
-		 */
-		override public function getStrippedAttributes():Object
-		{
-			var stripped:Object = {};
-			var attribute:String;
-			for( attribute in attributes )
-			{
-				if( attributes[attribute] != TableAttribute.DEFAULTS[attribute] )
-					stripped[attribute] = attributes[attribute];
-			}
-			return stripped;
+			super();
 		}
 	}
 }

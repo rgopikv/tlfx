@@ -38,7 +38,7 @@ package flashx.textLayout.model.table
 		 */
 		override protected function getDefaultAttributes():IAttribute
 		{
-			return TableAttribute.getDefaultAttributes();
+			return new TableAttribute();
 		}
 		
 		/**

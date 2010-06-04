@@ -264,6 +264,9 @@
     <classEntry path="flashx.textLayout.model.style.IBoxModelUnitStyle"/>
     <classEntry path="flashx.textLayout.utils.BoxModelUnitShorthandUtil"/>
     <classEntry path="flashx.textLayout.model.style.BoxModelShorthand"/>
+    <classEntry path="flashx.textLayout.model.table.TableHeading"/>
+    <classEntry path="flashx.textLayout.elements.table.ITableBaseElement"/>
+    <classEntry path="flashx.textLayout.utils.AttributeUtil"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests>

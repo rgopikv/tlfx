@@ -498,7 +498,7 @@ package flashx.textLayout.container.table
 		protected function positionTarget():void
 		{
 			// basing to wildcard in order to use Proxy.
-			var attributes:* = _tableDataContext.attributes;
+			var attributes:* = _data.getComputedAttributes();
 			switch( attributes.valign )
 			{
 				case TableDataAttribute.MIDDLE:
@@ -515,15 +515,15 @@ package flashx.textLayout.container.table
 			
 			switch( attributes.align )
 			{
-				case TableDataAttribute.LEFT:
-					targetDisplay.x = _tableDataContext.getLeftPadding();
+				case TableDataAttribute.CENTER:
+					targetDisplay.x = ( _width - _actualWidth ) / 2;
 					break;
 				case TableDataAttribute.RIGHT:
 					targetDisplay.x = _width - _actualWidth - _tableDataContext.getRightPadding();
 					break;
-				case TableDataAttribute.CENTER:
+				case TableDataAttribute.LEFT:
 				default:
-					targetDisplay.x = ( _width - _actualWidth ) / 2;
+					targetDisplay.x = _tableDataContext.getLeftPadding();
 					break;
 			}
 			// Default.

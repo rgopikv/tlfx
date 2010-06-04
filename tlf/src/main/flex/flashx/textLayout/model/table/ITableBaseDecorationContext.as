@@ -14,12 +14,10 @@ package flashx.textLayout.model.table
 		 * @param overlay Object
 		 */
 		function modifyAttributes( overlay:Object ):void;
-		/**
-		 * Returns a key/value object related to stripped attributes removed based on default values. 
-		 * @return Object
-		 */
-		function getStrippedAttributes():Object;
 		
+		function getDefinedAttributes():IAttribute;
+		function getDefaultAttributes():IAttribute;
+		function getFormattableAttributes():IAttribute;
 		/**
 		 * Merges the held ITableStyle instance with the overlay style.
 		 * @param overlay ITableStyle

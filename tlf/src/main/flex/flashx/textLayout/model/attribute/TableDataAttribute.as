@@ -8,8 +8,6 @@ package flashx.textLayout.model.attribute
 	 */
 	dynamic public class TableDataAttribute extends Attribute
 	{
-		public static var DEFAULTS:Object;
-		
 		public static const VALIGN:String = "valign";
 		public static const ALIGN:String = "align";
 		public static const ROWSPAN:String = "rowspan";
@@ -33,7 +31,7 @@ package flashx.textLayout.model.attribute
 		 * Returns a default filled in attribute object for a Table Data object.
 		 * @return TableDataAttribute
 		 */
-		public static function getDefaultAttributes():TableDataAttribute
+		override protected function getDefault():Object
 		{
 			var attributes:Object = {};
 			attributes[TableDataAttribute.VALIGN] = TableDataAttribute.MIDDLE;
@@ -42,40 +40,28 @@ package flashx.textLayout.model.attribute
 			attributes[TableDataAttribute.COLSPAN] = 1;
 //			attributes[TableDataAttribute.WIDTH] = TableDataAttribute.DEFAULT_DIMENSION;
 //			attributes[TableDataAttribute.HEIGHT] = TableDataAttribute.DEFAULT_DIMENSION;
-			TableDataAttribute.DEFAULTS = attributes;
-			return new TableDataAttribute( Attribute.clone( attributes ) );
+			return attributes;
 		}
 		
 		/**
 		 * Constructor. 
 		 * @param attributes Object Optional initial attributes.
 		 */
-		public function TableDataAttribute( attributes:Object = null )
+		public function TableDataAttribute()
 		{
-			this.attributes = attributes || {};
+			super();
 		}
 		
-		/**
-		 * @inherit
-		 */
-		override public function applyAttributesToFormat( format:TextLayoutFormat ):void
+		override public function getFormattableAttributes():IAttribute
 		{
-			format.textAlign = attributes[TableDataAttribute.ALIGN];
-		}
-		
-		/**
-		 * @inherit
-		 */
-		override public function getStrippedAttributes():Object
-		{
-			var stripped:Object = {};
-			var attribute:String;
-			for( attribute in attributes )
+			if( !isUndefined( TableDataAttribute.ALIGN ) )
 			{
-				if( attributes[attribute] != TableDataAttribute.DEFAULTS[attribute] )
-					stripped[attribute] = attributes[attribute];
+				if( _formattableAttribute == null )
+					_formattableAttribute = new Attribute();
+				
+				_formattableAttribute["textAlign"] = this[TableDataAttribute.ALIGN];
 			}
-			return stripped;
+			return _formattableAttribute;
 		}
 	}
 }

@@ -27,13 +27,10 @@ package flashx.textLayout.model.attribute
 		 */
 		function modifyAttributes( attributes:Object ):void;
 		/**
-		 * Applies any property vlaues to a TxtLayoutFormat instance as they relate to any attributes for the specified element. 
-		 * @param format TextLayoutFormat
-		 */
-		function applyAttributesToFormat( format:TextLayoutFormat ):void;
-		/**
 		 * Removes any attributes from the held map that equate to the default value for that property.
 		 */
-		function getStrippedAttributes():Object;
+		function getDefinedAttributes():IAttribute;
+		function getDefaultAttributes():IAttribute;
+		function getFormattableAttributes():IAttribute;
 	}
 }

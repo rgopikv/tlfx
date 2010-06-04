@@ -88,7 +88,7 @@ package flashx.textLayout.converter
 			var fragment:XML = <table />;
 			var tableElement:TableElement = value as TableElement;
 			var table:Table = tableElement.getTableModel();
-			FragmentAttributeUtil.assignAttributes( fragment, table.context.getStrippedAttributes() );
+			FragmentAttributeUtil.assignAttributes( fragment, table.context.getDefinedAttributes() );
 			
 			var tableRows:Vector.<TableRowElement> = tableElement.children();
 			var assembledRows:Vector.<TableRowElement> = new Vector.<TableRowElement>();

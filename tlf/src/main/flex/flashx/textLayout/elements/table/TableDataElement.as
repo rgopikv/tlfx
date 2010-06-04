@@ -18,6 +18,7 @@ package flashx.textLayout.elements.table
 	import flashx.textLayout.model.table.ITableDataDecorationContext;
 	import flashx.textLayout.model.table.TableData;
 	import flashx.textLayout.tlf_internal;
+	import flashx.textLayout.utils.AttributeUtil;
 	
 	use namespace tlf_internal;
 	public class TableDataElement extends TableBaseElement
@@ -99,6 +100,18 @@ package flashx.textLayout.elements.table
 		{
 			_tableData = value;
 			_context = _tableData.context;
+		}
+		
+		/**
+		 * Returns computed attributes of element and parentin elements. 
+		 * @return IAttribute
+		 */
+		override public function getComputedAttributes():IAttribute
+		{
+			var attributes:IAttribute = super.getComputedAttributes();
+			var parentAttributes:IAttribute = ( parent is ITableBaseElement ) ? ( parent as ITableBaseElement ).getComputedAttributes() : null;
+			if( parentAttributes == null ) return attributes;
+			return AttributeUtil.createFromMerge( _context.getDefaultAttributes(), attributes, parentAttributes );
 		}
 		
 		/**

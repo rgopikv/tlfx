@@ -8,8 +8,6 @@ package flashx.textLayout.model.attribute
 	 */
 	dynamic public class TableHeadingAttribute extends Attribute
 	{
-		public static var DEFAULTS:Object;
-		
 		public static const VALIGN:String = "valign";
 		public static const ALIGN:String = "align";
 		public static const ROWSPAN:String = "rowspan";
@@ -28,7 +26,7 @@ package flashx.textLayout.model.attribute
 		 * Returns default TableHeadingAttribute objetc 
 		 * @return TableHeadingAttribute
 		 */
-		public static function getDefaultAttributes():TableHeadingAttribute
+		override protected function getDefault():Object
 		{
 			var attributes:Object = {};
 			attributes[TableHeadingAttribute.VALIGN] = TableHeadingAttribute.MIDDLE;
@@ -37,40 +35,16 @@ package flashx.textLayout.model.attribute
 			attributes[TableHeadingAttribute.COLSPAN] = 1;
 			attributes[TableDataAttribute.WIDTH] = TableDataAttribute.DEFAULT_DIMENSION;
 			attributes[TableDataAttribute.HEIGHT] = TableDataAttribute.DEFAULT_DIMENSION;
-			TableHeadingAttribute.DEFAULTS = attributes;
-			return new TableHeadingAttribute( Attribute.clone( attributes ) );
+			return attributes;
 		}
 		
 		/**
 		 * Constructor. 
 		 * @param attributes Optional default attributes prop/val pairs.
 		 */
-		public function TableHeadingAttribute( attributes:Object = null )
+		public function TableHeadingAttribute()
 		{
-			this.attributes = attributes || {};
-		}
-		
-		/**
-		 * @inherit
-		 */
-		override public function applyAttributesToFormat( format:TextLayoutFormat ):void
-		{
-			format.textAlign = attributes[TableHeadingAttribute.ALIGN];
-		}
-		
-		/**
-		 * @inherit
-		 */
-		override public function getStrippedAttributes():Object
-		{
-			var stripped:Object = {};
-			var attribute:String;
-			for( attribute in attributes )
-			{
-				if( attributes[attribute] != TableHeadingAttribute.DEFAULTS[attribute] )
-					stripped[attribute] = attributes[attribute];
-			}
-			return stripped;
+			super();
 		}
 	}
 }
