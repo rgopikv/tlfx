@@ -222,8 +222,21 @@ package flashx.textLayout.elements
 		 
 		tlf_internal function get hasParagraphTerminator():Boolean
 		{
+			//	WAS
+//			var p:ParagraphElement = getParagraph();
+//			return (p && p.getLastLeaf() == this);
+			
+			//	KK	-	5/6/2010
+			//	Changed to allow for the paragraph terminator being ONLY the last character in any span
+			//	This allows elements based off of ParagraphElement without paragraph terminators to return the correct text length
 			var p:ParagraphElement = getParagraph();
-			return (p && p.getLastLeaf() == this); 
+			var textValue:String = _blockElement ? _blockElement.rawText : _text;
+			if ( textValue )
+			{
+				var lastChar:String = textValue.substring( textValue.length-1, textValue.length );
+				return (p && p.getLastLeaf() == this && lastChar == kParagraphTerminator);
+			}
+			return false;
 		}
 		
 		/** @private */

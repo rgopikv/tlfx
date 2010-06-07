@@ -13,6 +13,8 @@ package flashx.textLayout.format
 	import flashx.textLayout.elements.SpanElement;
 	import flashx.textLayout.elements.TextFlow;
 	import flashx.textLayout.elements.VarElement;
+	import flashx.textLayout.elements.list.ListElementX;
+	import flashx.textLayout.elements.list.ListItemElementX;
 	import flashx.textLayout.elements.table.TableDataElement;
 	import flashx.textLayout.elements.table.TableElement;
 	import flashx.textLayout.elements.table.TableHeadingElement;
@@ -96,6 +98,9 @@ package flashx.textLayout.format
 					break;
 				case ParagraphElement:
 					parentList = [TableDataElement, DivElement, TextFlow];
+					break;
+				case ListItemElementX:
+					parentList = [ListElementX, TextFlow];
 					break;
 				case DivElement:
 					parentList = [DivElement, TextFlow];
@@ -253,6 +258,8 @@ package flashx.textLayout.format
 					value = attribute.value;
 					style += property + StyleAttributeUtil.STYLE_PROPERTY_DELIMITER + value + StyleAttributeUtil.STYLE_DELIMITER;
 				}
+				applySelectorAttributes( node, element );
+//				return differingStyles.length > 0;
 			}
 			// Apply @style if key/value pairs are available.
 			if( StyleAttributeUtil.isValidStyleString( style ) ) 
