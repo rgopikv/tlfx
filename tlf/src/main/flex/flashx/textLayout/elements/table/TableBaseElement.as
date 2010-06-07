@@ -4,14 +4,18 @@ package flashx.textLayout.elements.table
 	
 	import flashx.textLayout.elements.ContainerFormattedElement;
 	import flashx.textLayout.events.InlineStyleEvent;
+	import flashx.textLayout.formats.ITextLayoutFormat;
+	import flashx.textLayout.formats.TextLayoutFormat;
 	import flashx.textLayout.model.attribute.IAttribute;
 	import flashx.textLayout.model.style.IBoxModelUnitStyle;
 	import flashx.textLayout.model.style.ITableStyle;
 	import flashx.textLayout.model.style.InlineStyles;
 	import flashx.textLayout.model.style.TableStyle;
 	import flashx.textLayout.model.table.ITableBaseDecorationContext;
+	import flashx.textLayout.tlf_internal;
 	import flashx.textLayout.utils.StyleAttributeUtil;
 	
+	use namespace tlf_internal;
 	public class TableBaseElement extends ContainerFormattedElement implements ITableBaseElement
 	{
 		protected var _userStyles:Object;
@@ -25,6 +29,26 @@ package flashx.textLayout.elements.table
 		{
 			super();
 			_pendingInitializationStyle = new TableStyle();
+		}
+		
+		protected function modifyFormatOnFormattableAttributes( attributes:IAttribute ):void
+		{
+			if( attributes == null ) return;
+			
+			var property:String;
+			for( property in attributes )
+			{
+				if( TextLayoutFormat.description.hasOwnProperty( property ) )
+				{
+					format[property] = attributes[property];
+				}
+			}
+		}
+		
+		override public function get computedFormat():ITextLayoutFormat
+		{		
+			if( _context ) modifyFormatOnFormattableAttributes( _context.getFormattableAttributes() );
+			return super.computedFormat;
 		}
 		
 		/**

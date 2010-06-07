@@ -1,6 +1,6 @@
 package flashx.textLayout.model.style
 {
-	public class TableDataStyle extends TableStyle
+	dynamic public class TableDataStyle extends TableStyle
 	{
 		public function TableDataStyle( border:* = undefined, padding:* = undefined )
 		{

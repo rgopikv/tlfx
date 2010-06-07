@@ -93,26 +93,6 @@ package flashx.textLayout.elements.table
 			}
 		}
 		
-		protected function modifyFormatOnFormattableAttributes( attributes:IAttribute ):void
-		{
-			if( attributes == null ) return;
-			
-			var property:String;
-			for( property in attributes )
-			{
-				if( TextLayoutFormat.description.hasOwnProperty( property ) )
-				{
-					format[property] = attributes[property];
-				}
-			}
-		}
-		
-		override public function get computedFormat():ITextLayoutFormat
-		{		
-			if( _context ) modifyFormatOnFormattableAttributes( _context.getFormattableAttributes() );
-			return super.computedFormat;
-		}
-		
 		/**
 		 * Returns reference to table model. 
 		 * @return Table

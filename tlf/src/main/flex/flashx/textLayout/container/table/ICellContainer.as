@@ -101,6 +101,9 @@ package flashx.textLayout.container.table
 		function get explicitHeight():Number;
 		function set explicitHeight( value:Number ):void;
 		
+		function get compositionWidth():Number;
+		function get compositionHeight():Number;
+		
 		/**
 		 * Accessor/Modifier for index of row which this cell resides.  
 		 * @return int
@@ -136,6 +139,13 @@ package flashx.textLayout.container.table
 		 * @return Number
 		 */
 		function get minimumHeight():Number;
+		
+		/**
+		 * Accessor/Modifier for maximum width alloted for cell based on layout context. 
+		 * @return Number
+		 */
+		function get maximumWidth():Number;
+		function set maximumWidth( value:Number ):void;
 		
 		/**
 		 * Sets the line break identifier used to recompose elements if line breaks available in a paste operation. 

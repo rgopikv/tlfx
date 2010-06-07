@@ -64,7 +64,7 @@ package flashx.textLayout.container.table
 		protected var background:Sprite;
 		protected var selectionBackground:Sprite;
 		protected var border:Shape;
-//		protected var actualBorder:Shape;
+		protected var actualBorder:Shape;
 		protected var _tableBorderRenderer:TableCellBorderRenderer;
 		
 		protected var targetDisplay:TableCellDisplay;
@@ -78,6 +78,7 @@ package flashx.textLayout.container.table
 		protected var _actualHeight:Number = 0;
 		
 		protected var _minimumWidth:Number = 0;
+		protected var _maximumWidth:Number = 1000000;
 		protected var _minimumHeight:Number = 0;
 		
 		protected var _rowIndex:int;
@@ -144,8 +145,8 @@ package flashx.textLayout.container.table
 			border = new Shape();
 			addChild( border );
 			
-//			actualBorder = new Shape();
-//			addChild( actualBorder );
+			actualBorder = new Shape();
+			addChild( actualBorder );
 			
 			// Create renderer for borders.
 			_tableBorderRenderer = new TableCellBorderRenderer( border, _tableDataContext );
@@ -375,7 +376,8 @@ package flashx.textLayout.container.table
 			{
 				element = ( elements.shift() as FlowElement );
 				previousFormat = new FlowValueHolder( ( element.format as FlowValueHolder ) );
-				element.format = ( element.format ) ? TextLayoutFormatUtils.mergeFormats( _data.computedFormat, element.format ) : _data.computedFormat;
+				var computedFormat:ITextLayoutFormat = _data.computedFormat;
+				element.format = ( element.format ) ? TextLayoutFormatUtils.mergeFormats( computedFormat, element.format ) : _data.computedFormat;
 				element.uid = _uid;
 				// Add to held list of elements.
 				elementList.push( CellElementPool.getCellElement( element, previousFormat ) );
@@ -513,25 +515,29 @@ package flashx.textLayout.container.table
 					break;
 			}
 			
-			switch( attributes.align )
-			{
-				case TableDataAttribute.CENTER:
-					targetDisplay.x = ( _width - _actualWidth ) / 2;
-					break;
-				case TableDataAttribute.RIGHT:
-					targetDisplay.x = _width - _actualWidth - _tableDataContext.getRightPadding();
-					break;
-				case TableDataAttribute.LEFT:
-				default:
-					targetDisplay.x = _tableDataContext.getLeftPadding();
-					break;
-			}
+			// Alignment is handled by formatting in line factory and the access of composition width which determines the container controller bounds. 
+			// THIS SWITCH HAS BEEN DEPRECATED. KEPT IN LINE AND COMMENTED FOR PRESERVATION.
+//			switch( attributes.align )
+//			{
+//				case TableDataAttribute.CENTER:
+//					targetDisplay.x = ( _width - _actualWidth ) / 2;
+//					break;
+//				case TableDataAttribute.RIGHT:
+//					targetDisplay.x = _width - _actualWidth - _tableDataContext.getRightPadding();
+//					break;
+//				case TableDataAttribute.LEFT:
+//				default:
+//					targetDisplay.x = _tableDataContext.getLeftPadding();
+//					break;
+//			}
 			// Default.
 			targetDisplay.y += _descent - 1;
+			// Just align along x axis based on left padding.
+			targetDisplay.x = _tableDataContext.getLeftPadding();
 			
-//			actualBorder.graphics.clear();
-//			actualBorder.graphics.lineStyle( 1, 0 );
-//			actualBorder.graphics.drawRect( targetDisplay.x, targetDisplay.y, _actualWidth, _actualHeight );
+			actualBorder.graphics.clear();
+			actualBorder.graphics.lineStyle( 1, 0 );
+			actualBorder.graphics.drawRect( targetDisplay.x, targetDisplay.y, compositionWidth, _actualHeight );
 		}
 		
 		/**
@@ -855,6 +861,16 @@ package flashx.textLayout.container.table
 			process( false );
 		}
 		
+		public function get compositionWidth():Number
+		{
+			return measuredWidth - _tableDataContext.getComputedWidthOfPaddingAndBorders();
+		}
+		
+		public function get compositionHeight():Number
+		{
+			return _actualHeight;
+		}
+		
 		/**
 		 * Accessor/Modifier to the direct controller managing this cell. Assign from composition of flow. 
 		 * @return ContainerController
@@ -930,6 +946,19 @@ package flashx.textLayout.container.table
 		{
 			var heightPadding:Number = _tableDataContext.getComputedHeightOfPaddingAndBorders();
 			return Math.ceil( _minimumHeight + heightPadding );
+		}
+		
+		/**
+		 * Accessor/Modifier for maximum allot width for cell based on layout context. 
+		 * @return Number
+		 */
+		public function get maximumWidth():Number
+		{
+			return _maximumWidth;
+		}
+		public function set maximumWidth( value:Number ):void
+		{
+			_maximumWidth = value;
 		}
 		
 		/**

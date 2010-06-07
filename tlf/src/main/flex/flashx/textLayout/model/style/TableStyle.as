@@ -118,8 +118,8 @@ package flashx.textLayout.model.style
 			}
 			// compute styles for border qand padding.
 			use namespace tlf_internal;
-			_style.borderStyle = _borderStyle.getComputedStyle();
-			_style.paddingStyle = _paddingStyle.getComputedStyle();
+			_style.setBorderStyle( _borderStyle.getComputedStyle() );
+			_style.setPaddingStyle( _paddingStyle.getComputedStyle() );
 			return _style;
 		}
 		
@@ -241,7 +241,7 @@ package flashx.textLayout.model.style
 		{
 			return _borderStyle;
 		}
-		tlf_internal function set borderStyle( value:IBorderStyle ):void
+		tlf_internal function setBorderStyle( value:IBorderStyle ):void
 		{
 			_borderStyle = value;
 		}
@@ -250,7 +250,7 @@ package flashx.textLayout.model.style
 		{
 			return _paddingStyle;
 		}
-		tlf_internal function set paddingStyle( value:IPaddingStyle ):void
+		tlf_internal function setPaddingStyle( value:IPaddingStyle ):void
 		{
 			_paddingStyle = value;
 		}

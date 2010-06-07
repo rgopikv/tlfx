@@ -199,20 +199,14 @@ package flashx.textLayout.model.table
 			var width:Number = getDefinedWidth();
 			if( isNaN( width ) )
 			{
-				if( !_tableContext.style.isUndefined( _tableContext.style.width ) )
+				var maxTableWidth:Number = _parentModel.maximumWidth;
+				if( !isNaN( maxTableWidth ) )
 				{
-					// determine the width based on table style width and column span.
-					var fixedWidth:Number = _tableContext.style.width;
-					width = fixedWidth / _attributes[TableDataAttribute.COLSPAN];
+					width = Math.min( cell.maximumWidth, maxTableWidth ) - getComputedWidthOfPaddingAndBorders();
 				}
 				else
 				{
-					// determine the amount of width available for cell based on maximum width of table and column span.
-					var maxWidth:Number = _parentModel.maximumWidth;
-					if( !isNaN( maxWidth ) )
-					{
-						width = _parentModel.maximumColumnWidth / _attributes[TableDataAttribute.COLSPAN];
-					}
+					width = cell.maximumWidth;
 				}
 			}
 			return width;
