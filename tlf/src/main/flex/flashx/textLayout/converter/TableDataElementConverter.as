@@ -16,7 +16,7 @@ package flashx.textLayout.converter
 	 */
 	public class TableDataElementConverter
 	{
-		// TODO: Set inline styles.
+		// TODO: Deprecated.
 		/**
 		 * @private
 		 * 
@@ -73,7 +73,7 @@ package flashx.textLayout.converter
 				var el:InlineGraphicElement = element as InlineGraphicElement;
 				tag = <img source={el.source} width={el.width} height={el.height} />;
 			}
-			StyleAttributeUtil.assignStylesFromElement( tag, element );
+//			StyleAttributeUtil.assignStylesFromElement( tag, element );
 			return tag;
 		}
 		

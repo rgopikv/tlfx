@@ -13,6 +13,8 @@ package flashx.textLayout.utils
 	import flashx.textLayout.elements.TextFlow;
 	import flashx.textLayout.formats.ITextLayoutFormat;
 	import flashx.textLayout.formats.TextLayoutFormat;
+	import flashx.textLayout.model.style.ITableStyle;
+	import flashx.textLayout.model.style.TableStyle;
 	import flashx.textLayout.tlf_internal;
 
 	/**
@@ -152,91 +154,35 @@ package flashx.textLayout.utils
 		}
 		
 		/**
-		 * Assigns styles from FlowElement as individual attributes on tag. 
-		 * @param tag XML
-		 * @param element FlowElement
+		 * Creates or appends styles from a box model style for table-base elements into a @style attribute for the node fragment. 
+		 * @param fragment XML
+		 * @param styles ITableStyle
 		 */
-		public static function assignStylesFromElement( tag:XML, element:FlowElement ):void
+		public static function assembleTableBaseStyles( fragment:XML, styles:ITableStyle ):void
 		{
-			var styles:Array = [];
-			if( isValidStyleString( element.fontFamily ) )
-				styles.push( "font-family:" + element.fontFamily );
-			if( isValidStyleString( element.fontWeight ) )
-				styles.push( "font-weight:" + element.fontWeight );
-			if( isValidStyleString( element.fontStyle ) )
-				styles.push( "font-style:" + element.fontStyle );
-			if( isValidStyleString( element.textDecoration ) )
-				styles.push( "text-decoration:" + element.textDecoration );
-			if( isValidStyleNumber( element.color ) )
-				styles.push( "color:#" + element.color.toString( 16 ) );
-			if( isValidFontSize( element.fontSize ) )
-				styles.push( "font-size:" + element.fontSize + "px" );
-			if( isValidStyleString( element.textAlign ) )
-				styles.push( "text-align:" + element.textAlign );
-			
-			if( styles.length > 0 )
+			var styleDefinition:String = "";
+			var definition:Vector.<String> = TableStyle.fullDefinition;
+			var property:String;
+			for each( property in definition )
 			{
-				var i:int;
-				var keyValues:Array;
-				var attribute:String;
-				var value:String;
-				for( i = 0; i < styles.length; i++ )
+				if( styles[property] )
 				{
-					keyValues = styles[i].split( StyleAttributeUtil.STYLE_PROPERTY_DELIMITER );
-					attribute = StyleAttributeUtil.camelize( keyValues[0] );
-					value = keyValues[1].toString();
-					tag["@" + attribute] = value;
+					styleDefinition += StyleAttributeUtil.assembleStyleProperty( property, styles[property] );
 				}
 			}
-		}
-		
-		/**
-		 * Strips out any style property attributes and pushes then to a @style attribute. 
-		 * @param tag XML
-		 */
-		static public function assignAttributesAsStyle( tag:XML ):void
-		{
-			var fontFamily:String = tag.@fontFamily;
-			var fontWeight:String = tag.@fontWeight;
-			var fontStyle:String = tag.@fontStyle;
-			var textDecoration:String = tag.@textDecoration;
-			var color:String = tag.@color;
-			var fontSize:String = String( tag.@fontSize ).replace( "px", "" );
-			var textAlign:String = tag.@textAlign;
+			// If no styles, move on.
+			if( !StyleAttributeUtil.isValidStyleString( styleDefinition ) ) return;
 			
-			var styles:Array = [];
-			if( isValidStyleString( fontFamily ) )
-				styles.push( "font-family:" + fontFamily );
-			if( isValidStyleString( fontWeight ) )
-				styles.push( "font-weight:" + fontWeight );
-			if( isValidStyleString( fontStyle ) )
-				styles.push( "font-style:" + fontStyle );
-			if( isValidStyleString( textDecoration ) )
-				styles.push( "text-decoration:" + textDecoration );
-			if( isValidStyleString( color ) )
-				styles.push( "color:" + color );
-			if( isValidFontSize( fontSize ) )
-				styles.push( "font-size:" + fontSize + "px" );
-			if( isValidStyleString( textAlign ) )
-				styles.push( "text-align:" + textAlign );
-			
-			if( styles.length > 0 )
+			// If @style currently existant, append.
+			if( StyleAttributeUtil.isValidStyleString( fragment.@style ) )
 			{
-				var style:String = styles.join(StyleAttributeUtil.STYLE_DELIMITER);
-				if( isValidStyleString( tag.@style ) )
-				{
-					style = tag.@style + StyleAttributeUtil.STYLE_DELIMITER + style;
-				}
-				tag.@style = style;
+				fragment.@style += styleDefinition;
 			}
-			
-			delete tag.@fontFamily;
-			delete tag.@fontWeight;
-			delete tag.@fontStyle;
-			delete tag.@textDecoration;
-			delete tag.@color;
-			delete tag.@fontSize;
-			delete tag.@textAlign;
+			// Else add new @style attribute.
+			else
+			{
+				fragment.@style = styleDefinition;
+			}
 		}
 		
 		/**

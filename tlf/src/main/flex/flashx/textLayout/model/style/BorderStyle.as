@@ -690,7 +690,6 @@ package flashx.textLayout.model.style
 			}
 			return _description;
 		}
-
 	}
 }
 

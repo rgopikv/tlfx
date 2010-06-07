@@ -109,7 +109,7 @@ package flashx.textLayout.elements.table
 		
 		override public function get computedFormat():ITextLayoutFormat
 		{		
-			modifyFormatOnFormattableAttributes( _context.getFormattableAttributes() );
+			if( _context ) modifyFormatOnFormattableAttributes( _context.getFormattableAttributes() );
 			return super.computedFormat;
 		}
 		

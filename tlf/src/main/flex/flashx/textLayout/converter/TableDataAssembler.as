@@ -2,7 +2,9 @@ package flashx.textLayout.converter
 {
 	import flashx.textLayout.elements.table.TableDataElement;
 	import flashx.textLayout.elements.table.TableHeadingElement;
+	import flashx.textLayout.model.attribute.IAttribute;
 	import flashx.textLayout.model.attribute.TableHeadingAttribute;
+	import flashx.textLayout.model.style.ITableStyle;
 	import flashx.textLayout.model.table.ITableBaseDecorationContext;
 	import flashx.textLayout.model.table.Table;
 	import flashx.textLayout.utils.FragmentAttributeUtil;
@@ -59,10 +61,17 @@ package flashx.textLayout.converter
 		{
 			var td:TableDataElement = value as TableDataElement;
 			var tdContext:ITableBaseDecorationContext = td.getContext();
+			var attributes:IAttribute = tdContext.getDefinedAttributes();
+			var styles:ITableStyle = tdContext.style;
 			var fragment:XML = ( td is TableHeadingElement ) ? <th /> : <td />;
+			// Export along with styles.
 			htmlExporter.exportElementsToFragment( fragment, td.mxmlChildren );
+			// Surgery on HTML compliant @source attribute from Flash @src
 			replaceImageSourceAttribute( fragment );
-			FragmentAttributeUtil.removeAttributesFromFragment( fragment, tdContext.getDefinedAttributes() );
+			// Assign defined attributes.
+			FragmentAttributeUtil.assignAttributes( fragment, attributes );
+			StyleAttributeUtil.assembleTableBaseStyles( fragment, styles );
+			// Stylize td or th element tag.
 			htmlExporter.exportStyleHelper.applyStyleAttributesFromElement( fragment, td );
 			return fragment.toXMLString();
 		}

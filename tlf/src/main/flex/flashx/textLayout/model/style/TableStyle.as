@@ -36,6 +36,7 @@ package flashx.textLayout.model.style
 		protected var _defaultPadding:int = 0;
 		
 		private static var _description:Vector.<String>;
+		private static var _fullDescription:Vector.<String>;
 		
 		/**
 		 * Constructor.
@@ -316,6 +317,21 @@ package flashx.textLayout.model.style
 				}
 			}
 			return _description;
+		}
+		
+		/**
+		 * Returns full property list definitions of this and child styles, such as border and padding. 
+		 * @return Vector.<String>
+		 */
+		static public function get fullDefinition():Vector.<String>
+		{
+			if( !_fullDescription )
+			{
+				_fullDescription = TableStyle.definition;
+				_fullDescription = _fullDescription.concat( BorderStyle.definition );
+				_fullDescription = _fullDescription.concat( PaddingStyle.definition );
+			}
+			return _fullDescription;
 		}
 	}
 }
