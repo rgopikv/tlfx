@@ -45,7 +45,7 @@ package flashx.textLayout.format
 			}
 			catch( e:Error )
 			{
-				trace( "[" + getQualifiedClassName( this ) + "] :: Style property of type '" + property + "' can not be set on " + getQualifiedClassName( format ) + "." );
+				//trace( "[" + getQualifiedClassName( this ) + "] :: Style property of type '" + property + "' can not be set on " + getQualifiedClassName( format ) + "." );
 			}
 		}
 		

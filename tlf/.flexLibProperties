@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <flexLibProperties includeAllClasses="false" version="3">
   <includeClasses>
     <classEntry path="flash.text.ime.CompositionAttributeRange"/>
@@ -107,6 +107,7 @@
     <classEntry path="flashx.textLayout.elements.FlowValueHolder"/>
     <classEntry path="flashx.textLayout.elements.GlobalSettings"/>
     <classEntry path="flashx.textLayout.elements.GreetingElement"/>
+    <classEntry path="flashx.textLayout.elements.HeaderElement"/>
     <classEntry path="flashx.textLayout.elements.IConfiguration"/>
     <classEntry path="flashx.textLayout.elements.IFormatResolver"/>
     <classEntry path="flashx.textLayout.elements.IListElement"/>
@@ -130,6 +131,9 @@
     <classEntry path="flashx.textLayout.elements.TextFlow"/>
     <classEntry path="flashx.textLayout.elements.TextRange"/>
     <classEntry path="flashx.textLayout.elements.VarElement"/>
+    <classEntry path="flashx.textLayout.elements.list.ListElementX"/>
+    <classEntry path="flashx.textLayout.elements.list.ListItemElementX"/>
+    <classEntry path="flashx.textLayout.elements.list.ListPaddingElement"/>
     <classEntry path="flashx.textLayout.elements.table.ITableElementManager"/>
     <classEntry path="flashx.textLayout.elements.table.TableDataElement"/>
     <classEntry path="flashx.textLayout.elements.table.TableElement"/>
@@ -149,6 +153,7 @@
     <classEntry path="flashx.textLayout.events.TagParserCleanProgressEvent"/>
     <classEntry path="flashx.textLayout.events.TextLayoutEvent"/>
     <classEntry path="flashx.textLayout.events.UpdateCompleteEvent"/>
+    <classEntry path="flashx.textLayout.events.UpdateEvent"/>
     <classEntry path="flashx.textLayout.events.table.TableCellContainerEvent"/>
     <classEntry path="flashx.textLayout.events.table.TableCellFocusEvent"/>
     <classEntry path="flashx.textLayout.events.variable.GreetingEditEvent"/>
