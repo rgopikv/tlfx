@@ -35,6 +35,8 @@ package flashx.textLayout.model.style
 		protected var _defaultBorderWidth:int = 0;
 		protected var _defaultPadding:int = 0;
 		
+		protected var _exportablePropertyList:Array;
+		
 		private static var _description:Vector.<String>;
 		private static var _fullDescription:Vector.<String>;
 		
@@ -47,6 +49,7 @@ package flashx.textLayout.model.style
 			_paddingStyle = new PaddingStyle( _defaultPadding, padding );
 			
 			_weightedRules = [];
+			_exportablePropertyList = ["width", "height"];
 		}
 		
 		protected function getDefaultBorderStyle():String
@@ -121,6 +124,29 @@ package flashx.textLayout.model.style
 			_style.setBorderStyle( _borderStyle.getComputedStyle() );
 			_style.setPaddingStyle( _paddingStyle.getComputedStyle() );
 			return _style;
+		}
+		
+		public function getDeterminedStyle():ITableStyle
+		{
+			var style:TableStyle = copy() as TableStyle;
+			use namespace tlf_internal;
+			style.setBorderStyle( _borderStyle.getDeterminedStyle() );
+			style.setPaddingStyle( _paddingStyle.getDeterminedStyle() );
+			return style;
+		}
+		
+		public function getExportableStyle():Object
+		{
+			var exportableStyle:Object = {};
+			var i:int = _exportablePropertyList.length;
+			var property:String;
+			while( --i > -1 )
+			{
+				property = _exportablePropertyList[i];
+				if( this[property] )
+					exportableStyle[property] = this[property];
+			}
+			return exportableStyle;
 		}
 		
 		/**
@@ -277,7 +303,26 @@ package flashx.textLayout.model.style
 		
 		override public function defineWeight( weightedRules:Array ):void
 		{
-			_borderStyle.defineWeight( weightedRules );	
+			_weightedRules = weightedRules;
+			_borderStyle.defineWeight( _weightedRules );	
+		}
+		
+		public function copy():ITableStyle
+		{
+			var style:ITableStyle = new TableStyle();
+			var description:Vector.<String> = TableStyle.definition;
+			var property:String;
+			for each( property in description )
+			{
+				if( this[property] )
+					style[property] = this[property];
+			}
+			
+			style.defineWeight( _weightedRules );
+			use namespace tlf_internal;
+			( style as TableStyle ).setBorderStyle( _borderStyle );
+			( style as TableStyle ).setPaddingStyle( _paddingStyle );
+			return style;
 		}
 		
 		/**

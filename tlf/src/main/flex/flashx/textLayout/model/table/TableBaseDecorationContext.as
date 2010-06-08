@@ -47,7 +47,6 @@ package flashx.textLayout.model.table
 		{
 			return _attributes.getFormattableAttributes();
 		}
-		
 		/**
 		 * @see ITableBaseDecorationContext#mergeStyle
 		 */

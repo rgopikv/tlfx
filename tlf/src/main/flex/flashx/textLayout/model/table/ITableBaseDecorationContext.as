@@ -18,6 +18,7 @@ package flashx.textLayout.model.table
 		function getDefinedAttributes():IAttribute;
 		function getDefaultAttributes():IAttribute;
 		function getFormattableAttributes():IAttribute;
+		
 		/**
 		 * Merges the held ITableStyle instance with the overlay style.
 		 * @param overlay ITableStyle

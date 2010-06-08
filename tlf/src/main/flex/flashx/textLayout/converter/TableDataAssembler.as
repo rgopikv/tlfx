@@ -62,15 +62,14 @@ package flashx.textLayout.converter
 			var td:TableDataElement = value as TableDataElement;
 			var tdContext:ITableBaseDecorationContext = td.getContext();
 			var attributes:IAttribute = tdContext.getDefinedAttributes();
-			var styles:ITableStyle = tdContext.style;
 			var fragment:XML = ( td is TableHeadingElement ) ? <th /> : <td />;
 			// Export along with styles.
 			htmlExporter.exportElementsToFragment( fragment, td.mxmlChildren );
-			// Surgery on HTML compliant @source attribute from Flash @src
+			// Surgery on HTML compliant @src attribute from Flash @source
 			replaceImageSourceAttribute( fragment );
 			// Assign defined attributes.
 			FragmentAttributeUtil.assignAttributes( fragment, attributes );
-			StyleAttributeUtil.assembleTableBaseStyles( fragment, styles );
+			StyleAttributeUtil.assembleTableBaseStyles( fragment, td );
 			// Stylize td or th element tag.
 			htmlExporter.exportStyleHelper.applyStyleAttributesFromElement( fragment, td );
 			return fragment.toXMLString();

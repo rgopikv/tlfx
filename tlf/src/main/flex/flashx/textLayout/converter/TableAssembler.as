@@ -5,6 +5,7 @@ package flashx.textLayout.converter
 	import flashx.textLayout.model.table.Table;
 	import flashx.textLayout.model.table.TableRow;
 	import flashx.textLayout.utils.FragmentAttributeUtil;
+	import flashx.textLayout.utils.StyleAttributeUtil;
 	
 	/**
 	 * TableAssembler is an ITagAssembler implementation to convert a model representation of a Table into valid HTML markup. 
@@ -89,6 +90,7 @@ package flashx.textLayout.converter
 			var tableElement:TableElement = value as TableElement;
 			var table:Table = tableElement.getTableModel();
 			FragmentAttributeUtil.assignAttributes( fragment, table.context.getDefinedAttributes() );
+			StyleAttributeUtil.assembleTableBaseStyles( fragment, tableElement );
 			
 			var tableRows:Vector.<TableRowElement> = tableElement.children();
 			var assembledRows:Vector.<TableRowElement> = new Vector.<TableRowElement>();

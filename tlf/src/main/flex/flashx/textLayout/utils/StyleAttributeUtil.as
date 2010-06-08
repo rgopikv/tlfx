@@ -1,21 +1,11 @@
 package flashx.textLayout.utils
 {
-	import flash.utils.describeType;
-	import flash.utils.getQualifiedClassName;
-	
-	import flashx.textLayout.elements.DivElement;
 	import flashx.textLayout.elements.FlowElement;
-	import flashx.textLayout.elements.FlowGroupElement;
-	import flashx.textLayout.elements.FlowValueHolder;
-	import flashx.textLayout.elements.LinkElement;
-	import flashx.textLayout.elements.ParagraphElement;
-	import flashx.textLayout.elements.SpanElement;
-	import flashx.textLayout.elements.TextFlow;
-	import flashx.textLayout.formats.ITextLayoutFormat;
-	import flashx.textLayout.formats.TextLayoutFormat;
+	import flashx.textLayout.elements.table.TableBaseElement;
 	import flashx.textLayout.model.style.ITableStyle;
+	import flashx.textLayout.model.style.InlineStyles;
 	import flashx.textLayout.model.style.TableStyle;
-	import flashx.textLayout.tlf_internal;
+	import flashx.textLayout.model.table.ITableBaseDecorationContext;
 
 	/**
 	 * StyleAttributeUtil is a utility class to work with style attribute on HTML fragments. 
@@ -27,6 +17,18 @@ package flashx.textLayout.utils
 		public static const DASH:String = "-";
 		public static const STYLE_DELIMITER:String = ";";
 		public static const STYLE_PROPERTY_DELIMITER:String = ":";
+		
+		static public function getExplicitStyle( element:FlowElement ):Object
+		{
+			if( element.userStyles )
+			{
+				if( element.userStyles.inline as InlineStyles )
+				{
+					return ( element.userStyles.inline as InlineStyles ).explicitStyle;
+				}
+			}
+			return null;
+		}
 		
 		/**
 		 * Determines the validity of a style property value. 
@@ -156,19 +158,19 @@ package flashx.textLayout.utils
 		/**
 		 * Creates or appends styles from a box model style for table-base elements into a @style attribute for the node fragment. 
 		 * @param fragment XML
-		 * @param styles ITableStyle
+		 * @param element TableBaseElement
 		 */
-		public static function assembleTableBaseStyles( fragment:XML, styles:ITableStyle ):void
+		public static function assembleTableBaseStyles( fragment:XML, element:TableBaseElement ):void
 		{
+			var context:ITableBaseDecorationContext = element.getContext();
+			var style:ITableStyle = context.style;
+			var exportableStyle:Object = style.getExportableStyle();
+			
 			var styleDefinition:String = "";
-			var definition:Vector.<String> = TableStyle.fullDefinition;
 			var property:String;
-			for each( property in definition )
+			for( property in exportableStyle )
 			{
-				if( styles[property] )
-				{
-					styleDefinition += StyleAttributeUtil.assembleStyleProperty( property, styles[property] );
-				}
+				styleDefinition += StyleAttributeUtil.assembleStyleProperty( property, exportableStyle[property] );
 			}
 			// If no styles, move on.
 			if( !StyleAttributeUtil.isValidStyleString( styleDefinition ) ) return;

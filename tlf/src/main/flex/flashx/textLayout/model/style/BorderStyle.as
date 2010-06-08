@@ -107,6 +107,17 @@ package flashx.textLayout.model.style
 			return _style;
 		}
 		
+		public function getDeterminedStyle():IBorderStyle
+		{
+			var style:IBorderStyle = copy();
+			var i:int;
+			for( i = 0; i < _weightedRules.length; i++ )
+			{
+				modifyStyleOnRule( style, _weightedRules[i] );
+			}
+			return style;
+		}
+		
 		public function getDeterminedBorderWidth():Array
 		{
 			var boxBorder:BoxBorder;
@@ -640,6 +651,20 @@ package flashx.textLayout.model.style
 				if( definition.indexOf( propertyRule ) != -1 )
 					_weightedRules.push( propertyRule );
 			}
+		}
+		
+		protected function copy():IBorderStyle
+		{
+			var style:IBorderStyle = new BorderStyle( _defaultStyle, _defaultColor, _defaultWidth );
+			style.defineWeight( _weightedRules );
+			var description:Vector.<String> = BorderStyle.definition;
+			var property:String;
+			for each( property in description )
+			{
+				if( this[property] )
+					style[property] = this[property];
+			}
+			return style;
 		}
 		
 		/**

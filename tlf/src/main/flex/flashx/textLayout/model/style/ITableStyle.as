@@ -13,6 +13,18 @@ package flashx.textLayout.model.style
 		function getComputedStyle():ITableStyle;
 		
 		/**
+		 * Returns the determined style based on supplied values. This does not fill the current style but appropriates applied styles. 
+		 * @return ITableStyle
+		 */
+		function getDeterminedStyle():ITableStyle;
+		
+		/**
+		 * Returns a filled generic object of non-undefined properties specified as exportable for style attribute application. 
+		 * @return Object
+		 */
+		function getExportableStyle():Object;
+		
+		/**
 		 * Accessor/Modifier for the border collapse property. 
 		 * @return String
 		 */
@@ -45,5 +57,7 @@ package flashx.textLayout.model.style
 		
 		function getBorderStyle():IBorderStyle;
 		function getPaddingStyle():IPaddingStyle;
+		
+		function copy():ITableStyle;
 	}
 }

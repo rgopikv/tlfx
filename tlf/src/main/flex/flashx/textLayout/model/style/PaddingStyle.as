@@ -71,6 +71,12 @@ package flashx.textLayout.model.style
 			return _style;
 		}
 		
+		public function getDeterminedStyle():IPaddingStyle
+		{
+			var style:IPaddingStyle = copy();
+			return style;
+		}
+		
 		/**
 		 * @private
 		 * 
@@ -184,6 +190,19 @@ package flashx.textLayout.model.style
 				if( isUndefined( this[property] ) )
 					this[property] = style[property];
 			}
+		}
+		
+		protected function copy():IPaddingStyle
+		{
+			var style:IPaddingStyle = new PaddingStyle( _defaultPadding );
+			var description:Vector.<String> = PaddingStyle.definition;
+			var property:String;
+			for each( property in description )
+			{
+				if( this[property] )
+					style[property] = this[property];
+			}
+			return style;
 		}
 		
 		/**

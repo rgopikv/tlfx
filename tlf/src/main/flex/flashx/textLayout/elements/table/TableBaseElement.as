@@ -19,6 +19,8 @@ package flashx.textLayout.elements.table
 	public class TableBaseElement extends ContainerFormattedElement implements ITableBaseElement
 	{
 		protected var _userStyles:Object;
+		protected var _explicitTableStyle:ITableStyle;
+		
 		protected var _context:ITableBaseDecorationContext;
 		protected var _pendingInitializationStyle:ITableStyle;
 		
@@ -90,13 +92,14 @@ package flashx.textLayout.elements.table
 			var property:String;	
 			var styleProperty:String;
 			var requiresUpdate:Boolean;
+			var determinedStyle:ITableStyle = (_explicitTableStyle) ? _explicitTableStyle : tableStyle;
 			for( property in appliedStyle )
 			{
 				try 
 				{
 					styleProperty = StyleAttributeUtil.camelize(property);
 					// Only ovewrite if not explicitly set which happens when reading in explicit style from @style attribute.
-					if( tableStyle.isUndefined( tableStyle[styleProperty] ) )
+					if( determinedStyle.isUndefined( determinedStyle[styleProperty] ) )
 					{
 						requiresUpdate = true;
 						tableStyle[styleProperty] = appliedStyle[property];
@@ -132,12 +135,14 @@ package flashx.textLayout.elements.table
 			var styleProperty:String;
 			var requiresUpdate:Boolean;
 			var style:ITableStyle = ( _context ) ? _context.style : _pendingInitializationStyle;
+			var weight:Array = [];
 			for( property in explicitStyle )
 			{
 				try 
 				{
 					styleProperty = StyleAttributeUtil.camelize(property);
 					style[styleProperty] = explicitStyle[property];
+					weight.push( styleProperty );
 					requiresUpdate = true;
 				}
 				catch( e:Error )
@@ -145,6 +150,10 @@ package flashx.textLayout.elements.table
 					trace( "[" + getQualifiedClassName( this ) + "] :: Style property of type '" + property + "' cannot be set on " + getQualifiedClassName( style ) + "." );
 				}
 			}
+			style.defineWeight( weight );
+			// Store a reference to explicitly set style as it is determined with properties.
+			// Determined styles fill properties related to other properties, liek setting the multipart border, which will fill other properties.
+			_explicitTableStyle = style.getDeterminedStyle();
 			return requiresUpdate;
 		}
 		
@@ -202,6 +211,7 @@ package flashx.textLayout.elements.table
 		public function dispose():void
 		{	
 			_userStyles = null;
+			_explicitTableStyle = null;
 			_context = null;
 			_pendingInitializationStyle = null;
 		}

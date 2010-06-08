@@ -7,6 +7,8 @@ package flashx.textLayout.model.style
 		 * @return IPaddingStyle
 		 */
 		function getComputedStyle( forceNew:Boolean = false ):IPaddingStyle;
+		
+		function getDeterminedStyle():IPaddingStyle;
 		/**
 		 * Accessor/Modifier for the padding property. 
 		 * @param value *
