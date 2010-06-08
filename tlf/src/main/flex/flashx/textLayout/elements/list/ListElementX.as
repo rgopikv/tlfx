@@ -220,9 +220,8 @@ package flashx.textLayout.elements.list
 			}
 		}
 		
-		public function export():XML
+		public function export():String
 		{
-			var xml:XML;
 			var xmlStr:String = '';
 			
 			var items:Array = listItems;
@@ -233,9 +232,6 @@ package flashx.textLayout.elements.list
 			var prevItem:ListItemElementX;
 			
 			var appendChild:int;
-			
-			XML.prettyPrinting = false;
-			XML.ignoreWhitespace = false;
 			
 			for ( var i:int = 0; i < items.length; i++ )
 			{
@@ -311,11 +307,7 @@ package flashx.textLayout.elements.list
 			//	Ensure that everything is properly closed
 			xmlStr = cleanExport( xmlStr );
 			
-			xml = new XML( xmlStr );
-			
-			XML.prettyPrinting = true;
-			
-			return xml;
+			return xmlStr;
 		}
 		
 		protected function cleanExport( value:String ):String
