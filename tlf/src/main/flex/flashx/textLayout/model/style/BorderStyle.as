@@ -640,7 +640,6 @@ package flashx.textLayout.model.style
 				if( definition.indexOf( propertyRule ) != -1 )
 					_weightedRules.push( propertyRule );
 			}
-			trace( "Border weighted rules: " + _weightedRules );
 		}
 		
 		/**

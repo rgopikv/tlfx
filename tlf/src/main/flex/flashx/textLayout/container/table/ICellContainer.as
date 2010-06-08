@@ -29,6 +29,9 @@ package flashx.textLayout.container.table
 		 */
 		function update():void;
 		
+		function measureOnWidth( width:Number ):void;
+		function measureOnHeight( height:Number ):void;
+		
 		/**
 		 * Returns target display for the cell. 
 		 * @return Sprite
@@ -75,17 +78,15 @@ package flashx.textLayout.container.table
 		function set actualHeight( value:Number ):void;
 		
 		/**
-		 * Accessor/Mutator for actual width of display size for the outerlying cell. 
+		 * Accessor for actual width of display size for the outerlying cell. 
 		 * @return Number
 		 */
 		function get measuredWidth():Number;
-		function set measuredWidth( value:Number ):void;
 		/**
-		 * Accessor/Mutator for actual height of display size for the outerlying cell. 
+		 * Accessor for actual height of display size for the outerlying cell. 
 		 * @return Number
 		 */
 		function get measuredHeight():Number;
-		function set measuredHeight( value:Number ):void;
 		
 		/**
 		 * Accessor/Modifier for the explicitly set width size on the cell attribute. 
