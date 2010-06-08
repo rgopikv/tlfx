@@ -71,7 +71,7 @@ package flashx.textLayout.utils
 			value = value.replace( /DarkKhaki/ig, '#BDB76B' );
 			value = value.replace( /DarkMagenta/ig, '#8B008B' );
 			value = value.replace( /DarkOliveGreen/ig, '#556B2F' );
-			value = value.replace( /Darkorange/ig, '#FF8C00' );
+			value = value.replace( /DarkOrange/ig, '#FF8C00' );
 			value = value.replace( /DarkOrchid/ig, '#9932CC' );
 			value = value.replace( /DarkRed/ig, '#8B0000' );
 			value = value.replace( /DarkSalmon/ig, '#E9967A' );

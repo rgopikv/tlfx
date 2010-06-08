@@ -556,7 +556,8 @@ package flashx.textLayout.container.table
 			var widthPadding:Number = _tableDataContext.getComputedWidthOfPaddingAndBorders();
 			var heightPadding:Number = _tableDataContext.getComputedHeightOfPaddingAndBorders();
 			// Redfine height on updated values.
-			_height = _actualHeight + heightPadding;
+			// Since we can grow in height, we run a max on explicit defined height and actual height.
+			_height = Math.max( getDefinedHeight( _actualHeight + heightPadding ), _actualHeight + heightPadding );
 			// Redefin width on updated values.
 			_width = getDefinedWidth( _actualWidth + widthPadding );
 		}
@@ -852,7 +853,6 @@ package flashx.textLayout.container.table
 		public function set explicitWidth( value:Number ):void
 		{
 			_tableDataContext.setDefinedWidth( Math.ceil( value ) );
-//			measuredWidth = Math.ceil( value );
 			process( false );
 		}
 		
@@ -868,7 +868,6 @@ package flashx.textLayout.container.table
 		public function set explicitHeight( value:Number ):void
 		{
 			_tableDataContext.setDefinedHeight( Math.ceil( value ) );
-//			measuredHeight = Math.ceil( value );
 			process( false );
 		}
 		

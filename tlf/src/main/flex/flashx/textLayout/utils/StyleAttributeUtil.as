@@ -166,12 +166,22 @@ package flashx.textLayout.utils
 			var style:ITableStyle = context.style;
 			var exportableStyle:Object = style.getExportableStyle();
 			
+			// Apply exportable styles.
 			var styleDefinition:String = "";
 			var property:String;
 			for( property in exportableStyle )
 			{
 				styleDefinition += StyleAttributeUtil.assembleStyleProperty( property, exportableStyle[property] );
 			}
+			// Run through style definition.
+			var explicitStyles:Object = StyleAttributeUtil.getExplicitStyle( element );
+			var description:Vector.<String> = TableStyle.fullDefinition;
+			for each( property in description )
+			{
+				if( explicitStyles.hasOwnProperty( property ) )
+					styleDefinition += StyleAttributeUtil.assembleStyleProperty( property, explicitStyles[property] );
+			}
+			
 			// If no styles, move on.
 			if( !StyleAttributeUtil.isValidStyleString( styleDefinition ) ) return;
 			
