@@ -23,6 +23,7 @@ package flashx.textLayout.utils
 		static public function export( value:* ):*
 		{
 			var charMatch:Array = value.toString().match( /[^0-9]/ );
+			// If just a straight number, default to px as that is the most liekely unit token used within the Flash movie.
 			if( !charMatch || charMatch.length == 0 )
 				return value.toString() + "px";
 			

@@ -165,8 +165,9 @@ package flashx.textLayout.utils
 			var context:ITableBaseDecorationContext = element.getContext();
 			var style:ITableStyle = context.style;
 			var exportableStyle:Object = style.getExportableStyle();
-			
 			var explicitStyles:Object = StyleAttributeUtil.getExplicitStyle( element );
+			var styleDefinition:String = "";
+			var property:String;
 			// Run through style definition.
 			var description:Vector.<String> = TableStyle.fullDefinition;
 			for each( property in description )
@@ -182,8 +183,6 @@ package flashx.textLayout.utils
 			}
 			
 			// Apply exportable styles.
-			var styleDefinition:String = "";
-			var property:String;
 			for( property in exportableStyle )
 			{
 				styleDefinition += StyleAttributeUtil.assembleStyleProperty( property, exportableStyle[property] );
