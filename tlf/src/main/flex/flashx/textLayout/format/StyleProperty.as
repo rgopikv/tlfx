@@ -99,7 +99,7 @@ package flashx.textLayout.format
 					value = ColorValueUtil.normalizeForCSS( value );
 					break;
 				case "fontSize":
-					value = value + "px";
+					value = DimensionTokenUtil.export( value );
 					break;
 				case "textAlign":
 					if( value == TextAlign.START )
