@@ -51,6 +51,11 @@ package flashx.textLayout.model.attribute
 			return attributes;
 		}
 		
+		override protected function getDimensionAttributes():Array
+		{
+			return [TableAttribute.WIDTH, TableAttribute.HEIGHT];
+		}
+		
 		/**
 		 * Constructor. 
 		 * @param attributes Object Optional initial attributes.

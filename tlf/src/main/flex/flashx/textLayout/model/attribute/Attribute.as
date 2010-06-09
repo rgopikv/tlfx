@@ -5,6 +5,7 @@ package flashx.textLayout.model.attribute
 	import flash.utils.flash_proxy;
 	
 	import flashx.textLayout.formats.TextLayoutFormat;
+	import flashx.textLayout.utils.DimensionTokenUtil;
 	
 	/**
 	 * Attribute is a class repesentation of a base map of attributes associated with an HTML element. 
@@ -21,6 +22,9 @@ package flashx.textLayout.model.attribute
 		protected var _defaultedAttribute:IAttribute;
 		
 		protected var _formattableAttribute:IAttribute;
+		
+		protected var _dimensionAttributeList:Array;
+		
 		/**
 		 * Flat list of attributes to be used in for... loops accessing property on this dynamic instance.
 		 */
@@ -33,12 +37,19 @@ package flashx.textLayout.model.attribute
 		{
 			attributes = {};
 			defaultAttributes = getDefault();
+			_dimensionAttributeList = getDimensionAttributes();
 		}
 		
 		protected function getDefault():Object
 		{
 			// abstract.
 			return {};
+		}
+		
+		protected function getDimensionAttributes():Array
+		{
+			// abstract.
+			return [];
 		}
 		
 		/**
@@ -60,10 +71,14 @@ package flashx.textLayout.model.attribute
 		override flash_proxy function getProperty(name:*):*
 		{
 			var propertyName:String = ( name is QName ) ? ( name as QName ).localName : name;
-			if( isUndefined( propertyName ) )
-				return defaultAttributes[propertyName];
+			var value:*;
 			
-			return attributes[propertyName];
+			if( isUndefined( propertyName ) )
+				value = defaultAttributes[propertyName];
+			else 
+				value = attributes[propertyName];
+			
+			return value;
 		}
 		
 		override flash_proxy function deleteProperty(name:*):Boolean

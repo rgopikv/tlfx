@@ -13,6 +13,14 @@ package flashx.textLayout.model.table
 	public class TableData extends TableModelBase
 	{
 		protected var _parentingTable:Table;
+		
+		/**
+		 * Dimensions are preserved for exporting sake and related to the area of which the cell holds content.
+		 * These properties are changed on update to related cell containers. 
+		 */
+		public var width:Number;
+		public var height:Number;
+		
 		/**
 		 *Constructor.
 		 */

@@ -7,6 +7,7 @@ package flashx.textLayout.converter
 	import flashx.textLayout.model.style.ITableStyle;
 	import flashx.textLayout.model.table.ITableBaseDecorationContext;
 	import flashx.textLayout.model.table.Table;
+	import flashx.textLayout.model.table.TableData;
 	import flashx.textLayout.utils.FragmentAttributeUtil;
 	import flashx.textLayout.utils.StyleAttributeUtil;
 
@@ -60,8 +61,10 @@ package flashx.textLayout.converter
 		public function createFragment(value:*):String
 		{
 			var td:TableDataElement = value as TableDataElement;
+			var dataModel:TableData = td.getTableDataModel();
 			var tdContext:ITableBaseDecorationContext = td.getContext();
 			var attributes:IAttribute = tdContext.getDefinedAttributes();
+			
 			var fragment:XML = ( td is TableHeadingElement ) ? <th /> : <td />;
 			// Export along with styles.
 			htmlExporter.exportElementsToFragment( fragment, td.mxmlChildren );
@@ -70,8 +73,10 @@ package flashx.textLayout.converter
 			// Assign defined attributes.
 			FragmentAttributeUtil.assignAttributes( fragment, attributes );
 			StyleAttributeUtil.assembleTableBaseStyles( fragment, td );
+			StyleAttributeUtil.assignDimensionsToTableBaseStyles( fragment, dataModel.width, dataModel.height );
 			// Stylize td or th element tag.
 			htmlExporter.exportStyleHelper.applyStyleAttributesFromElement( fragment, td );
+			
 			return fragment.toXMLString();
 		}
 	}

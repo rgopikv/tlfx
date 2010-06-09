@@ -8,6 +8,7 @@ package flashx.textLayout.model.table
 	import flashx.textLayout.model.style.IPaddingStyle;
 	import flashx.textLayout.model.style.ITableStyle;
 	import flashx.textLayout.utils.BoxModelStyleUtil;
+	import flashx.textLayout.utils.DimensionTokenUtil;
 	
 	public class TableDataDecorationContext extends TableBaseDecorationContext implements ITableDataDecorationContext
 	{
@@ -148,15 +149,16 @@ package flashx.textLayout.model.table
 		
 		public function getDefinedWidth():Number
 		{
-			var width:Number = Number.NaN;
+			var width:* = Number.NaN;
 			if( !_style.isUndefined( _style.width ) )
 			{
-				width = _style.width;
+				width = DimensionTokenUtil.normalize(_style.width);
 			}
 			else if( !_attributes.isUndefined( TableDataAttribute.WIDTH ) )
 			{
 				width = _attributes[TableDataAttribute.WIDTH];
 				_style.width = width;
+				width = DimensionTokenUtil.normalize(width);
 				delete _attributes[TableDataAttribute.WIDTH];
 			}
 			return width;
@@ -164,15 +166,16 @@ package flashx.textLayout.model.table
 		
 		public function getDefinedHeight():Number
 		{
-			var height:Number = Number.NaN;
+			var height:* = Number.NaN;
 			if( !_style.isUndefined( _style.height ) )
 			{
-				height = _style.height;
+				height = DimensionTokenUtil.normalize(_style.height);
 			}
 			else if( !_attributes.isUndefined( TableDataAttribute.HEIGHT ) )
 			{
 				height = _attributes[TableDataAttribute.HEIGHT];
 				_style.height = height;
+				height = DimensionTokenUtil.normalize( height.toString() )
 				delete _attributes[TableDataAttribute.HEIGHT];
 			}
 			return height;

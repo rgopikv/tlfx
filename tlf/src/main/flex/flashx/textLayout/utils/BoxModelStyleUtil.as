@@ -10,13 +10,10 @@ package flashx.textLayout.utils
 		{
 			if( value is String )
 			{
-				if( value.indexOf( "px" ) != -1 )
+				var unit:Number = DimensionTokenUtil.normalize( value.toString() );
+				if( !isNaN( unit ) )
 				{
-					value = value.replace( "px", "" );
-				}
-				else if( value.indexOf( "pt" ) != -1 )
-				{
-					value = Number(value.replace("pt","")) * 96 / 72;
+					value = unit;
 				}	
 				else
 				{

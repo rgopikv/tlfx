@@ -1,27 +1,21 @@
 package flashx.textLayout.container.table
 {
-	import flash.display.BlendMode;
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
 	import flash.display.InteractiveObject;
-	import flash.display.Loader;
 	import flash.display.Shape;
 	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.events.MouseEvent;
-	import flash.events.TimerEvent;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	import flash.text.engine.TextLine;
-	import flash.utils.Timer;
 	
 	import flashx.textLayout.container.ContainerController;
 	import flashx.textLayout.container.ISizableContainer;
-	import flashx.textLayout.conversion.TextConverter;
 	import flashx.textLayout.converter.IHTMLImporter;
 	import flashx.textLayout.edit.SelectionState;
 	import flashx.textLayout.elements.Configuration;
-	import flashx.textLayout.elements.DivElement;
 	import flashx.textLayout.elements.FlowElement;
 	import flashx.textLayout.elements.FlowGroupElement;
 	import flashx.textLayout.elements.FlowValueHolder;
@@ -30,27 +24,17 @@ package flashx.textLayout.container.table
 	import flashx.textLayout.elements.SpanElement;
 	import flashx.textLayout.elements.TextFlow;
 	import flashx.textLayout.elements.table.TableDataElement;
-	import flashx.textLayout.elements.table.TableHeadingElement;
 	import flashx.textLayout.events.table.TableCellContainerEvent;
 	import flashx.textLayout.events.table.TableCellFocusEvent;
 	import flashx.textLayout.factory.TextFlowTextLineFactory;
 	import flashx.textLayout.formats.ITextLayoutFormat;
-	import flashx.textLayout.formats.TextAlign;
-	import flashx.textLayout.formats.TextLayoutFormat;
-	import flashx.textLayout.model.attribute.IAttribute;
-	import flashx.textLayout.model.attribute.TableAttribute;
 	import flashx.textLayout.model.attribute.TableDataAttribute;
 	import flashx.textLayout.model.style.IBorderStyle;
 	import flashx.textLayout.model.style.ITableStyle;
-	import flashx.textLayout.model.table.ITableBaseDecorationContext;
 	import flashx.textLayout.model.table.ITableDataDecorationContext;
 	import flashx.textLayout.model.table.ITableDecorationContext;
 	import flashx.textLayout.model.table.TableBorderLeg;
-	import flashx.textLayout.model.table.TableBorderRenderer;
 	import flashx.textLayout.model.table.TableCellBorderRenderer;
-	import flashx.textLayout.tlf_internal;
-	import flashx.textLayout.utils.FragmentAttributeUtil;
-	import flashx.textLayout.utils.StyleAttributeUtil;
 	import flashx.textLayout.utils.TextLayoutFormatUtils;
 	
 	[Event(name="cellResize", type="com.constantcontact.texteditor.event.TableCellContainerEvent")]
@@ -209,6 +193,10 @@ package flashx.textLayout.container.table
 		{
 			decorate( w, h );
 			positionTarget();
+			
+			// Update model based dimension references.
+			_data.getTableDataModel().width = getDefinedWidth( w );
+			_data.getTableDataModel().height = getDefinedHeight( h );
 		}
 		
 		/**
@@ -222,7 +210,6 @@ package flashx.textLayout.container.table
 			selectionBackground.graphics.beginFill( ( _selected ) ? 0xccccff : 0xFFFFFF, ( selected ) ? 1 : 0 );
 			selectionBackground.graphics.drawRect( 0, 0, _width, _height );
 			selectionBackground.graphics.endFill();
-//			selectionBackground.blendMode = ( _selected ) ? BlendMode.INVERT : BlendMode.NORMAL;
 			
 			// If we have multi-select than update selection to encompass the whole range of the cell.
 			if( _selected )

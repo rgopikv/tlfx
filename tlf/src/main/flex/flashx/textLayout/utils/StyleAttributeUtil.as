@@ -166,20 +166,27 @@ package flashx.textLayout.utils
 			var style:ITableStyle = context.style;
 			var exportableStyle:Object = style.getExportableStyle();
 			
+			var explicitStyles:Object = StyleAttributeUtil.getExplicitStyle( element );
+			// Run through style definition.
+			var description:Vector.<String> = TableStyle.fullDefinition;
+			for each( property in description )
+			{
+				if( explicitStyles.hasOwnProperty( property ) )
+				{
+					styleDefinition += StyleAttributeUtil.assembleStyleProperty( property, explicitStyles[property] );
+					// If we are already defining a style explicitly set, check if we have an exportable style waiting in the queue.
+					// If so, remove it, our work is already done.
+					if( exportableStyle.hasOwnProperty( property ) )
+						delete exportableStyle[property];
+				}
+			}
+			
 			// Apply exportable styles.
 			var styleDefinition:String = "";
 			var property:String;
 			for( property in exportableStyle )
 			{
 				styleDefinition += StyleAttributeUtil.assembleStyleProperty( property, exportableStyle[property] );
-			}
-			// Run through style definition.
-			var explicitStyles:Object = StyleAttributeUtil.getExplicitStyle( element );
-			var description:Vector.<String> = TableStyle.fullDefinition;
-			for each( property in description )
-			{
-				if( explicitStyles.hasOwnProperty( property ) )
-					styleDefinition += StyleAttributeUtil.assembleStyleProperty( property, explicitStyles[property] );
 			}
 			
 			// If no styles, move on.
@@ -194,6 +201,37 @@ package flashx.textLayout.utils
 			else
 			{
 				fragment.@style = styleDefinition;
+			}
+		}
+		
+		/**
+		 * Appends dimension style to fragment for table base element. 
+		 * @param fragment XML
+		 * @param width Number
+		 * @param height Number
+		 */
+		static public function assignDimensionsToTableBaseStyles( fragment:XML, width:Number, height:Number ):void
+		{
+			var styleString:String = fragment.@style;
+			var w:String = DimensionTokenUtil.export( width );
+			var h:String = DimensionTokenUtil.export( height );
+			if( StyleAttributeUtil.isValidStyleString( styleString ) )
+			{
+				var styles:Object = StyleAttributeUtil.parseStyles( styleString );
+				if( !styles.hasOwnProperty( "width" ) )
+				{
+					fragment.@style += StyleAttributeUtil.assembleStyleProperty( "width", w );	
+				}
+				if( !styles.hasOwnProperty( "height" ) ) 
+				{
+					fragment.@style += StyleAttributeUtil.assembleStyleProperty( "height", h );	
+				}
+			}
+			else
+			{
+				styleString += StyleAttributeUtil.assembleStyleProperty( "width", w );
+				styleString += StyleAttributeUtil.assembleStyleProperty( "height", h );
+				fragment.@style = styleString;
 			}
 		}
 		

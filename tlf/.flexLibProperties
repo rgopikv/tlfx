@@ -267,6 +267,7 @@
     <classEntry path="flashx.textLayout.model.table.TableHeading"/>
     <classEntry path="flashx.textLayout.elements.table.ITableBaseElement"/>
     <classEntry path="flashx.textLayout.utils.AttributeUtil"/>
+    <classEntry path="flashx.textLayout.utils.DimensionTokenUtil"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests>
