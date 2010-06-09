@@ -164,7 +164,6 @@ package flashx.textLayout.utils
 		{
 			var context:ITableBaseDecorationContext = element.getContext();
 			var style:ITableStyle = context.style;
-			var exportableStyle:Object = style.getExportableStyle();
 			var explicitStyles:Object = StyleAttributeUtil.getExplicitStyle( element );
 			var styleDefinition:String = "";
 			var property:String;
@@ -175,17 +174,7 @@ package flashx.textLayout.utils
 				if( explicitStyles.hasOwnProperty( property ) )
 				{
 					styleDefinition += StyleAttributeUtil.assembleStyleProperty( property, explicitStyles[property] );
-					// If we are already defining a style explicitly set, check if we have an exportable style waiting in the queue.
-					// If so, remove it, our work is already done.
-					if( exportableStyle.hasOwnProperty( property ) )
-						delete exportableStyle[property];
 				}
-			}
-			
-			// Apply exportable styles.
-			for( property in exportableStyle )
-			{
-				styleDefinition += StyleAttributeUtil.assembleStyleProperty( property, exportableStyle[property] );
 			}
 			
 			// If no styles, move on.
@@ -217,21 +206,21 @@ package flashx.textLayout.utils
 			if( StyleAttributeUtil.isValidStyleString( styleString ) )
 			{
 				var styles:Object = StyleAttributeUtil.parseStyles( styleString );
-				if( !styles.hasOwnProperty( "width" ) )
+				styles["width"] = w;
+				styles["height"] = h;
+				styleString = "";
+				var property:String;
+				for( property in styles )
 				{
-					fragment.@style += StyleAttributeUtil.assembleStyleProperty( "width", w );	
-				}
-				if( !styles.hasOwnProperty( "height" ) ) 
-				{
-					fragment.@style += StyleAttributeUtil.assembleStyleProperty( "height", h );	
+					styleString += StyleAttributeUtil.assembleStyleProperty( property, styles[property] );
 				}
 			}
 			else
 			{
 				styleString += StyleAttributeUtil.assembleStyleProperty( "width", w );
 				styleString += StyleAttributeUtil.assembleStyleProperty( "height", h );
-				fragment.@style = styleString;
 			}
+			fragment.@style = styleString
 		}
 		
 		/**
