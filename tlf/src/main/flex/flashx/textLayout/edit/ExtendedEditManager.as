@@ -175,7 +175,10 @@ package flashx.textLayout.edit
 							list.update();
 					}
 					else
+					{
 						super.keyDownHandler(event);
+						return;
+					}
 					break;
 				case Keyboard.ENTER:
 					if ( items.length > 0 )
@@ -193,7 +196,6 @@ package flashx.textLayout.edit
 						
 						var first:ListItemElementX;
 						var last:ListItemElementX;
-						
 						
 						if ( startItem.modifiedTextLength == 0 )
 						{
@@ -276,73 +278,14 @@ package flashx.textLayout.edit
 							//	Single line
 							else
 							{
-//								if ( startItem.modifiedTextLength == 0 )
-//								{
-//									for ( i = 0; i < list.numChildren; i++ )
-//									{
-//										if ( list.getChildAt(i) is ListItemElementX )
-//										{
-//											first = list.getChildAt(i) as ListItemElementX;
-//											break;
-//										}
-//									}
-//									
-//									for ( i = list.numChildren-1; i > -1; i-- )
-//									{
-//										if ( list.getChildAt(i) is ListItemElementX )
-//										{
-//											last = list.getChildAt(i) as ListItemElementX;
-//											break;
-//										}
-//									}
-//									
-//									p = new ParagraphElement();
-//									
-//									if ( startItem == first )
-//										list.parent.addChildAt( list.parent.getChildIndex(list), p );
-//									else if ( startItem == last )
-//										list.parent.addChildAt( list.parent.getChildIndex(list)+1, p );
-//									else
-//									{
-//										start = list.getChildIndex(startItem);
-//										
-//										endList = new ListElementX();
-//										list.parent.addChildAt( list.parent.getChildIndex(list)+1, endList );
-//										
-//										list.parent.addChildAt( list.parent.getChildIndex(list)+1, p );
-//										
-//										for ( i = list.numChildren-1; i > start; i-- )
-//										{
-//											if ( list.getChildAt(i) is ListItemElementX )
-//												endList.addChildAt( 0, list.removeChildAt(i) );
-//										}
-//										
-//										endList.update();
-//									}
-//									
-//									list.removeChild(startItem);
-//									list.update();
-//									
-//									textFlow.flowComposer.updateAllControllers();
-//									
-//									endList.update();
-//									list.update();
-//									
-//									setSelectionState( new SelectionState( textFlow, p.getAbsoluteStart(), p.getAbsoluteStart() ) );
-//									
-//									return;
-//								}
-//								else
-//								{
-									deleteText( new SelectionState( textFlow, absoluteStart, absoluteEnd ) );
-									
-									//	AbsoluteStart is cursor position, subtract from that the startItem's actual start (start of text)
-									//	Then add on the length of the seperator span (usually 3 or 4, depending on mode)
-									newItem = startItem.splitAtPosition( absoluteStart-startItem.actualStart+startItem.seperatorLength ) as ListItemElementX;
-									newItem.mode = startItem.mode;
-									newItem.indent = startItem.indent;
-									newItem.correctChildren();
-//								}
+								deleteText( new SelectionState( textFlow, absoluteStart, absoluteEnd ) );
+								
+								//	AbsoluteStart is cursor position, subtract from that the startItem's actual start (start of text)
+								//	Then add on the length of the seperator span (usually 3 or 4, depending on mode)
+								newItem = startItem.splitAtPosition( absoluteStart-startItem.actualStart+startItem.seperatorLength ) as ListItemElementX;
+								newItem.mode = startItem.mode;
+								newItem.indent = startItem.indent;
+								newItem.correctChildren();
 							}
 							
 							list.update();
@@ -354,124 +297,70 @@ package flashx.textLayout.edit
 						//	Multiple lists
 						else
 						{
-//							if ( startItem.modifiedTextLength == 0 )
-//							{
-//								for ( i = 0; i < list.numChildren; i++ )
-//								{
-//									if ( list.getChildAt(i) is ListItemElementX )
-//									{
-//										first = list.getChildAt(i) as ListItemElementX;
-//										break;
-//									}
-//								}
-//								
-//								for ( i = list.numChildren-1; i > -1; i-- )
-//								{
-//									if ( list.getChildAt(i) is ListItemElementX )
-//									{
-//										last = list.getChildAt(i) as ListItemElementX;
-//										break;
-//									}
-//								}
-//								
-//								p = new ParagraphElement();
-//								
-//								if ( startItem == first )
-//									list.parent.addChildAt( list.parent.getChildIndex(list), p );
-//								else if ( startItem == last )
-//									list.parent.addChildAt( list.parent.getChildIndex(list)+1, p );
-//								else
-//								{
-//									start = list.getChildIndex(startItem);
-//									
-//									endList = new ListElementX();
-//									list.parent.addChildAt( list.parent.getChildIndex(list)+1, endList );
-//									
-//									list.parent.addChildAt( list.parent.getChildIndex(list)+1, p );
-//									
-//									for ( i = list.numChildren-1; i > start; i-- )
-//									{
-//										if ( list.getChildAt(i) is ListItemElementX )
-//											endList.addChildAt( 0, list.removeChildAt(i) );
-//									}
-//									
-//									endList.update();
-//								}
-//								
-//								list.removeChild(startItem);
-//								list.update();
-//								
-//								textFlow.flowComposer.updateAllControllers();
-//								
-//								endList.update();
-//								list.update();
-//								
-//								setSelectionState( new SelectionState( textFlow, p.getAbsoluteStart(), p.getAbsoluteStart() ) );
-//								
-//								return;
-//							}
-//							else
-//							{
-								//	Delete text between lists
-								deleteText( new SelectionState( textFlow, list.getAbsoluteStart() + list.textLength, endList.getAbsoluteStart() ) );
+							//	Delete text between lists
+							deleteText( new SelectionState( textFlow, list.getAbsoluteStart() + list.textLength, endList.getAbsoluteStart() ) );
+							
+							//	Handle removing / reseting items
+							for ( i = items.length-1; i > -1; i-- )
+							{
+								item = items[i];
 								
-								//	Handle removing / reseting items
-								for ( i = items.length-1; i > -1; i-- )
+								//	Reset text (start)
+								if ( i == 0 )
 								{
-									item = items[i];
-									
-									//	Reset text (start)
-									if ( i == 0 )
-									{
-										deleteText( new SelectionState( textFlow, absoluteStart, item.actualStart + item.text.length ) );
-									}
-									//	Reset text (end)
-									else if ( i == items.length-1 )
-									{
-										deleteText( new SelectionState( textFlow, item.actualStart, absoluteEnd ) );
-									}
-									//	Delete
-									else
-									{
-										item.parent.removeChild(item);
-									}
+									deleteText( new SelectionState( textFlow, absoluteStart, item.actualStart + item.text.length ) );
 								}
-								
-								//	Children to shift from endList to list
-								var children:Vector.<ListItemElementX> = new Vector.<ListItemElementX>();
-								
-								for ( i = endList.numChildren-2; i > 0; i-- )
-									children.push( endList.removeChildAt(i) as ListItemElementX );
-								
-								//	New child from hitting enter
-								newItem = new ListItemElementX();
-								newItem.mode = startItem.mode;
-								newItem.indent = startItem.indent;
-								children.push( newItem );
-								
-								children.reverse();
-								
-								var lastItem:ListItemElementX = list.getChildAt(list.numChildren-2) as ListItemElementX;
-								var firstItem:ListItemElementX = children[0];
-								
-								var increaseIndent:Boolean = lastItem.mode != firstItem.mode;
-								
-								for ( i = 0; i < children.length; i++ )
+								//	Reset text (end)
+								else if ( i == items.length-1 )
 								{
-									if ( increaseIndent )
-										children[i].indent += 24;
-									list.addChild( children[i] );
+									deleteText( new SelectionState( textFlow, item.actualStart, absoluteEnd ) );
 								}
-								
-								list.update();
-								
-								var selPoint:uint = Math.min( newItem.actualStart+newItem.text.length-1, textFlow.textLength-1 );
-								setSelectionState( new SelectionState( textFlow, selPoint, selPoint ) );
-//							}
+								//	Delete
+								else
+								{
+									item.parent.removeChild(item);
+								}
+							}
+							
+							//	Children to shift from endList to list
+							var children:Vector.<ListItemElementX> = new Vector.<ListItemElementX>();
+							
+							for ( i = endList.numChildren-2; i > 0; i-- )
+								children.push( endList.removeChildAt(i) as ListItemElementX );
+							
+							//	New child from hitting enter
+							newItem = new ListItemElementX();
+							newItem.mode = startItem.mode;
+							newItem.indent = startItem.indent;
+							children.push( newItem );
+							
+							children.reverse();
+							
+							var lastItem:ListItemElementX = list.getChildAt(list.numChildren-2) as ListItemElementX;
+							var firstItem:ListItemElementX = children[0];
+							
+							var increaseIndent:Boolean = lastItem.mode != firstItem.mode;
+							
+							for ( i = 0; i < children.length; i++ )
+							{
+								if ( increaseIndent )
+									children[i].indent += 24;
+								list.addChild( children[i] );
+							}
+							
+							list.update();
+							
+							notifyInsertOrDelete( list.getAbsoluteStart(), list.textLength );
+							
+							var selPoint:uint = Math.min( newItem.actualStart+newItem.text.length-1, textFlow.textLength-1 );
+							setSelectionState( new SelectionState( textFlow, selPoint, selPoint ) );
 						}
 					}
 					else
+					{
 						super.keyDownHandler(event);
+						return;
+					}
 					break;
 				case Keyboard.BACKSPACE:
 					if ( items.length > 0 )
@@ -608,7 +497,10 @@ package flashx.textLayout.edit
 								}
 							}
 							else
+							{
 								super.keyDownHandler(event);
+								return;
+							}
 						}
 						//	Selection
 						else
@@ -643,7 +535,10 @@ package flashx.textLayout.edit
 						}
 					}
 					else
+					{
 						super.keyDownHandler(event);
+						return;
+					}
 					break;
 				case Keyboard.DELETE:
 					if ( items.length > 0 )
@@ -761,7 +656,10 @@ package flashx.textLayout.edit
 								list.update();
 							}
 							else
+							{
 								super.keyDownHandler(event);
+								return;
+							}
 						}
 						//	Selection
 						else
@@ -786,7 +684,10 @@ package flashx.textLayout.edit
 						}
 					}
 					else
+					{
 						super.keyDownHandler(event);
+						return;
+					}
 					
 					cleanEmptyLists( textFlow );
 					
@@ -798,6 +699,7 @@ package flashx.textLayout.edit
 					break;
 				default:
 					super.keyDownHandler( event );
+					return;
 					break;
 			}
 			
