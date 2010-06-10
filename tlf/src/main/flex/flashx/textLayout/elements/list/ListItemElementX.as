@@ -387,7 +387,8 @@ package flashx.textLayout.elements.list
 		
 		public function get modifiedTextLength():uint
 		{
-			return textLength - getChildAt(0).textLength;
+			//	Changed to textLength-2 because after implementation of Tidy (as of 6/10/2010) I noticed the text length was incorrect.
+			return Math.max((textLength-2) - seperatorLength, 0);
 		}
 		
 		public function set indent( value:uint ):void

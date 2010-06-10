@@ -129,7 +129,7 @@ package flashx.textLayout.edit
 										if ( startItem.indent > item.indent )
 										{
 											endItem = getLastIndentedListItem(startItem, item);
-											if ( endItem.mode != startItem.mode && Math.max(0, startItem.indent-24) <= endItem.indent )
+											if ( endItem && endItem.mode != startItem.mode && Math.max(0, startItem.indent-24) <= endItem.indent )
 												startItem.mode = endItem.mode;
 											startItem.indent = Math.max(0, startItem.indent-24);
 										}
@@ -173,6 +173,9 @@ package flashx.textLayout.edit
 						
 						for each ( list in lists )
 							list.update();
+						
+						textFlow.flowComposer.updateAllControllers();
+						return;
 					}
 					else
 					{
@@ -378,6 +381,42 @@ package flashx.textLayout.edit
 							//	At start
 							if ( absoluteStart <= startItem.actualStart )
 							{
+								//	If element before starting list is a ListElementX, join
+								var prevElement:FlowElement = list.parent.getChildAt( list.parent.getChildIndex(list)-1 );
+								if ( prevElement )
+								{
+									if ( prevElement is ListElementX )
+									{
+										endList = prevElement as ListElementX;
+										
+										var addAt:int;
+										
+										//	Get index to add items from bottom list to top list
+										for ( i = endList.numChildren-1; i > -1; i-- )
+										{
+											if ( endList.getChildAt(i) is ListItemElementX )
+											{
+												addAt = i+1;
+												break;
+											}
+										}
+										
+										//	Merge lists
+										for ( i = list.numChildren-1; i > -1; i-- )
+										{
+											if ( list.getChildAt(i) is ListItemElementX )
+												endList.addChildAt( addAt ? addAt : endList.numChildren, list.removeChildAt(i) as ListItemElementX );
+										}
+										
+										list.parent.removeChild( list );
+										
+										item = endList.getChildAt(addAt-1) as ListItemElementX;
+										setSelectionState( new SelectionState( textFlow, item.actualStart + item.modifiedTextLength, item.actualStart + item.modifiedTextLength ) );0
+										textFlow.flowComposer.updateAllControllers();
+										return;
+									}
+								}
+								
 								//	Add new list after current list
 								var newList:ListElementX = new ListElementX();
 								list.parent.addChildAt( list.parent.getChildIndex(list)+1, newList );
@@ -536,7 +575,22 @@ package flashx.textLayout.edit
 					}
 					else
 					{
-						super.keyDownHandler(event);
+						try {
+							super.keyDownHandler(event);
+						} catch ( e:* ) {
+//							//	ParagraphElements won't backspace into Lists
+//							//	Left fix open for the chance that other things may do the same
+//							var fg1:FlowGroupElement = textFlow.findLeaf( absoluteStart ).parent;
+//							var fg2:FlowGroupElement = textFlow.findLeaf( absoluteStart - 1 ).parent;
+//							
+//							if ( fg1 is ListItemElement )
+//							{
+//								if ( fg2 is ParagraphElement )
+//								{
+//									var 
+//								}
+//							}
+						}
 						return;
 					}
 					break;
