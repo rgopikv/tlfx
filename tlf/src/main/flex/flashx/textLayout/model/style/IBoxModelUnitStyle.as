@@ -28,6 +28,12 @@ package flashx.textLayout.model.style
 		function defineWeight( weightedRules:Array ):void;
 		
 		/**
+		 * Defined the wieght rules explicitly expreseed on inline style of element. 
+		 * @param rules Array An Array of style rule names.
+		 */
+		function defineExplicitWeight( rules:Array ):void;
+		
+		/**
 		 * Pretty printing. 
 		 * @return String
 		 */

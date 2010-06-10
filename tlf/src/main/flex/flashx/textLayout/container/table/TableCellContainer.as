@@ -48,7 +48,7 @@ package flashx.textLayout.container.table
 		protected var background:Sprite;
 		protected var selectionBackground:Sprite;
 		protected var border:Shape;
-		protected var actualBorder:Shape;
+//		protected var actualBorder:Shape;
 		protected var _tableBorderRenderer:TableCellBorderRenderer;
 		
 		protected var targetDisplay:TableCellDisplay;
@@ -132,8 +132,8 @@ package flashx.textLayout.container.table
 			border = new Shape();
 			addChild( border );
 			
-			actualBorder = new Shape();
-			addChild( actualBorder );
+//			actualBorder = new Shape();
+//			addChild( actualBorder );
 			
 			// Create renderer for borders.
 			_tableBorderRenderer = new TableCellBorderRenderer( border, _tableDataContext );
@@ -206,9 +206,11 @@ package flashx.textLayout.container.table
 		 */
 		protected function invalidateSelection():void
 		{
+			var w:Number = _data.getTableDataModel().width;
+			var h:Number = _data.getTableDataModel().height;
 			selectionBackground.graphics.clear();
 			selectionBackground.graphics.beginFill( ( _selected ) ? 0xccccff : 0xFFFFFF, ( selected ) ? 1 : 0 );
-			selectionBackground.graphics.drawRect( 0, 0, _width, _height );
+			selectionBackground.graphics.drawRect( 0, 0, w, h );
 			selectionBackground.graphics.endFill();
 			
 			// If we have multi-select than update selection to encompass the whole range of the cell.
@@ -454,7 +456,7 @@ package flashx.textLayout.container.table
 				backgroundColor = style.getComputedStyle().backgroundColor;
 			}
 			background.graphics.clear();
-			background.graphics.beginFill( ( backgroundColor ) ? backgroundColor : 0xFF0000, ( backgroundColor ) ? 1 : 0.3 );
+			background.graphics.beginFill( ( backgroundColor ) ? backgroundColor : 0xFF0000, ( backgroundColor ) ? 1 : 0 );
 			background.graphics.drawRect( 0, 0, w, h );
 			background.graphics.endFill();
 			
@@ -528,9 +530,9 @@ package flashx.textLayout.container.table
 			// Just align along x axis based on left padding.
 			targetDisplay.x = _tableDataContext.getLeftPadding();
 			
-			actualBorder.graphics.clear();
-			actualBorder.graphics.lineStyle( 1, 0 );
-			actualBorder.graphics.drawRect( targetDisplay.x, targetDisplay.y, compositionWidth, _actualHeight );
+//			actualBorder.graphics.clear();
+//			actualBorder.graphics.lineStyle( 1, 0 );
+//			actualBorder.graphics.drawRect( targetDisplay.x, targetDisplay.y, compositionWidth, _actualHeight );
 		}
 		
 		/**

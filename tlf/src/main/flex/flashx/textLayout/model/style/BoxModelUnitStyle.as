@@ -8,8 +8,13 @@ package flashx.textLayout.model.style
 	dynamic public class BoxModelUnitStyle extends Proxy implements IBoxModelUnitStyle
 	{
 		protected var _weightedRules:Array;
+		protected var _explicitWeightedRules:Array;
 		
-		public function BoxModelUnitStyle() {}
+		public function BoxModelUnitStyle() 
+		{
+			_weightedRules = [];
+			_explicitWeightedRules = [];
+		}
 		
 		/**
 		 * @private
@@ -124,6 +129,11 @@ package flashx.textLayout.model.style
 		}
 		
 		public function defineWeight( weightedRules:Array ):void
+		{
+			// abstract.
+		}
+		
+		public function defineExplicitWeight( rules:Array ):void
 		{
 			// abstract.
 		}

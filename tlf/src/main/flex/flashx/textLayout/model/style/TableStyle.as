@@ -303,8 +303,15 @@ package flashx.textLayout.model.style
 		
 		override public function defineWeight( weightedRules:Array ):void
 		{
-			_weightedRules = weightedRules;
-			_borderStyle.defineWeight( _weightedRules );	
+			_weightedRules = weightedRules.concat( _explicitWeightedRules );
+			_borderStyle.defineWeight( weightedRules );	
+		}
+		
+		override public function defineExplicitWeight( rules:Array ):void
+		{
+			_explicitWeightedRules = rules;
+			_weightedRules = _weightedRules.concat( _explicitWeightedRules );
+			_borderStyle.defineExplicitWeight( rules );
 		}
 		
 		public function copy():ITableStyle

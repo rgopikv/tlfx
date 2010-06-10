@@ -60,8 +60,12 @@ package flashx.textLayout.elements
 		protected function clean():void
 		{
 			removeListeners();
-			_menuInteractiveObject.contextMenu = null;
-			_menuInteractiveObject = null;
+			
+			if ( _menuInteractiveObject )
+			{
+				_menuInteractiveObject.contextMenu = null;
+				_menuInteractiveObject = null;
+			}
 			
 			var eventMirror:EventDispatcher = getEventMirror();
 			eventMirror.removeEventListener(MouseEvent.MOUSE_DOWN, handleMouseDown, false);

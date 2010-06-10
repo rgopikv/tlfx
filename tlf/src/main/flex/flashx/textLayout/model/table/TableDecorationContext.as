@@ -53,6 +53,11 @@ package flashx.textLayout.model.table
 			var attributeOverridesStyle:Boolean;
 			if( borderStyle.isUndefined( borderStyle.borderWidth ) )
 			{
+				// Get determined border width. This fills an array of border based on super styles like border, borderTop, etc.
+				// If we have a determined border width object, we can use that.
+				var determinedBorderWidth:Array = borderStyle.getDeterminedBorderWidth();
+				if( determinedBorderWidth ) return determinedBorderWidth;
+				// Else search for undefined border and equate to either parent table border or computed border for default.
 				if( _attributes.hasProperty( "border" ) )
 				{
 					var b:int = BoxModelStyleUtil.normalizeBorderUnit( _attributes["border"] );

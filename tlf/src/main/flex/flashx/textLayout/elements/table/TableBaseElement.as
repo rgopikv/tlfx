@@ -150,7 +150,7 @@ package flashx.textLayout.elements.table
 					trace( "[" + getQualifiedClassName( this ) + "] :: Style property of type '" + property + "' cannot be set on " + getQualifiedClassName( style ) + "." );
 				}
 			}
-			style.defineWeight( weight );
+			style.defineExplicitWeight( weight );
 			// Store a reference to explicitly set style as it is determined with properties.
 			// Determined styles fill properties related to other properties, liek setting the multipart border, which will fill other properties.
 			_explicitTableStyle = style.getDeterminedStyle();

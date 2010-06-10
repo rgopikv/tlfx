@@ -651,6 +651,22 @@ package flashx.textLayout.model.style
 				if( definition.indexOf( propertyRule ) != -1 )
 					_weightedRules.push( propertyRule );
 			}
+			_weightedRules = _weightedRules.concat( _explicitWeightedRules );
+		}
+		
+		override public function defineExplicitWeight( rules:Array ):void
+		{
+			var definition:Vector.<String> = BorderStyle.definition;
+			_explicitWeightedRules = [];
+			var i:int;
+			var propertyRule:String;
+			for( i = 0; i < rules.length; i++ )
+			{
+				propertyRule = StyleAttributeUtil.camelize( rules[i] );
+				if( definition.indexOf( propertyRule ) != -1 )
+					_explicitWeightedRules.push( propertyRule );
+			}
+			_weightedRules = _weightedRules.concat( _explicitWeightedRules );
 		}
 		
 		protected function copy():IBorderStyle
