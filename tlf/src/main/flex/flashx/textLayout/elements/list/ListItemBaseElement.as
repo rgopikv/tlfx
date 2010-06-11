@@ -93,7 +93,7 @@ package flashx.textLayout.elements.list
 					trace( "[" + getQualifiedClassName( this ) + "] :: Style property of type '" + property + "' cannot be set on " + getQualifiedClassName( _style ) + "." );
 				}
 			}
-			trace( getText() + ", " + _style.listStyleType );
+			
 			if( requiresUpdate ) updateDisplayForListStyle();
 		}
 		

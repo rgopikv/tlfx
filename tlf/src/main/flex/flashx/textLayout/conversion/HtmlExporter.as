@@ -212,7 +212,6 @@ package flashx.textLayout.conversion
 		{
 			// Span text is exported as a text node (or text nodes delimited by <BR/> elements for any occurences of U+2028)
 			// These text nodes and <BR/> elements are optionally nested in formatting elements
-//			XML.ignoreWhitespace = false;
 			var xml:XML  = <{name}/>; 
 			BaseTextLayoutExporter.exportSpanText(xml, span, brRegEx, getSpanTextReplacementXML);
 			
