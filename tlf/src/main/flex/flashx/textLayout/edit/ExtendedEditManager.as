@@ -25,6 +25,7 @@ package flashx.textLayout.edit
 	import flashx.textLayout.elements.FlowGroupElement;
 	import flashx.textLayout.elements.FlowLeafElement;
 	import flashx.textLayout.elements.InlineGraphicElement;
+	import flashx.textLayout.elements.LinkElement;
 	import flashx.textLayout.elements.ListElement;
 	import flashx.textLayout.elements.ListItemElement;
 	import flashx.textLayout.elements.ParagraphElement;
@@ -575,21 +576,91 @@ package flashx.textLayout.edit
 					}
 					else
 					{
+						var fg1:FlowGroupElement = textFlow.findLeaf( absoluteStart ).parent;
+						var fg2:FlowGroupElement = textFlow.findLeaf( absoluteStart - 1 ).parent;
+						var ss:SelectionState;
+						
 						try {
+							if ( fg1 is ListPaddingElement )
+							{
+								list = fg1.parent as ListElementX;
+								
+								if ( fg2 is ListItemElementX )
+								{
+									item = fg2 as ListItemElementX;
+									ss = new SelectionState( textFlow, item.actualStart + item.modifiedTextLength+1, item.actualStart + item.modifiedTextLength+1 );
+								}
+								else
+									ss = new SelectionState( textFlow, fg2.getAbsoluteStart() + fg2.textLength-1, fg2.getAbsoluteStart() + fg2.textLength-1 );
+								
+								setSelectionState( ss );
+							}
+							
 							super.keyDownHandler(event);
 						} catch ( e:* ) {
-//							//	ParagraphElements won't backspace into Lists
-//							//	Left fix open for the chance that other things may do the same
-//							var fg1:FlowGroupElement = textFlow.findLeaf( absoluteStart ).parent;
-//							var fg2:FlowGroupElement = textFlow.findLeaf( absoluteStart - 1 ).parent;
-//							
-//							if ( fg1 is ListItemElement )
-//							{
-//								if ( fg2 is ParagraphElement )
-//								{
-//									var 
-//								}
-//							}
+							//	ParagraphElements won't backspace into Lists
+							//	Left fix open for the chance that other things may do the same
+							
+							if ( fg1 is ParagraphElement )
+							{
+								p = fg1 as ParagraphElement;
+								if ( fg2 && fg2 is ListPaddingElement )
+								{
+									list = fg2.parent as ListElementX;
+									
+									var pTextLength:int = 0;
+									
+									for ( i = p.numChildren-1; i > -1; i-- )
+									{
+										nextElement = p.getChildAt(i);
+										if ( nextElement is SpanElement )
+											pTextLength += Math.max( 0, (nextElement as SpanElement).text.match( /[^\n\s\t\u2028\u2029]/ig ).length );
+										else if ( nextElement is LinkElement )	//	Suffices for ExtendedLinkElement as well
+										{
+											for ( j = (nextElement as LinkElement).numChildren-1; j > -1; j-- )
+											{
+												var el:FlowElement = (nextElement as LinkElement).getChildAt(j);
+												if ( el is SpanElement )
+													pTextLength += Math.max( 0, (el as SpanElement).text.match( /[^\n\s\t\u2028\u2029]/ig ).length );
+												else if ( el is InlineGraphicElement )
+													pTextLength++;
+											}
+										}
+										else if ( nextElement is InlineGraphicElement )
+											pTextLength++;
+										else if ( nextElement )
+											pTextLength++;
+									}
+									
+									for ( i = list.numChildren-1; i > -1; i-- )
+									{
+										if ( list.getChildAt(i) is ListItemElementX )
+										{
+											item = list.getChildAt(i) as ListItemElementX;
+											break;
+										}
+									}
+									
+									if ( item )
+										ss = new SelectionState( textFlow, item.actualStart + item.modifiedTextLength + 1, item.actualStart + item.modifiedTextLength + 1 );
+									
+									if ( pTextLength != 0 )
+									{
+										j = item.numChildren-1;
+										
+										for ( i = p.numChildren-1; i > -1; i-- )
+											item.addChildAt( j, p.removeChildAt(i) );
+									}
+									
+									p.parent.removeChild(p);
+									
+									if ( ss )
+										setSelectionState( ss );
+									
+									textFlow.flowComposer.updateAllControllers();
+									return;
+								}
+							}
 						}
 						return;
 					}
