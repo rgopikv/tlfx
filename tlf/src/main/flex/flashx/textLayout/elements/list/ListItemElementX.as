@@ -258,17 +258,15 @@ package flashx.textLayout.elements.list
 		protected function getSeparator():String
 		{
 			var seperator:String = "";
-			var styleType:String;
+			var styleType:String = _computedStyle.listStyleType;
 			if ( _mode == ListItemModeEnum.UNORDERED )
 			{
 				var modifier:Number = ( paragraphStartIndent ) ? (paragraphStartIndent / 24) : Number.NaN;
-				styleType = _style.listStyleType;
-				seperator = ListStyleConversionUtil.convertUnordered( styleType, modifier ) + " ";
+				seperator = ListStyleConversionUtil.convertUnordered( styleType, modifier, number );
 			}
 			else
 			{
-				styleType = _computedStyle.listStyleType;
-				seperator = ListStyleConversionUtil.convertOrdered( styleType, number ) + " ";
+				seperator = ListStyleConversionUtil.convertOrdered( styleType, number );
 			}
 			seperator += ( seperator.length > 0 ) ? " " : "";
 			return seperator;

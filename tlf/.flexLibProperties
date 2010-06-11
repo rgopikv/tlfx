@@ -299,6 +299,8 @@
     <classEntry path="flashx.textLayout.model.style.ListStyle"/>
     <classEntry path="flashx.textLayout.elements.list.ListItemModeEnum"/>
     <classEntry path="flashx.textLayout.utils.ListStyleConversionUtil"/>
+    <classEntry path="flashx.textLayout.model.style.ListStyleShorthand"/>
+    <classEntry path="flashx.textLayout.utils.ListStyleShorthandUtil"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests>

@@ -3,11 +3,13 @@ package flashx.textLayout.model.style
 	import flash.utils.describeType;
 	
 	import flashx.textLayout.elements.list.ListItemModeEnum;
+	import flashx.textLayout.utils.ListStyleShorthandUtil;
 
 	public class ListStyle implements IListStyle
 	{
 		protected var _mode:int;
 		
+		protected var _listStyle:*;
 		protected var _listStyleType:*;
 		protected var _listStyleImage:*;
 		protected var _listStylePosition:*;
@@ -27,9 +29,19 @@ package flashx.textLayout.model.style
 			if( !_style || _isDirty )
 			{
 				_style = new ListStyle( _mode );
+				// Fill with explicit value properties.
 				_style.listStyleType = ( _listStyleType ) ? _listStyleType : getDefaultListStyleType();
 				_style.listStyleImage = ( _listStyleImage ) ? _listStyleImage : getDefaultListStyleImage();
 				_style.listStylePosition = ( _listStylePosition ) ? _listStylePosition : getDefaultListStylePosition();
+				// Move on to merge with shorthand property.
+				if( _listStyle )
+				{
+					var shorthand:ListStyleShorthand;
+					shorthand = ListStyleShorthandUtil.deserializeShorthand( _listStyle );
+					if( !_listStyleType && shorthand.type ) _style.listStyleType = shorthand.type;
+					if( !_listStyleImage && shorthand.image ) _style.listStyleImage = shorthand.image;
+					if( !_listStylePosition && shorthand.position ) _style.listStylePosition = shorthand.position;
+				}
 			}
 			return _style;
 		}
@@ -71,6 +83,18 @@ package flashx.textLayout.model.style
 		public function undefineStyleProperty( property:String ):void
 		{
 			this[property] = undefined;
+		}
+		
+		public function get listStyle():*
+		{
+			return _listStyle;
+		}
+		public function set listStyle( value:* ):void
+		{
+			if( _listStyle == value ) return;
+			
+			_listStyle = value;
+			_isDirty = true;
 		}
 		
 		public function get listStyleType():*

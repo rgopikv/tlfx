@@ -32,6 +32,7 @@ package flashx.textLayout.utils
 		
 		static private function alphaize( value:uint ):String
 		{
+			value = Math.max( value, 0 );
 			var alphas:Array = ListStyleConversionUtil._ALPHAS;
 			var alphaValue:String = "";
 			if( value <= alphas.length )
@@ -40,7 +41,7 @@ package flashx.textLayout.utils
 			return alphaValue;
 		}
 		
-		static private function stylizeUnordered( type:String ):String
+		static private function stylizeUnordered( type:String, index:int ):String
 		{
 			var style:String = ListStyleConversionUtil.DISC;
 			switch( type )
@@ -58,15 +59,15 @@ package flashx.textLayout.utils
 					style = ListStyleConversionUtil.DISC;
 					break;
 				default:
-					style = ListStyleConversionUtil.convertAny( type );
+					style = ListStyleConversionUtil.convertAny( type, index );
 					break;
 			}
 			return style;
 		}
 		
-		static public function convertUnordered( type:String, modifier:Number ):String
+		static public function convertUnordered( type:String, modifier:Number, index:int ):String
 		{
-			if( type ) return stylizeUnordered( type );
+			if( type ) return stylizeUnordered( type, index );
 				
 			if( isNaN( modifier ) || modifier <= 0 ) return ListStyleConversionUtil.DISC;
 			else if( modifier % 2 == 1 ) return ListStyleConversionUtil.CIRCLE;
@@ -118,7 +119,7 @@ package flashx.textLayout.utils
 				case ListStyleEnum.ORDERED_NONE:
 				case ListStyleEnum.UNORDERED_NONE:
 				case ListStyleEnum.ORDERED_DECIMAL:
-					convertedType = ListStyleConversionUtil.convertOrdered( styleType, ( value == 1 ) ? 0 : value );
+					convertedType = ListStyleConversionUtil.convertOrdered( styleType, value );
 					break;
 				case ListStyleEnum.UNORDERED_CIRCLE:
 					convertedType = ListStyleConversionUtil.CIRCLE;

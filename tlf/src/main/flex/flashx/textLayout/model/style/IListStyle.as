@@ -7,6 +7,8 @@ package flashx.textLayout.model.style
 		function undefineStyleProperty( property:String ):void;
 		function toString():String;
 		
+		function get listStyle():*;
+		function set listStyle( value:* ):void;
 		function get listStyleType():*;
 		function set listStyleType( value:* ):void;
 		function get listStyleImage():*;
