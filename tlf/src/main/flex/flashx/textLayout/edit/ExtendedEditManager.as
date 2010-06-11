@@ -860,7 +860,7 @@ package flashx.textLayout.edit
 				
 				//	Make sure that the child retains it's inherited styling
 				var format:TextLayoutFormat = new TextLayoutFormat( from.computedFormat );
-				format.apply( child.format );
+				format.apply( new TextLayoutFormat( child.format ? child.format : null ) );
 				child.format = format;
 				
 				to.addChildAt( addAt, child );
