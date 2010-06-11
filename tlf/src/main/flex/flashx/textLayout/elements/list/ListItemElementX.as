@@ -18,18 +18,17 @@ package flashx.textLayout.elements.list
 	import flashx.textLayout.format.ExportStyleHelper;
 	import flashx.textLayout.formats.TextDecoration;
 	import flashx.textLayout.formats.TextLayoutFormat;
+	import flashx.textLayout.model.style.IListStyle;
 	import flashx.textLayout.tlf_internal;
+	import flashx.textLayout.utils.ListStyleConversionUtil;
 	
 	use namespace tlf_internal;
 	
-	public class ListItemElementX extends ParagraphElement
+	public class ListItemElementX extends ListItemBaseElement
 	{
-		public static const UNORDERED	:String	=	'unordered';
-		public static const ORDERED		:String	=	'ordered';
+		protected var _computedStyle:IListStyle;
 		
-		private var _mode:String;
 		private var _number:uint;
-		
 		private var _source:XML;
 		
 		private var _bulletSpan:SpanElement;
@@ -42,7 +41,6 @@ package flashx.textLayout.elements.list
 			paddingBottom = paddingTop = paragraphSpaceAfter = paragraphSpaceBefore = 0;
 			
 			_number = 1;
-			_mode = UNORDERED;
 			_bulletSpan = new SpanElement();
 			addChild( _bulletSpan );
 			
@@ -61,12 +59,16 @@ package flashx.textLayout.elements.list
 			update();
 		}
 		
-		
-		
 		public function update():void
 		{
+			_computedStyle = _style.getComputedStyle();
 			_bulletSpan.format = _bulletFormat;
 			_bulletSpan.text = getSeparator();
+		}
+		
+		override protected function updateDisplayForListStyle():void
+		{
+			update();
 		}
 		
 		public function correctChildren():void
@@ -255,26 +257,21 @@ package flashx.textLayout.elements.list
 		
 		protected function getSeparator():String
 		{
-			if ( mode == UNORDERED )
+			var seperator:String = "";
+			var styleType:String;
+			if ( _mode == ListItemModeEnum.UNORDERED )
 			{
-				if (paragraphStartIndent == 0 || paragraphStartIndent == undefined)
-				{
-					return '\u25CF ';
-				}
-				
-				var mod:int = (paragraphStartIndent / 24);
-				
-				if (mod < 2)
-				{
-					return '\u25CB ';
-				}
-				
-				return '\u25A0 ';
+				var modifier:Number = ( paragraphStartIndent ) ? (paragraphStartIndent / 24) : Number.NaN;
+				styleType = _style.listStyleType;
+				seperator = ListStyleConversionUtil.convertUnordered( styleType, modifier ) + " ";
 			}
 			else
 			{
-				return number.toString() + '. ';
+				styleType = _computedStyle.listStyleType;
+				seperator = ListStyleConversionUtil.convertOrdered( styleType, number ) + " ";
 			}
+			seperator += ( seperator.length > 0 ) ? " " : "";
+			return seperator;
 		}
 		
 		protected function iaddChildAt(index:uint, child:FlowElement):FlowElement
@@ -288,20 +285,6 @@ package flashx.textLayout.elements.list
 		{
 			super.paragraphStartIndent = paragraphStartIndentValue;
 			update();
-		}
-		
-		public function set mode( value:String ):void
-		{
-			_mode = value;
-			//	Prevent bad set
-			if ( value != UNORDERED && value != ORDERED )
-				_mode = UNORDERED;
-			
-			update();
-		}
-		public function get mode():String
-		{
-			return _mode;
 		}
 		
 		public function set number( value:uint ):void

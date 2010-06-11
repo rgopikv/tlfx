@@ -6,6 +6,7 @@ package flashx.textLayout.format
 	import flashx.textLayout.elements.FlowElement;
 	import flashx.textLayout.elements.IManagedInlineGraphicSource;
 	import flashx.textLayout.elements.InlineGraphicElement;
+	import flashx.textLayout.elements.list.ListItemBaseElement;
 	import flashx.textLayout.formats.ITextLayoutFormat;
 	import flashx.textLayout.formats.TextLayoutFormat;
 	import flashx.textLayout.model.style.InlineStyles;
@@ -121,11 +122,29 @@ package flashx.textLayout.format
 		public function assignInlineStyle( node:XML, element:FlowElement ):void
 		{
 			var userStyles:Object = ( element.userStyles ) ? element.userStyles : {};
+			var explicitStyle:Object = StyleAttributeUtil.parseStyles( node.@style );
+			// Create new.
 			if( userStyles.inline == null )
-				userStyles.inline = new InlineStyles( node );	
+			{
+				userStyles.inline = new InlineStyles( node );
+			}
+			// Assign node value.
 			else
+			{
 				userStyles.inline.node = node;
-			userStyles.inline.explicitStyle = StyleAttributeUtil.parseStyles( node.@style );
+			}
+			// supply explicitStyle
+			if( element is ListItemBaseElement )
+			{
+				var parentNode:XML = node.parent();
+				if( parentNode != null )
+				{
+					var parentStyle:Object = StyleAttributeUtil.parseStyles( parentNode.@style );
+					explicitStyle = StyleAttributeUtil.mergeStyles( explicitStyle, parentStyle );
+				}
+			}
+			userStyles.inline.explicitStyle = explicitStyle;
+			// Assign user styles.
 			element.userStyles = userStyles;
 			
 			// Push to queue for pending.

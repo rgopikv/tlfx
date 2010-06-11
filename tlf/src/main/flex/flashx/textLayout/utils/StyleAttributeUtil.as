@@ -144,6 +144,27 @@ package flashx.textLayout.utils
 			return styleObj;
 		}
 		
+		public static function mergeStyles( style:Object, toOverwriteUndefined:Object ):Object
+		{
+			var property:String;
+			for( property in toOverwriteUndefined )
+			{
+				if( !style.hasOwnProperty( property ) )
+					style[property] = toOverwriteUndefined[property];
+			}
+			return style;
+		}
+		
+		public static function overwriteStyles( style:Object, toOverwrite:Object ):Object
+		{
+			var property:String;
+			for( property in toOverwrite )
+			{
+				style[property] = toOverwrite[property];
+			}
+			return style;
+		}
+		
 		/**
 		 * Does a quick and easy assembly of a style property with proper character formats. 
 		 * @param name String

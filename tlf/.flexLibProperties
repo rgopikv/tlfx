@@ -293,6 +293,12 @@
     <classEntry path="flashx.undo.IOperation"/>
     <classEntry path="flashx.undo.IUndoManager"/>
     <classEntry path="flashx.undo.UndoManager"/>
+    <classEntry path="flashx.textLayout.elements.list.ListItemBaseElement"/>
+    <classEntry path="flashx.textLayout.model.style.IListStyle"/>
+    <classEntry path="flashx.textLayout.model.style.ListStyleEnum"/>
+    <classEntry path="flashx.textLayout.model.style.ListStyle"/>
+    <classEntry path="flashx.textLayout.elements.list.ListItemModeEnum"/>
+    <classEntry path="flashx.textLayout.utils.ListStyleConversionUtil"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests>
