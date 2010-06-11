@@ -29,7 +29,7 @@ package flashx.textLayout.utils
 			if (value.substr(0, 1) == "#")
 				value = "0x" + value.substr(1, value.length-1);
 			
-			return (value.toLowerCase().substr(0, 2) == "0x") ? parseInt(value) : NaN;
+			return (value.toLowerCase().substr(0, 2) == "0x") ? parseInt(value) : Number.NaN;
 		}
 		
 		static public function normalizeForCSS( value:Number ):String
@@ -71,7 +71,7 @@ package flashx.textLayout.utils
 			value = value.replace( /DarkKhaki/ig, '#BDB76B' );
 			value = value.replace( /DarkMagenta/ig, '#8B008B' );
 			value = value.replace( /DarkOliveGreen/ig, '#556B2F' );
-			value = value.replace( /Darkorange/ig, '#FF8C00' );
+			value = value.replace( /DarkOrange/ig, '#FF8C00' );
 			value = value.replace( /DarkOrchid/ig, '#9932CC' );
 			value = value.replace( /DarkRed/ig, '#8B0000' );
 			value = value.replace( /DarkSalmon/ig, '#E9967A' );

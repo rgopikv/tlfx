@@ -5,6 +5,7 @@ package flashx.textLayout.model.attribute
 	import flash.utils.flash_proxy;
 	
 	import flashx.textLayout.formats.TextLayoutFormat;
+	import flashx.textLayout.utils.DimensionTokenUtil;
 	
 	/**
 	 * Attribute is a class repesentation of a base map of attributes associated with an HTML element. 
@@ -16,6 +17,14 @@ package flashx.textLayout.model.attribute
 		 * Dynamic map to hold attributes. 
 		 */
 		protected var attributes:Object;
+		
+		protected var defaultAttributes:Object;
+		protected var _defaultedAttribute:IAttribute;
+		
+		protected var _formattableAttribute:IAttribute;
+		
+		protected var _dimensionAttributeList:Array;
+		
 		/**
 		 * Flat list of attributes to be used in for... loops accessing property on this dynamic instance.
 		 */
@@ -24,7 +33,24 @@ package flashx.textLayout.model.attribute
 		/**
 		 * Constructor.
 		 */
-		public function Attribute() {}
+		public function Attribute() 
+		{
+			attributes = {};
+			defaultAttributes = getDefault();
+			_dimensionAttributeList = getDimensionAttributes();
+		}
+		
+		protected function getDefault():Object
+		{
+			// abstract.
+			return {};
+		}
+		
+		protected function getDimensionAttributes():Array
+		{
+			// abstract.
+			return [];
+		}
 		
 		/**
 		 * Override to store dynamic style in key/value pair 
@@ -33,7 +59,8 @@ package flashx.textLayout.model.attribute
 		 */
 		override flash_proxy function setProperty(name:*, value:*):void
 		{
-			attributes[name] = ( isNaN( value ) ) ? value : Number( value );
+			var propertyName:String = ( name is QName ) ? ( name as QName ).localName : name;
+			attributes[propertyName] = ( isNaN( value ) ) ? value : Number( value );
 		}
 		
 		/**
@@ -43,7 +70,22 @@ package flashx.textLayout.model.attribute
 		 */
 		override flash_proxy function getProperty(name:*):*
 		{
-			return attributes[name];
+			var propertyName:String = ( name is QName ) ? ( name as QName ).localName : name;
+			var value:*;
+			
+			if( isUndefined( propertyName ) )
+				value = defaultAttributes[propertyName];
+			else 
+				value = attributes[propertyName];
+			
+			return value;
+		}
+		
+		override flash_proxy function deleteProperty(name:*):Boolean
+		{
+			var propertyName:String = ( name is QName ) ? ( name as QName ).localName : name;
+			delete attributes[propertyName];
+			return true;
 		}
 		
 		/**
@@ -86,6 +128,16 @@ package flashx.textLayout.model.attribute
 		}
 		
 		/**
+		 * Returns flag of holding property value. 
+		 * @param property String
+		 * @return Boolean
+		 */
+		public function hasProperty( property:String ):Boolean
+		{
+			return attributes[property] != null;
+		}
+		
+		/**
 		 * Sets new values on attributes based on supplied values. 
 		 * @param atts Object Key/value pairs.
 		 */
@@ -97,7 +149,6 @@ package flashx.textLayout.model.attribute
 				attributes[property] = atts[property];
 			}
 		}
-		
 		/**
 		 * Cones and returns an object. 
 		 * @param object Object
@@ -112,21 +163,43 @@ package flashx.textLayout.model.attribute
 		}
 		
 		/**
-		 * Applies any propetty values to a TextLayoutFormat that relate to an element attribute. 
-		 * @param format TextLayoutFormat
-		 */
-		public function applyAttributesToFormat( format:TextLayoutFormat ):void
-		{
-			// abstract
-		}
-		
-		/**
 		 * Cleans attribute map if default values held for property.
 		 */
-		public function getStrippedAttributes():Object
+		public function getDefinedAttributes():IAttribute
 		{
-			// abstract
-			return null;
+			var attribute:IAttribute = new Attribute();
+			var property:String;
+			for( property in attributes )
+			{
+				attribute[property] = attributes[property];
+			}
+			return attribute;
+		}
+		
+		public function getDefaultAttributes():IAttribute
+		{
+			if( _defaultedAttribute == null )
+			{
+				var attribute:IAttribute = new Attribute();
+				var property:String;
+				for( property in defaultAttributes )
+				{
+					attribute[property] = defaultAttributes[property];
+				}
+				_defaultedAttribute = attribute;
+			}
+			return _defaultedAttribute;
+		}
+		
+		public function getFormattableAttributes():IAttribute
+		{
+			// abstract.
+			return _formattableAttribute;
+		}
+		
+		public function isUndefined( property:String ):Boolean
+		{
+			return !hasProperty( property );
 		}
 	}
 }

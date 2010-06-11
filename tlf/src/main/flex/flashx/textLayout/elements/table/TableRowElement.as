@@ -6,15 +6,19 @@ package flashx.textLayout.elements.table
 	import flashx.textLayout.elements.FlowGroupElement;
 	import flashx.textLayout.elements.ParagraphElement;
 	import flashx.textLayout.elements.SpanElement;
+	import flashx.textLayout.formats.ITextLayoutFormat;
+	import flashx.textLayout.formats.TextLayoutFormat;
 	import flashx.textLayout.model.attribute.IAttribute;
 	import flashx.textLayout.model.attribute.TableRowAttribute;
+	import flashx.textLayout.model.table.TableRow;
 	import flashx.textLayout.tlf_internal;
+	import flashx.textLayout.utils.AttributeUtil;
 	
 	use namespace tlf_internal;
 	
-	public class TableRowElement extends ContainerFormattedElement
+	public class TableRowElement extends TableBaseElement
 	{
-		public var attributes:IAttribute;
+		protected var _tableRow:TableRow;
 		
 		// Flags for row pertaining to <thead />, <tfoot /> and <tbody />
 		public var isHeader:Boolean;
@@ -24,12 +28,6 @@ package flashx.textLayout.elements.table
 		public function TableRowElement()
 		{
 			super();
-			setDefaultAttributes();
-		}
-		
-		protected function setDefaultAttributes():void
-		{
-			attributes = TableRowAttribute.getDefaultAttributes();
 		}
 		
 		/**
@@ -49,10 +47,10 @@ package flashx.textLayout.elements.table
 		public override function shallowCopy(startPos:int = 0, endPos:int = -1):FlowElement
 		{
 			var copy:TableRowElement = super.shallowCopy(startPos, endPos) as TableRowElement;
-			copy.attributes = attributes;
 			copy.isBody = isBody;
 			copy.isFooter = isFooter;
 			copy.isHeader = isHeader;
+			copy.tableRowModel = _tableRow;
 			return copy;						
 		}
 		
@@ -93,6 +91,32 @@ package flashx.textLayout.elements.table
 			{
 				super.normalizeRange(normalizeStart,normalizeEnd);
 			}
+		}
+		
+		/**
+		 * Returns reference to table model. 
+		 * @return Table
+		 */
+		public function getTableRowModel():TableRow
+		{
+			return _tableRow;
+		}
+		tlf_internal function set tableRowModel( value:TableRow ):void
+		{
+			_tableRow = value;
+			_context = _tableRow.context;
+		}
+		
+		/**
+		 * Returns computed attributes of element and parentin elements. 
+		 * @return IAttribute
+		 */
+		override public function getComputedAttributes():IAttribute
+		{
+			var attributes:IAttribute = super.getComputedAttributes();
+			var parentAttributes:IAttribute = ( parent is ITableBaseElement ) ? ( parent as ITableBaseElement ).getComputedAttributes() : null;
+			if( parentAttributes ) return attributes;
+			return AttributeUtil.createFromMerge( _context.getDefaultAttributes(), attributes, parentAttributes );
 		}
 	}
 }

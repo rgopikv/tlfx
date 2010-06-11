@@ -28,14 +28,6 @@ package flashx.textLayout.elements.table
 		}
 		
 		/**
-		 * @inherit
-		 */
-		override protected function setDefaultAttributes():void
-		{
-			attributes = TableHeadingAttribute.getDefaultAttributes();
-		}
-		
-		/**
 		 * @private
 		 * 
 		 * Returns the ITextLayoutFormat for this element by selecting any defaults from configuration. 

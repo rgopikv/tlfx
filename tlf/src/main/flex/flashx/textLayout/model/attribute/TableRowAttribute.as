@@ -4,10 +4,8 @@ package flashx.textLayout.model.attribute
 
 	public class TableRowAttribute extends Attribute
 	{
-		public static var DEFAULTS:Object;
-		
 		public static const ALIGN:String = "align"; // left, center, right, justify
-		public static const VALIGN:String = "valing"; // top, middle, bottom
+		public static const VALIGN:String = "valign"; // top, middle, bottom
 		
 		//ALIGN VALUES
 		public static const LEFT:String = "left";
@@ -23,45 +21,33 @@ package flashx.textLayout.model.attribute
 		 * Returns a default filled in attribute object for a Table Data object.
 		 * @return TableDataAttribute
 		 */
-		public static function getDefaultAttributes():TableRowAttribute
+		override protected function getDefault():Object
 		{
 			var attributes:Object = {};
 			attributes[TableRowAttribute.VALIGN] = TableRowAttribute.MIDDLE;
 			attributes[TableRowAttribute.ALIGN] = TableRowAttribute.LEFT;
-			TableRowAttribute.DEFAULTS = attributes;
-			return new TableRowAttribute( Attribute.clone( attributes ) );
+			return attributes;
 		}
 		
 		/**
 		 * Constructor. 
 		 * @param attributes Object Optional initial attributes.
 		 */
-		public function TableRowAttribute( attributes:Object = null )
+		public function TableRowAttribute()
 		{
-			this.attributes = attributes || {};
+			super();
 		}
 		
-		/**
-		 * @inherit
-		 */
-		override public function applyAttributesToFormat( format:TextLayoutFormat ):void
+		override public function getFormattableAttributes():IAttribute
 		{
-			format.textAlign = attributes[TableRowAttribute.ALIGN];
-		}
-		
-		/**
-		 * @inherit
-		 */
-		override public function getStrippedAttributes():Object
-		{
-			var stripped:Object = {};
-			var attribute:String;
-			for( attribute in attributes )
+			if( !isUndefined( TableRowAttribute.ALIGN ) )
 			{
-				if( attributes[attribute] != TableRowAttribute.DEFAULTS[attribute] )
-					stripped[attribute] = attributes[attribute];
+				if( _formattableAttribute == null )
+					_formattableAttribute = new Attribute();
+				
+				_formattableAttribute["textAlign"] = this[TableRowAttribute.ALIGN];
 			}
-			return stripped;
+			return _formattableAttribute;
 		}
 	}
 }

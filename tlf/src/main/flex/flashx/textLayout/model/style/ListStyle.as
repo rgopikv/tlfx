@@ -1,0 +1,160 @@
+package flashx.textLayout.model.style
+{
+	import flash.utils.describeType;
+	
+	import flashx.textLayout.elements.list.ListItemModeEnum;
+
+	public class ListStyle implements IListStyle
+	{
+		protected var _mode:int;
+		
+		protected var _listStyleType:*;
+		protected var _listStyleImage:*;
+		protected var _listStylePosition:*;
+		
+		protected var _style:IListStyle;
+		protected var _isDirty:Boolean;
+		
+		private static var _description:Vector.<String>;
+		
+		public function ListStyle( mode:int )
+		{
+			_mode = mode;
+		}
+		
+		public function getComputedStyle():IListStyle
+		{
+			if( !_style || _isDirty )
+			{
+				_style = new ListStyle( _mode );
+				_style.listStyleType = ( _listStyleType ) ? _listStyleType : getDefaultListStyleType();
+				_style.listStyleImage = ( _listStyleImage ) ? _listStyleImage : getDefaultListStyleImage();
+				_style.listStylePosition = ( _listStylePosition ) ? _listStylePosition : getDefaultListStylePosition();
+			}
+			return _style;
+		}
+		
+		protected function getDefaultListStyleType():String
+		{
+			if( _mode == ListItemModeEnum.ORDERED )
+				return ListStyleEnum.ORDERED_DECIMAL;
+			else if( mode == ListItemModeEnum.UNORDERED )
+				return ListStyleEnum.UNORDERED_DISC;
+			
+			return null;
+		}
+		
+		protected function getDefaultListStyleImage():String
+		{
+			return null;
+		}
+		
+		protected function getDefaultListStylePosition():String
+		{
+			return ListStyleEnum.POSITION_INSIDE;
+		}
+		
+		/**
+		 * Determines the value validity based on type. 
+		 * @param value Object
+		 * @return Boolean
+		 */
+		public function isUndefined( property:String ):Boolean
+		{
+			return ( this[property] ) ? false : true;
+		}
+		
+		/**
+		 * Sets the propety value to undefined based on type. 
+		 * @param property String
+		 */
+		public function undefineStyleProperty( property:String ):void
+		{
+			this[property] = undefined;
+		}
+		
+		public function get listStyleType():*
+		{
+			return _listStyleType;
+		}
+		public function set listStyleType( value:* ):void
+		{
+			if( _listStyleType == value ) return;
+			
+			_listStyleType = value;
+			_isDirty = true;
+		}
+		
+		public function get listStyleImage():*
+		{
+			return _listStyleImage;
+		}
+		public function set listStyleImage( value:* ):void
+		{
+			if( _listStyleImage == value ) return;
+			
+			_listStyleImage = value;
+			_isDirty = true;
+		}
+		
+		public function get listStylePosition():*
+		{
+			return _listStylePosition;
+		}
+		public function set listStylePosition( value:* ):void
+		{
+			if( _listStylePosition == value ) return;
+			
+			_listStylePosition
+			_isDirty = true;
+		}
+		
+		public function get mode():int
+		{
+			return _mode;
+		}
+		public function set mode( value:int ):void
+		{
+			if( _mode == value ) return;
+			
+			_mode = value;
+			_isDirty = true;
+		}
+		
+		/**
+		 * Pretty printing. 
+		 * @return String
+		 */
+		public function toString():String
+		{
+			return "======================\n" +
+				"|| List Style\n" +
+				"======================\n" +
+				"listStyleType: " + _listStyleType + "\n" +
+				"listStyleImage: " + _listStyleImage + "\n" +
+				"listStylePosition: " + _listStylePosition;
+		}
+		
+		/**
+		 * Returns the list of property definitions related to this class for ease of traverse. 
+		 * @return Vector.<String>
+		 */
+		static public function get definition():Vector.<String>
+		{
+			if( !_description )
+			{
+				_description = new Vector.<String>();
+				var property:String;
+				var propertyList:XMLList = describeType( ListStyle )..accessor;
+				var i:int;
+				for( i = 0; i < propertyList.length(); i++ )
+				{
+					if( !(propertyList[i].@access == "readwrite") ) continue;
+					property = propertyList[i].@name;
+					_description.push( property );
+				}
+			}
+			return _description;
+		}
+	}
+}

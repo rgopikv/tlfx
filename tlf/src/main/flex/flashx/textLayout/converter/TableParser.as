@@ -11,14 +11,17 @@ package flashx.textLayout.converter
 	import flashx.textLayout.elements.table.TableRowElement;
 	import flashx.textLayout.events.TagParserCleanCompleteEvent;
 	import flashx.textLayout.events.TagParserCleanProgressEvent;
-	import flashx.textLayout.format.IStyle;
-	import flashx.textLayout.format.TableStyle;
+	import flashx.textLayout.model.attribute.IAttribute;
 	import flashx.textLayout.model.attribute.TableDataAttribute;
 	import flashx.textLayout.model.table.Table;
 	import flashx.textLayout.model.table.TableColumn;
+	import flashx.textLayout.model.table.TableData;
+	import flashx.textLayout.model.table.TableHeading;
 	import flashx.textLayout.model.table.TableRow;
+	import flashx.textLayout.tlf_internal;
 	import flashx.textLayout.utils.StyleAttributeUtil;
 
+	use namespace tlf_internal;
 	[Event(name="cleanComplete", type="flashx.textLayout.events.TagParserCleanCompleteEvent")]
 	/**
 	 * TableParser is an ITagParser implementation that parses valid html into a model representation of a Table. 
@@ -40,22 +43,6 @@ package flashx.textLayout.converter
 			_cleaner = new TableCleaner( imageProxy );
 			_cleaner.addEventListener( TagParserCleanCompleteEvent.CLEAN_COMPLETE, handleCleanComplete, false, 0, true );
 			_cleaner.addEventListener( TagParserCleanProgressEvent.CLEAN_PROGRESS, handleCleanProgress, false, 0, true );
-		}
-		
-		/**
-		 * @private
-		 * 
-		 * Parses style attribute. 
-		 * @param tableNode XML
-		 * @return IStyle
-		 */
-		protected function getStyle( tableNode:XML ):IStyle
-		{
-			// TODO. Check for attibute style and instantiate the TabStyle with it.
-			var style:IStyle = new TableStyle();
-			style.deserializeAttribute( tableNode.attribute("style") );
-			( style as TableStyle ).border = int( tableNode.attribute("border") );
-			return style;
 		}
 		
 		/**
@@ -96,7 +83,7 @@ package flashx.textLayout.converter
 				body.appendChild( list[i] as XML );
 			}
 			source.appendChild( body );
-			return _htmlImporter.importToFlow( source.toXMLString() );
+			return _htmlImporter.importToFlow( source.toXMLString(), false );
 		}
 		
 		/**
@@ -107,17 +94,19 @@ package flashx.textLayout.converter
 		 * @param parentingAttributes Object The parenting attibutes of the Row.
 		 * @return TableDataElement
 		 */
-		protected function parseTableData( td:XML, parentingAttributes:Object ):TableDataElement
+		protected function parseTableData( td:XML, parentingAttributes:Object, table:Table ):TableDataElement
 		{
 			var cell:TableDataElement = new TableDataElement();
+			cell.tableDataModel = new TableData( table );
+			
 			var content:Array = parseToFlow( td.children() ).mxmlChildren;
 			var i:int;
 			for( i = 0; i < content.length; i++ )
 			{
 				cell.addChild( content[i] as FlowElement );
 			}
-			cell.attributes.modifyAttributes( parentingAttributes );
-			cell.attributes.modifyAttributes( parseAttributes( td ) );
+//			cell.getContext().attributes.modifyAttributes( parentingAttributes );
+			cell.getContext().modifyAttributes( parseAttributes( td ) );
 			_htmlImporter.importStyleHelper.assignInlineStyle( td, cell );
 			return cell;
 		}
@@ -130,17 +119,19 @@ package flashx.textLayout.converter
 		 * @param parentingAttributes Object The parenting attibutes of the Row.
 		 * @return TableDataElement
 		 */
-		protected function parseTableHeading( th:XML, parentingAttributes:Object ):TableDataElement
+		protected function parseTableHeading( th:XML, parentingAttributes:Object, table:Table ):TableDataElement
 		{
 			var cell:TableDataElement = new TableHeadingElement();
+			cell.tableDataModel = new TableHeading( table );
+			
 			var content:Array = parseToFlow( th.children() ).mxmlChildren;
 			var i:int;
 			for( i = 0; i < content.length; i++ )
 			{
 				cell.addChild( content[i] as FlowElement );
 			}
-			cell.attributes.modifyAttributes( parentingAttributes );
-			cell.attributes.modifyAttributes( parseAttributes( th ) );
+//			cell.getContext().attributes.modifyAttributes( parentingAttributes );
+			cell.getContext().modifyAttributes( parseAttributes( th ) );
 			_htmlImporter.importStyleHelper.assignInlineStyle( th, cell );
 			return cell;
 		}
@@ -152,7 +143,7 @@ package flashx.textLayout.converter
 		 * @param tr XML XML fragment related to a single Table Row.
 		 * @return TableRowElement
 		 */
-		protected function parseTableRow( tr:XML, parentNode:XML = null ):TableRowElement
+		protected function parseTableRow( tr:XML, table:Table, parentNode:XML = null ):TableRowElement
 		{
 			var row:TableRowElement = new TableRowElement();
 			var attributes:Object = parseAttributes( tr );
@@ -166,17 +157,18 @@ package flashx.textLayout.converter
 				child = children[i] as XML;
 				if( child.name() == TableParser.TAG_TD )
 				{
-					tableData = parseTableData( child, attributes );
+					tableData = parseTableData( child, attributes, table );
 				}
 				else if( child.name() == TableParser.TAG_TH )
 				{
-					tableData = parseTableHeading( child, attributes );
+					tableData = parseTableHeading( child, attributes, table );
 				}	
 					
 				if( tableData ) row.addChild( tableData );
 				tableData = null;
 			}
-			row.attributes.modifyAttributes( attributes );
+			row.tableRowModel = new TableRow( row.children() );
+			row.getContext().modifyAttributes( attributes );
 			// Styling.
 			// If there is a parent node, which can happen with tfoot, tbody and thead, concat styles with tr overridding.
 			if( parentNode != null )
@@ -194,7 +186,7 @@ package flashx.textLayout.converter
 		 * @param xml XML
 		 * @return Vector.<TableRowElement>
 		 */
-		protected function parseTableIntoSequenceRows( xml:XML ):Vector.<TableRowElement>
+		protected function parseTableIntoSequenceRows( xml:XML, table:Table ):Vector.<TableRowElement>
 		{
 			var rows:Vector.<TableRowElement> = new Vector.<TableRowElement>();
 			
@@ -208,7 +200,7 @@ package flashx.textLayout.converter
 			var tbody:XMLList = xml.tbody;
 			
 			// First go through optional thead. tbody, tfoot construction.
-			rows = rows.concat( parseHead( thead ) );
+			rows = rows.concat( parseHead( thead, table ) );
 			
 			// Then move on to normal construction.
 			// first go through headers -> they are considered as rows.
@@ -216,19 +208,19 @@ package flashx.textLayout.converter
 			if( thList.length() > 0 )
 			{
 				// wrap the header in a row and push to stack.
-				rows.push( parseTableRow( wrapHeadersInRow( thList ) ) );
+				rows.push( parseTableRow( wrapHeadersInRow( thList ), table ) );
 			}
 			
 			// Then start on body.
-			rows = rows.concat( parseBody( tbody ) );
+			rows = rows.concat( parseBody( tbody, table ) );
 			// then go through rows.
 			for( i = 0; i < trList.length(); i++ )
 			{
-				rows.push( parseTableRow( trList[i] ) );
+				rows.push( parseTableRow( trList[i], table ) );
 			}
 			
 			// Finish up with footer.
-			rows = rows.concat( parseFoot( tfoot ) );
+			rows = rows.concat( parseFoot( tfoot, table ) );
 			
 			return rows;
 		}
@@ -240,7 +232,7 @@ package flashx.textLayout.converter
 		 * @param head XMLList A List of <thead />
 		 * @return Vector.<TableRowElement>
 		 */
-		protected function parseHead( head:XMLList ):Vector.<TableRowElement>
+		protected function parseHead( head:XMLList, table:Table ):Vector.<TableRowElement>
 		{
 			var list:Vector.<TableRowElement> = new Vector.<TableRowElement>();
 			var th:XMLList;
@@ -251,7 +243,7 @@ package flashx.textLayout.converter
 			{
 				headNode = XML( head[i] );
 				th = head..th;
-				row = parseTableRow( wrapHeadersInRow( th ), headNode );
+				row = parseTableRow( wrapHeadersInRow( th ), table, headNode );
 				row.isHeader = true;
 				list.push( row );
 			}
@@ -265,7 +257,7 @@ package flashx.textLayout.converter
 		 * @param body XMLList A List of <tbody />
 		 * @return Vector.<TableRowElement>
 		 */
-		protected function parseBody( body:XMLList ):Vector.<TableRowElement>
+		protected function parseBody( body:XMLList, table:Table ):Vector.<TableRowElement>
 		{
 			var list:Vector.<TableRowElement> = new Vector.<TableRowElement>();
 			var tr:XMLList;
@@ -279,7 +271,7 @@ package flashx.textLayout.converter
 				tr = body.tr;
 				for( j = 0; j < tr.length(); j++ )
 				{
-					row = parseTableRow( tr[j], bodyNode );
+					row = parseTableRow( tr[j], table, bodyNode );
 					row.isBody = true;
 					list.push( row );
 				}
@@ -294,7 +286,7 @@ package flashx.textLayout.converter
 		 * @param foot XMLList A list of <tfoot />
 		 * @return Vector.<TableRowElement>
 		 */
-		protected function parseFoot( foot:XMLList ):Vector.<TableRowElement>
+		protected function parseFoot( foot:XMLList, table:Table ):Vector.<TableRowElement>
 		{
 			var list:Vector.<TableRowElement> = new Vector.<TableRowElement>();
 			var tr:XMLList;
@@ -308,7 +300,7 @@ package flashx.textLayout.converter
 				tr = foot.tr;
 				for( j = 0; j < tr.length(); j++ )
 				{
-					row = parseTableRow( tr[j], footNode );
+					row = parseTableRow( tr[j], table, footNode );
 					row.isFooter = true;
 					list.push( row );
 				}
@@ -378,11 +370,15 @@ package flashx.textLayout.converter
 				XML.ignoreWhitespace = true;
 				XML.prettyPrinting = false;
 				XML.prettyIndent = 0;
+				
 				var xml:XML = XML( fragment );
+				// instantiate a new Table instance.
+				table = new Table();
+				table.getContextImplementation().modifyAttributes( parseAttributes( xml ) );
 				
 				_htmlImporter.importStyleHelper.assignInlineStyle( xml, tableElement );
 				// parse into flat row array.
-				var rows:Vector.<TableRowElement> = parseTableIntoSequenceRows( xml );
+				var rows:Vector.<TableRowElement> = parseTableIntoSequenceRows( xml, table );
 				var i:int;
 				var preexistingChildrenIndex:int = tableElement.numChildren;
 				for( i = 0; i < rows.length; i++ )
@@ -396,10 +392,6 @@ package flashx.textLayout.converter
 					tableElement.removeChildAt( i );
 				}
 				_htmlImporter.importStyleHelper.apply();
-				
-				// instantiate a new Table instance.
-				table = new Table( getStyle( xml ) );
-				table.attributes.modifyAttributes( parseAttributes( xml ) );
 			}
 			catch( e:Error )
 			{

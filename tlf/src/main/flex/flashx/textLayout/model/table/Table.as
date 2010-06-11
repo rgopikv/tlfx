@@ -4,15 +4,17 @@ package flashx.textLayout.model.table
 	
 	import flashx.textLayout.converter.TableMapper;
 	import flashx.textLayout.elements.table.TableRowElement;
-	import flashx.textLayout.format.IStyle;
+	import flashx.textLayout.model.attribute.IAttribute;
 	import flashx.textLayout.model.attribute.TableAttribute;
+	import flashx.textLayout.model.style.ITableStyle;
+	import flashx.textLayout.model.style.TableStyle;
 
 	[Event(name="resize", type="flash.events.Event")]
 	/**
 	 * Table represents the data associated with a Table. 
 	 * @author toddanderson
 	 */
-	public class Table extends TableBaseElement
+	public class Table extends TableModelBase
 	{
 		public var rows:Vector.<TableRow>;
 		public var columns:Vector.<TableColumn>;
@@ -20,24 +22,36 @@ package flashx.textLayout.model.table
 		
 		protected var _width:Number;
 		protected var _height:Number;
+		protected var _maximumWidth:Number;
 		
 		/**
 		 * Constructor. 
 		 * @param rows Vector.<TableRow> The list of rows.
-		 * @param style IStyle The IStyle implementation associated with the Table.
 		 */
-		public function Table( style:IStyle = null )
-		{
-			super();
-			this.styles = style;
+		public function Table() 
+		{ 
+			context = new TableDecorationContext( this, getDefaultAttributes(), getDefaultStyle() );
 		}
 		
 		/**
 		 * @inherit
 		 */
-		override protected function setDefaultAttributes():void
+		override protected function getDefaultAttributes():IAttribute
 		{
-			attributes = TableAttribute.getDefaultAttributes();
+			return new TableAttribute();
+		}
+		
+		/**
+		 * @inherit
+		 */
+		override protected function getDefaultStyle():ITableStyle
+		{
+			return new TableStyle();
+		}
+		
+		public function getContextImplementation():ITableDecorationContext
+		{
+			return ( context as ITableDecorationContext );
 		}
 		
 		/**
@@ -46,8 +60,7 @@ package flashx.textLayout.model.table
 		 */
 		public function get cellspacing():int
 		{
-			if( attributes == null ) return TableAttribute.DEFAULTS[TableAttribute.CELLSPACING];
-			return attributes[TableAttribute.CELLSPACING];
+			return ( context as ITableDecorationContext ).determineCellSpacing();
 		}
 		
 		/**
@@ -56,8 +69,29 @@ package flashx.textLayout.model.table
 		 */
 		public function get cellpadding():int
 		{
-			if( attributes == null ) return TableAttribute.DEFAULTS[TableAttribute.CELLPADDING];
-			return attributes[TableAttribute.CELLPADDING];
+			return ( context as ITableDecorationContext ).determineCellPadding();
+		}
+		
+		/**
+		 * Returns the overall computed height of the table for display based on context and held properties. 
+		 * @return Number
+		 */
+		public function getComputedHeight():Number
+		{
+			return _height + getContextImplementation().getComputedHeightOfBorders() + ( cellspacing * 2 );
+		}
+		/**
+		 * Returns the overall computed width of the table for display based on context and held properties. 
+		 * @return Number
+		 */
+		public function getComputedWidth():Number
+		{
+			return _width + getContextImplementation().getComputedWidthOfBorders() + ( cellspacing * 2 );
+		}
+		
+		public function getNonEditableHorizontalSpace():Number
+		{
+			return ( getContextImplementation().getComputedWidthOfBorders() + ( cellspacing * 2 ) ) + ( ( columns.length - 1 ) * cellspacing );
 		}
 		
 		/**
@@ -86,10 +120,29 @@ package flashx.textLayout.model.table
 		}
 		public function set height( value:Number ):void
 		{
-			if( value == height ) return;
+			if( value == _height ) return;
 			
 			_height = value;
 			dispatchEvent( new Event( Event.RESIZE ) );
+		}
+		
+		public function get maximumWidth():Number
+		{
+			return _maximumWidth;
+		}
+		public function set maximumWidth( value:Number ):void
+		{
+			if( value == _maximumWidth ) return;
+			
+			_maximumWidth = value;
+			if( _width > _maximumWidth ) width = _maximumWidth;
+		}
+		
+		public function get maximumColumnWidth():Number
+		{
+			if( isNaN( _maximumWidth ) ) return 1000000;
+			
+			return _maximumWidth / columns.length;
 		}
 	}
 }

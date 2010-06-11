@@ -13,22 +13,22 @@ package flashx.textLayout.elements.table
 	import flashx.textLayout.formats.TextLayoutFormatValueHolder;
 	import flashx.textLayout.model.attribute.IAttribute;
 	import flashx.textLayout.model.attribute.TableDataAttribute;
+	import flashx.textLayout.model.style.TableDataStyle;
+	import flashx.textLayout.model.table.ITableBaseDecorationContext;
+	import flashx.textLayout.model.table.ITableDataDecorationContext;
+	import flashx.textLayout.model.table.TableData;
 	import flashx.textLayout.tlf_internal;
+	import flashx.textLayout.utils.AttributeUtil;
 	
 	use namespace tlf_internal;
-	public class TableDataElement extends ContainerFormattedElement
+	public class TableDataElement extends TableBaseElement
 	{
-		public var attributes:IAttribute;
+		protected var _tableData:TableData;
 		
 		public function TableDataElement()
 		{
 			super();
-			setDefaultAttributes();
-		}
-		
-		protected function setDefaultAttributes():void
-		{
-			attributes = TableDataAttribute.getDefaultAttributes();
+			_pendingInitializationStyle = new TableDataStyle();
 		}
 		
 		/**
@@ -48,7 +48,7 @@ package flashx.textLayout.elements.table
 		public override function shallowCopy(startPos:int = 0, endPos:int = -1):FlowElement
 		{
 			var copy:TableDataElement = super.shallowCopy(startPos, endPos) as TableDataElement;
-			copy.attributes = attributes;
+			copy.tableDataModel = _tableData;
 			return copy;						
 		}
 		
@@ -86,6 +86,41 @@ package flashx.textLayout.elements.table
 			span.text = "";
 			p.addChild( span );
 			return p;
+		}
+		
+		/**
+		 * Returns reference to table model. 
+		 * @return Table
+		 */
+		public function getTableDataModel():TableData
+		{
+			return _tableData;
+		}
+		tlf_internal function set tableDataModel( value:TableData ):void
+		{
+			_tableData = value;
+			_context = _tableData.context;
+		}
+		
+		/**
+		 * Returns computed attributes of element and parentin elements. 
+		 * @return IAttribute
+		 */
+		override public function getComputedAttributes():IAttribute
+		{
+			var attributes:IAttribute = super.getComputedAttributes();
+			var parentAttributes:IAttribute = ( parent is ITableBaseElement ) ? ( parent as ITableBaseElement ).getComputedAttributes() : null;
+			if( parentAttributes == null ) return attributes;
+			return AttributeUtil.createFromMerge( _context.getDefaultAttributes(), attributes, parentAttributes );
+		}
+		
+		/**
+		 * Returns the held concrete implmenebtaton of the ITableDataDecorationContext defained on the model. 
+		 * @return ITableDataDecorationContext
+		 */
+		public function getDecorationContext():ITableDataDecorationContext
+		{
+			return _context as ITableDataDecorationContext;
 		}
 	}
 }

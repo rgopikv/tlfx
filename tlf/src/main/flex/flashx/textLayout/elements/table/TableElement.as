@@ -2,6 +2,7 @@ package flashx.textLayout.elements.table
 {
 	import flash.display.DisplayObjectContainer;
 	import flash.events.Event;
+	import flash.utils.getQualifiedClassName;
 	import flash.utils.getQualifiedSuperclassName;
 	
 	import flashx.textLayout.container.table.ICellContainer;
@@ -15,28 +16,28 @@ package flashx.textLayout.elements.table
 	import flashx.textLayout.elements.ParagraphElement;
 	import flashx.textLayout.elements.SpanElement;
 	import flashx.textLayout.elements.TextFlow;
+	import flashx.textLayout.events.InlineStyleEvent;
 	import flashx.textLayout.events.TableElementStatusEvent;
 	import flashx.textLayout.events.TagParserCleanCompleteEvent;
 	import flashx.textLayout.events.TagParserCleanProgressEvent;
-	import flashx.textLayout.format.IStyle;
 	import flashx.textLayout.model.attribute.IAttribute;
+	import flashx.textLayout.model.style.ITableStyle;
+	import flashx.textLayout.model.style.InlineStyles;
+	import flashx.textLayout.model.style.TableStyle;
+	import flashx.textLayout.model.table.ITableBaseDecorationContext;
+	import flashx.textLayout.model.table.ITableDecorationContext;
 	import flashx.textLayout.model.table.Table;
 	import flashx.textLayout.model.table.TableRow;
 	import flashx.textLayout.tlf_internal;
+	import flashx.textLayout.utils.StyleAttributeUtil;
 	
 	use namespace tlf_internal;
 	/**
 	 * TableElement represents a table in the text flow. 
 	 * @author toddanderson
 	 */
-	public class TableElement extends ContainerFormattedElement
+	public class TableElement extends TableBaseElement
 	{
-		public var attributes:IAttribute;
-		/**
-		 * Style for table that ha no relation to text layout format, such as border, etc. 
-		 */
-		public var styles:IStyle;
-		
 		protected var _table:Table;
 		protected var _tableMapper:TableMapper;
 		protected var _fragment:*;
@@ -49,7 +50,6 @@ package flashx.textLayout.elements.table
 		protected var _targetContainer:TableDisplayContainer;
 		
 		protected var _textFlow:TextFlow;
-		
 		protected var _isInitialized:Boolean;
 		
 		public static const LINE_BREAK_IDENTIFIER:String = "|tlf_table_paste_break|";
@@ -117,6 +117,14 @@ package flashx.textLayout.elements.table
 			}
 		}
 		
+		/**
+		 * @inherit
+		 * 
+		 * Override to apply proper properties to copy. 
+		 * @param startPos int
+		 * @param endPos int
+		 * @return FlowElement
+		 */
 		override public function shallowCopy(startPos:int=0, endPos:int=-1):FlowElement
 		{
 			var copy:TableElement = super.shallowCopy(startPos, endPos) as TableElement;
@@ -166,14 +174,7 @@ package flashx.textLayout.elements.table
 		 */
 		protected function handleParseCleanProgress( evt:TagParserCleanProgressEvent ):void
 		{
-//			// Create progress alert if not there.
-//			if( _progressAlert == null )
-//				_progressAlert = new TableProgressAlert();
-//			
-//			// Show and update.
-//			_alertManager.showAlert( _progressAlert );
-//			_progressAlert.message = evt.message;
-//			_progressAlert.percent = evt.percent;
+			//
 		}
 		
 		/**
@@ -186,12 +187,7 @@ package flashx.textLayout.elements.table
 		{
 			_importer.removeEventListener( TagParserCleanCompleteEvent.CLEAN_COMPLETE, handleParseCleanComplete );
 			_importer.removeEventListener( TagParserCleanProgressEvent.CLEAN_PROGRESS, handleParseCleanProgress );
-			// Kill progress alert if shown.
-//			if( _progressAlert )
-//			{
-//				_alertManager.hideAlert( _progressAlert );
-//				_progressAlert = null;
-//			}
+			
 			// Wipe out any possibility of empty constrcution which TLF loves to do.
 			if( !_isInitialized )
 			{
@@ -203,6 +199,9 @@ package flashx.textLayout.elements.table
 			// Parse html string into a Table object using the importer.
 			// Table serves as a model for rows and columns and holds attribues and styles.
 			_table = _importer.parse( evt.xml.toString(), this ) as Table;
+			_context = _table.getContextImplementation();
+			_context.mergeStyle( _pendingInitializationStyle );
+			_pendingInitializationStyle = null;
 			
 			// Table Mapper handles taking this Element Model and converting rows and columns
 			// into iterators for fast manipulation of cell display.
@@ -216,6 +215,32 @@ package flashx.textLayout.elements.table
 			
 			_isInitialized = true;
 			_textFlow.dispatchEvent( new TableElementStatusEvent( TableElementStatusEvent.INITIALIZED, this ) );
+		}
+		
+		/**
+		 * @inherit
+		 */
+		override protected function handleAppliedStyleChange(evt:InlineStyleEvent):Boolean
+		{
+			var requiresUpdate:Boolean = super.handleAppliedStyleChange( evt );
+			// Run display refresh if available.
+			if( requiresUpdate && _isInitialized && _tableManager ) 
+				_tableManager.refresh();
+			
+			return requiresUpdate;
+		}
+		
+		/**
+		 * @inherit
+		 */
+		override protected function handleExplicitStyleChange(evt:InlineStyleEvent):Boolean
+		{
+			var requiresUpdate:Boolean = super.handleExplicitStyleChange( evt );
+			// Run display refresh if available.
+			if( requiresUpdate && _isInitialized && _tableManager ) 
+				_tableManager.refresh();
+			
+			return requiresUpdate;
 		}
 		
 		/**
@@ -295,8 +320,9 @@ package flashx.textLayout.elements.table
 		/**
 		 * Cleans table element for removal.
 		 */
-		public function dispose():void
+		override public function dispose():void
 		{
+			super.dispose();
 			_importer = null;
 			_exporter = null;
 			_tableMapper = null;
@@ -329,6 +355,15 @@ package flashx.textLayout.elements.table
 		public function getTargetContainer():TableDisplayContainer
 		{
 			return _targetContainer;
+		}
+		
+		/**
+		 * Returns the held concrete implmenebtaton of the ITableDecorationContext defained on the model. 
+		 * @return ITableDecorationContext
+		 */
+		public function getDecorationContext():ITableDecorationContext
+		{
+			return _context as ITableDecorationContext;
 		}
 		
 		/**

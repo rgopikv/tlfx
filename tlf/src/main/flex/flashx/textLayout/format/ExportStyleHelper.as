@@ -243,14 +243,14 @@ package flashx.textLayout.format
 		{
 			var differingStyles:Array = getDifferingStyles( elementFormat, parentFormat, element );
 			
-			delete node.@style;
 			if( differingStyles.length > 0 )
 			{
 				var i:int;
 				var attribute:StyleProperty;
 				var property:String;
 				var value:String;
-				var style:String = "";
+				var style:String = StyleAttributeUtil.isValidStyleString( node.@style ) ? node.@style : "";
+				delete node.@style;
 				for( i = 0; i < differingStyles.length; i++ )
 				{
 					attribute = differingStyles[i] as StyleProperty;
@@ -258,12 +258,13 @@ package flashx.textLayout.format
 					value = attribute.value;
 					style += property + StyleAttributeUtil.STYLE_PROPERTY_DELIMITER + value + StyleAttributeUtil.STYLE_DELIMITER;
 				}
-				applySelectorAttributes( node, element );
-//				return differingStyles.length > 0;
+//				applySelectorAttributes( node, element );
 			}
 			// Apply @style if key/value pairs are available.
 			if( StyleAttributeUtil.isValidStyleString( style ) ) 
+			{
 				node.@style = style;
+			}
 			// Apply other attributes that relate to style like id and class.
 			var requiresInlineStyleAttributes:Boolean;
 			if( element )

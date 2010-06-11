@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <flexLibProperties includeAllClasses="false" version="3">
   <includeClasses>
     <classEntry path="flash.text.ime.CompositionAttributeRange"/>
@@ -166,10 +166,8 @@
     <classEntry path="flashx.textLayout.format.ExportStyleHelper"/>
     <classEntry path="flashx.textLayout.format.IExportStyleHelper"/>
     <classEntry path="flashx.textLayout.format.IImportStyleHelper"/>
-    <classEntry path="flashx.textLayout.format.IStyle"/>
     <classEntry path="flashx.textLayout.format.ImportStyleHelper"/>
     <classEntry path="flashx.textLayout.format.StyleProperty"/>
-    <classEntry path="flashx.textLayout.format.TableStyle"/>
     <classEntry path="flashx.textLayout.formats.BackgroundColor"/>
     <classEntry path="flashx.textLayout.formats.BaselineOffset"/>
     <classEntry path="flashx.textLayout.formats.BaselineShift"/>
@@ -203,7 +201,6 @@
     <classEntry path="flashx.textLayout.model.style.InlineStyles"/>
     <classEntry path="flashx.textLayout.model.style.TextTransform"/>
     <classEntry path="flashx.textLayout.model.table.Table"/>
-    <classEntry path="flashx.textLayout.model.table.TableBaseElement"/>
     <classEntry path="flashx.textLayout.model.table.TableColumn"/>
     <classEntry path="flashx.textLayout.model.table.TableRow"/>
     <classEntry path="flashx.textLayout.operations.ApplyElementIDOperation"/>

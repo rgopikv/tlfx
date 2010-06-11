@@ -2,8 +2,12 @@ package flashx.textLayout.converter
 {
 	import flashx.textLayout.elements.table.TableDataElement;
 	import flashx.textLayout.elements.table.TableHeadingElement;
+	import flashx.textLayout.model.attribute.IAttribute;
 	import flashx.textLayout.model.attribute.TableHeadingAttribute;
+	import flashx.textLayout.model.style.ITableStyle;
+	import flashx.textLayout.model.table.ITableBaseDecorationContext;
 	import flashx.textLayout.model.table.Table;
+	import flashx.textLayout.model.table.TableData;
 	import flashx.textLayout.utils.FragmentAttributeUtil;
 	import flashx.textLayout.utils.StyleAttributeUtil;
 
@@ -50,26 +54,6 @@ package flashx.textLayout.converter
 		}
 		
 		/**
-		 * @private
-		 * 
-		 * Assigns each style property associated with TextLayoutFormat as a @style attribute to the node. 
-		 * @param fragment XML
-		 */
-		protected function assignAttributesAsStyle( fragment:XML ):void
-		{
-			StyleAttributeUtil.assignAttributesAsStyle( fragment );
-			var children:XMLList = fragment.children();
-			var node:XML;
-			var i:int;
-			for( i = 0; i < children.length(); i++ )
-			{
-				node = children[i] as XML;
-				assignAttributesAsStyle( node );
-			}
-		}
-		
-		// TODO: Apply styles.
-		/**
 		 * Creates a valid <td /> based on supplied data assumed as a TableData instance. 
 		 * @param value * A TableData instance.
 		 * @return String
@@ -77,12 +61,22 @@ package flashx.textLayout.converter
 		public function createFragment(value:*):String
 		{
 			var td:TableDataElement = value as TableDataElement;
+			var dataModel:TableData = td.getTableDataModel();
+			var tdContext:ITableBaseDecorationContext = td.getContext();
+			var attributes:IAttribute = tdContext.getDefinedAttributes();
+			
 			var fragment:XML = ( td is TableHeadingElement ) ? <th /> : <td />;
+			// Export along with styles.
 			htmlExporter.exportElementsToFragment( fragment, td.mxmlChildren );
+			// Surgery on HTML compliant @src attribute from Flash @source
 			replaceImageSourceAttribute( fragment );
-//			assignAttributesAsStyle( fragment );
-			FragmentAttributeUtil.removeAttributesFromFragment( fragment, td.attributes.getStrippedAttributes() );
+			// Assign defined attributes.
+			FragmentAttributeUtil.assignAttributes( fragment, attributes );
+			StyleAttributeUtil.assembleTableBaseStyles( fragment, td );
+			StyleAttributeUtil.assignDimensionsToTableBaseStyles( fragment, dataModel.width, dataModel.height );
+			// Stylize td or th element tag.
 			htmlExporter.exportStyleHelper.applyStyleAttributesFromElement( fragment, td );
+			
 			return fragment.toXMLString();
 		}
 	}

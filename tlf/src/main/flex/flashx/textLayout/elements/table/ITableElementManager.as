@@ -5,6 +5,7 @@ package flashx.textLayout.elements.table
 	
 	import flashx.textLayout.container.IEditorDisplayContext;
 	import flashx.textLayout.container.table.ICellContainer;
+	import flashx.textLayout.container.table.TableDisplayContainer;
 	import flashx.textLayout.elements.FlowElement;
 	import flashx.textLayout.model.table.Table;
 
@@ -19,7 +20,7 @@ package flashx.textLayout.elements.table
 		 * @param element TableElement
 		 * @param targetContainer DisplayObjectContainer
 		 */
-		function create( element:TableElement, targetContainer:DisplayObjectContainer ):void;
+		function create( element:TableElement, targetContainer:TableDisplayContainer ):void;
 		
 		/**
 		 * Composes the table for initial layout.

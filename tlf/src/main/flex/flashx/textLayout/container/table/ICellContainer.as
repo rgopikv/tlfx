@@ -29,6 +29,9 @@ package flashx.textLayout.container.table
 		 */
 		function update():void;
 		
+		function measureOnWidth( width:Number ):void;
+		function measureOnHeight( height:Number ):void;
+		
 		/**
 		 * Returns target display for the cell. 
 		 * @return Sprite
@@ -75,17 +78,15 @@ package flashx.textLayout.container.table
 		function set actualHeight( value:Number ):void;
 		
 		/**
-		 * Accessor/Mutator for actual width of display size for the outerlying cell. 
+		 * Accessor for actual width of display size for the outerlying cell. 
 		 * @return Number
 		 */
 		function get measuredWidth():Number;
-		function set measuredWidth( value:Number ):void;
 		/**
-		 * Accessor/Mutator for actual height of display size for the outerlying cell. 
+		 * Accessor for actual height of display size for the outerlying cell. 
 		 * @return Number
 		 */
 		function get measuredHeight():Number;
-		function set measuredHeight( value:Number ):void;
 		
 		/**
 		 * Accessor/Modifier for the explicitly set width size on the cell attribute. 
@@ -100,6 +101,9 @@ package flashx.textLayout.container.table
 		 */
 		function get explicitHeight():Number;
 		function set explicitHeight( value:Number ):void;
+		
+		function get compositionWidth():Number;
+		function get compositionHeight():Number;
 		
 		/**
 		 * Accessor/Modifier for index of row which this cell resides.  
@@ -136,6 +140,13 @@ package flashx.textLayout.container.table
 		 * @return Number
 		 */
 		function get minimumHeight():Number;
+		
+		/**
+		 * Accessor/Modifier for maximum width alloted for cell based on layout context. 
+		 * @return Number
+		 */
+		function get maximumWidth():Number;
+		function set maximumWidth( value:Number ):void;
 		
 		/**
 		 * Sets the line break identifier used to recompose elements if line breaks available in a paste operation. 

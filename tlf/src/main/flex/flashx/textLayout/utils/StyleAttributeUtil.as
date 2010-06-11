@@ -1,19 +1,11 @@
 package flashx.textLayout.utils
 {
-	import flash.utils.describeType;
-	import flash.utils.getQualifiedClassName;
-	
-	import flashx.textLayout.elements.DivElement;
 	import flashx.textLayout.elements.FlowElement;
-	import flashx.textLayout.elements.FlowGroupElement;
-	import flashx.textLayout.elements.FlowValueHolder;
-	import flashx.textLayout.elements.LinkElement;
-	import flashx.textLayout.elements.ParagraphElement;
-	import flashx.textLayout.elements.SpanElement;
-	import flashx.textLayout.elements.TextFlow;
-	import flashx.textLayout.formats.ITextLayoutFormat;
-	import flashx.textLayout.formats.TextLayoutFormat;
-	import flashx.textLayout.tlf_internal;
+	import flashx.textLayout.elements.table.TableBaseElement;
+	import flashx.textLayout.model.style.ITableStyle;
+	import flashx.textLayout.model.style.InlineStyles;
+	import flashx.textLayout.model.style.TableStyle;
+	import flashx.textLayout.model.table.ITableBaseDecorationContext;
 
 	/**
 	 * StyleAttributeUtil is a utility class to work with style attribute on HTML fragments. 
@@ -25,6 +17,18 @@ package flashx.textLayout.utils
 		public static const DASH:String = "-";
 		public static const STYLE_DELIMITER:String = ";";
 		public static const STYLE_PROPERTY_DELIMITER:String = ":";
+		
+		static public function getExplicitStyle( element:FlowElement ):Object
+		{
+			if( element.userStyles )
+			{
+				if( element.userStyles.inline as InlineStyles )
+				{
+					return ( element.userStyles.inline as InlineStyles ).explicitStyle;
+				}
+			}
+			return null;
+		}
 		
 		/**
 		 * Determines the validity of a style property value. 
@@ -134,10 +138,31 @@ package flashx.textLayout.utils
 				if( styles[i].indexOf(StyleAttributeUtil.STYLE_PROPERTY_DELIMITER) != -1 )
 				{
 					keyValue = styles[i].split( ":" );
-					styleObj[StyleAttributeUtil.dasherize(keyValue[0])] = StyleAttributeUtil.stripWhitespaces( keyValue[1] );
+					styleObj[StyleAttributeUtil.stripWhitespaces(StyleAttributeUtil.dasherize(keyValue[0]))] = StyleAttributeUtil.stripWhitespaces( keyValue[1] );
 				}
 			}
 			return styleObj;
+		}
+		
+		public static function mergeStyles( style:Object, toOverwriteUndefined:Object ):Object
+		{
+			var property:String;
+			for( property in toOverwriteUndefined )
+			{
+				if( !style.hasOwnProperty( property ) )
+					style[property] = toOverwriteUndefined[property];
+			}
+			return style;
+		}
+		
+		public static function overwriteStyles( style:Object, toOverwrite:Object ):Object
+		{
+			var property:String;
+			for( property in toOverwrite )
+			{
+				style[property] = toOverwrite[property];
+			}
+			return style;
 		}
 		
 		/**
@@ -152,91 +177,71 @@ package flashx.textLayout.utils
 		}
 		
 		/**
-		 * Assigns styles from FlowElement as individual attributes on tag. 
-		 * @param tag XML
-		 * @param element FlowElement
+		 * Creates or appends styles from a box model style for table-base elements into a @style attribute for the node fragment. 
+		 * @param fragment XML
+		 * @param element TableBaseElement
 		 */
-		public static function assignStylesFromElement( tag:XML, element:FlowElement ):void
+		public static function assembleTableBaseStyles( fragment:XML, element:TableBaseElement ):void
 		{
-			var styles:Array = [];
-			if( isValidStyleString( element.fontFamily ) )
-				styles.push( "font-family:" + element.fontFamily );
-			if( isValidStyleString( element.fontWeight ) )
-				styles.push( "font-weight:" + element.fontWeight );
-			if( isValidStyleString( element.fontStyle ) )
-				styles.push( "font-style:" + element.fontStyle );
-			if( isValidStyleString( element.textDecoration ) )
-				styles.push( "text-decoration:" + element.textDecoration );
-			if( isValidStyleNumber( element.color ) )
-				styles.push( "color:#" + element.color.toString( 16 ) );
-			if( isValidFontSize( element.fontSize ) )
-				styles.push( "font-size:" + element.fontSize + "px" );
-			if( isValidStyleString( element.textAlign ) )
-				styles.push( "text-align:" + element.textAlign );
-			
-			if( styles.length > 0 )
+			var context:ITableBaseDecorationContext = element.getContext();
+			var style:ITableStyle = context.style;
+			var explicitStyles:Object = StyleAttributeUtil.getExplicitStyle( element );
+			var styleDefinition:String = "";
+			var property:String;
+			// Run through style definition.
+			var description:Vector.<String> = TableStyle.fullDefinition;
+			for each( property in description )
 			{
-				var i:int;
-				var keyValues:Array;
-				var attribute:String;
-				var value:String;
-				for( i = 0; i < styles.length; i++ )
+				if( explicitStyles.hasOwnProperty( property ) )
 				{
-					keyValues = styles[i].split( StyleAttributeUtil.STYLE_PROPERTY_DELIMITER );
-					attribute = StyleAttributeUtil.camelize( keyValues[0] );
-					value = keyValues[1].toString();
-					tag["@" + attribute] = value;
+					styleDefinition += StyleAttributeUtil.assembleStyleProperty( property, explicitStyles[property] );
 				}
+			}
+			
+			// If no styles, move on.
+			if( !StyleAttributeUtil.isValidStyleString( styleDefinition ) ) return;
+			
+			// If @style currently existant, append.
+			if( StyleAttributeUtil.isValidStyleString( fragment.@style ) )
+			{
+				fragment.@style += styleDefinition;
+			}
+			// Else add new @style attribute.
+			else
+			{
+				fragment.@style = styleDefinition;
 			}
 		}
 		
 		/**
-		 * Strips out any style property attributes and pushes then to a @style attribute. 
-		 * @param tag XML
+		 * Appends dimension style to fragment for table base element. 
+		 * @param fragment XML
+		 * @param width Number
+		 * @param height Number
 		 */
-		static public function assignAttributesAsStyle( tag:XML ):void
+		static public function assignDimensionsToTableBaseStyles( fragment:XML, width:Number, height:Number ):void
 		{
-			var fontFamily:String = tag.@fontFamily;
-			var fontWeight:String = tag.@fontWeight;
-			var fontStyle:String = tag.@fontStyle;
-			var textDecoration:String = tag.@textDecoration;
-			var color:String = tag.@color;
-			var fontSize:String = String( tag.@fontSize ).replace( "px", "" );
-			var textAlign:String = tag.@textAlign;
-			
-			var styles:Array = [];
-			if( isValidStyleString( fontFamily ) )
-				styles.push( "font-family:" + fontFamily );
-			if( isValidStyleString( fontWeight ) )
-				styles.push( "font-weight:" + fontWeight );
-			if( isValidStyleString( fontStyle ) )
-				styles.push( "font-style:" + fontStyle );
-			if( isValidStyleString( textDecoration ) )
-				styles.push( "text-decoration:" + textDecoration );
-			if( isValidStyleString( color ) )
-				styles.push( "color:" + color );
-			if( isValidFontSize( fontSize ) )
-				styles.push( "font-size:" + fontSize + "px" );
-			if( isValidStyleString( textAlign ) )
-				styles.push( "text-align:" + textAlign );
-			
-			if( styles.length > 0 )
+			var styleString:String = fragment.@style;
+			var w:String = DimensionTokenUtil.export( width );
+			var h:String = DimensionTokenUtil.export( height );
+			if( StyleAttributeUtil.isValidStyleString( styleString ) )
 			{
-				var style:String = styles.join(StyleAttributeUtil.STYLE_DELIMITER);
-				if( isValidStyleString( tag.@style ) )
+				var styles:Object = StyleAttributeUtil.parseStyles( styleString );
+				styles["width"] = w;
+				styles["height"] = h;
+				styleString = "";
+				var property:String;
+				for( property in styles )
 				{
-					style = tag.@style + StyleAttributeUtil.STYLE_DELIMITER + style;
+					styleString += StyleAttributeUtil.assembleStyleProperty( property, styles[property] );
 				}
-				tag.@style = style;
 			}
-			
-			delete tag.@fontFamily;
-			delete tag.@fontWeight;
-			delete tag.@fontStyle;
-			delete tag.@textDecoration;
-			delete tag.@color;
-			delete tag.@fontSize;
-			delete tag.@textAlign;
+			else
+			{
+				styleString += StyleAttributeUtil.assembleStyleProperty( "width", w );
+				styleString += StyleAttributeUtil.assembleStyleProperty( "height", h );
+			}
+			fragment.@style = styleString
 		}
 		
 		/**

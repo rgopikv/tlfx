@@ -4,6 +4,7 @@ package flashx.textLayout.format
 	import flashx.textLayout.formats.ITextLayoutFormat;
 	import flashx.textLayout.formats.TextAlign;
 	import flashx.textLayout.utils.ColorValueUtil;
+	import flashx.textLayout.utils.DimensionTokenUtil;
 	import flashx.textLayout.utils.StyleAttributeUtil;
 
 	public class StyleProperty
@@ -39,26 +40,6 @@ package flashx.textLayout.format
 		}
 		
 		/**
-		 * Converts size unit to equivalent number value. 
-		 * @param unit *
-		 * @return Number
-		 */
-		private static function convertSizeUnit( unit:* ):Number
-		{
-			var unitValue:String = unit.toString();
-			if( unitValue.indexOf( "px" ) != -1 )
-			{
-				unitValue = unitValue.replace( "px", "" );
-			}
-			else if( unitValue.indexOf( "pt" ) != -1 )
-			{
-				var size:Number = Number(unitValue.replace("pt","")) * 96 / 72;
-				unitValue = size.toString();
-			}	
-			return Number(unitValue);
-		}
-		
-		/**
 		 * Creates a new StyleProperty that relates to TLF formatting based on property and value. 
 		 * @param property
 		 * @param value
@@ -83,7 +64,7 @@ package flashx.textLayout.format
 				case "mso":
 					property = "fontSize";
 				case "fontSize":
-					value = StyleProperty.convertSizeUnit( value );
+					value = DimensionTokenUtil.normalize( value );
 					break;
 				case "marginLeft":
 					property = "paragraphStartIndent";
@@ -92,11 +73,11 @@ package flashx.textLayout.format
 					property = "paragraphEndIndent";
 					break;
 				case "textIndent":
-					value = StyleProperty.convertSizeUnit( value );
+					value = DimensionTokenUtil.normalize( value );
 					break;
 				case "letterSpacing":
 					property = "trackingRight";
-					value = StyleProperty.convertSizeUnit( value );
+					value = DimensionTokenUtil.normalize( value );
 					break;
 			}
 			return new StyleProperty( property, value );
@@ -118,7 +99,7 @@ package flashx.textLayout.format
 					value = ColorValueUtil.normalizeForCSS( value );
 					break;
 				case "fontSize":
-					value = value + "px";
+					value = DimensionTokenUtil.export( value );
 					break;
 				case "textAlign":
 					if( value == TextAlign.START )

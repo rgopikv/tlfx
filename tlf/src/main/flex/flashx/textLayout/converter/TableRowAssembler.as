@@ -33,7 +33,7 @@ package flashx.textLayout.converter
 		{
 			var fragment:XML = <tr />;
 			var tr:TableRowElement = value as TableRowElement;
-			FragmentAttributeUtil.assignAttributes( fragment, tr.attributes.getStrippedAttributes() );
+			FragmentAttributeUtil.assignAttributes( fragment, tr.getContext().getDefinedAttributes() );
 			
 			var cells:Vector.<TableDataElement> = tr.children();
 			var i:int;

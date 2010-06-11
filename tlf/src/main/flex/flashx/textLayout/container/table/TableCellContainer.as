@@ -1,27 +1,21 @@
 package flashx.textLayout.container.table
 {
-	import flash.display.BlendMode;
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
-	import flash.display.Loader;
+	import flash.display.InteractiveObject;
 	import flash.display.Shape;
 	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.events.MouseEvent;
-	import flash.events.TimerEvent;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	import flash.text.engine.TextLine;
-	import flash.utils.Timer;
 	
 	import flashx.textLayout.container.ContainerController;
 	import flashx.textLayout.container.ISizableContainer;
-	import flashx.textLayout.conversion.TextConverter;
 	import flashx.textLayout.converter.IHTMLImporter;
-	import flashx.textLayout.converter.TableDataElementConverter;
 	import flashx.textLayout.edit.SelectionState;
 	import flashx.textLayout.elements.Configuration;
-	import flashx.textLayout.elements.DivElement;
 	import flashx.textLayout.elements.FlowElement;
 	import flashx.textLayout.elements.FlowGroupElement;
 	import flashx.textLayout.elements.FlowValueHolder;
@@ -30,19 +24,17 @@ package flashx.textLayout.container.table
 	import flashx.textLayout.elements.SpanElement;
 	import flashx.textLayout.elements.TextFlow;
 	import flashx.textLayout.elements.table.TableDataElement;
-	import flashx.textLayout.elements.table.TableHeadingElement;
 	import flashx.textLayout.events.table.TableCellContainerEvent;
 	import flashx.textLayout.events.table.TableCellFocusEvent;
 	import flashx.textLayout.factory.TextFlowTextLineFactory;
 	import flashx.textLayout.formats.ITextLayoutFormat;
-	import flashx.textLayout.formats.TextAlign;
-	import flashx.textLayout.formats.TextLayoutFormat;
-	import flashx.textLayout.model.attribute.IAttribute;
-	import flashx.textLayout.model.attribute.TableAttribute;
 	import flashx.textLayout.model.attribute.TableDataAttribute;
-	import flashx.textLayout.tlf_internal;
-	import flashx.textLayout.utils.FragmentAttributeUtil;
-	import flashx.textLayout.utils.StyleAttributeUtil;
+	import flashx.textLayout.model.style.IBorderStyle;
+	import flashx.textLayout.model.style.ITableStyle;
+	import flashx.textLayout.model.table.ITableDataDecorationContext;
+	import flashx.textLayout.model.table.ITableDecorationContext;
+	import flashx.textLayout.model.table.TableBorderLeg;
+	import flashx.textLayout.model.table.TableCellBorderRenderer;
 	import flashx.textLayout.utils.TextLayoutFormatUtils;
 	
 	[Event(name="cellResize", type="com.constantcontact.texteditor.event.TableCellContainerEvent")]
@@ -54,19 +46,27 @@ package flashx.textLayout.container.table
 	public class TableCellContainer extends Sprite implements ICellContainer, ISizableContainer
 	{	
 		protected var background:Sprite;
+		protected var selectionBackground:Sprite;
 		protected var border:Shape;
+//		protected var actualBorder:Shape;
+		protected var _tableBorderRenderer:TableCellBorderRenderer;
+		
 		protected var targetDisplay:TableCellDisplay;
 		protected var _defaultConfiguration:Configuration;
 		protected var _controller:ContainerController;
 		
-		protected var _width:Number = 0;
-		protected var _height:Number = 0;
+		protected var _width:Number = Number.NaN;
+		protected var _height:Number = Number.NaN;
 		
 		protected var _actualWidth:Number = 0;
 		protected var _actualHeight:Number = 0;
 		
 		protected var _minimumWidth:Number = 0;
+		protected var _maximumWidth:Number = 1000000;
 		protected var _minimumHeight:Number = 0;
+		
+		protected var _proposedMeasuredWidth:Number = Number.NaN;
+		protected var _proposedMeasuredHeight:Number = Number.NaN;
 		
 		protected var _rowIndex:int;
 		protected var _rowLength:int;
@@ -77,8 +77,9 @@ package flashx.textLayout.container.table
 		protected var _descent:Number = 0;
 		
 		protected var _data:TableDataElement;
+		protected var _tableDataContext:ITableDataDecorationContext;
 		protected var _htmlConverter:IHTMLImporter;
-		protected var _tableAttributes:IAttribute;
+		protected var _tableContext:ITableDecorationContext;
 		protected var _textFlow:TextFlow;
 		
 		protected var _lineBreakIdentifier:String = TableCellContainer.INTERNAL_LINE_BREAK_IDENTIFIER;
@@ -87,6 +88,9 @@ package flashx.textLayout.container.table
 		protected var _numLines:int;
 		protected var _proposedHeight:Number;
 		protected var _previousHeight:Number;
+		
+		protected var _pendingRecompose:Boolean;
+		protected var _pendingRecomposeWidth:Number;
 		
 		private var _uid:String;
 		public static const UID_PREFIX:String = "TableCellContainer";
@@ -100,10 +104,11 @@ package flashx.textLayout.container.table
 		 *  
 		 * @param data The HTML table data to be presented.
 		 */
-		public function TableCellContainer( data:TableDataElement, tableAttributes:IAttribute, defaultConfiguration:Configuration, htmlImporter:IHTMLImporter )
+		public function TableCellContainer( data:TableDataElement, tableContext:ITableDecorationContext, defaultConfiguration:Configuration, htmlImporter:IHTMLImporter )
 		{
 			_data = data;
-			_tableAttributes = tableAttributes;
+			_tableContext = tableContext;
+			_tableDataContext = _data.getDecorationContext();
 			_defaultConfiguration = defaultConfiguration;
 			_htmlConverter = htmlImporter;
 			
@@ -112,28 +117,41 @@ package flashx.textLayout.container.table
 			_textFlow.color = 0xFF0000;
 			
 			// Precompute index lengths.
-			_rowLength = Math.max( ( _data.attributes as Object ).rowspan - 1, 0 );
-			_columnLength = Math.max( ( _data.attributes as Object ).colspan - 1, 0 );
+			_rowLength = Math.max( ( _tableDataContext.attributes as Object ).rowspan - 1, 0 );
+			_columnLength = Math.max( ( _tableDataContext.attributes as Object ).colspan - 1, 0 );
 			
 			// create background graphic.
 			background = new Sprite();
 			addChild( background );
-			background.addEventListener( MouseEvent.CLICK, handleClick, false, 0, true );
 			
+			// Create selection display.
+			selectionBackground = new Sprite();
+			addChild( selectionBackground );
+			
+			// Create display for borders.
 			border = new Shape();
 			addChild( border );
+			
+//			actualBorder = new Shape();
+//			addChild( actualBorder );
+			
+			// Create renderer for borders.
+			_tableBorderRenderer = new TableCellBorderRenderer( border, _tableDataContext );
 			
 			// create the target display of the cell.
 			targetDisplay = new TableCellDisplay( this );
 			addChild( targetDisplay );
 			
+			// Add handlers
+			addHandlers();
+			
 			// Set default values.
-			var attributes:Object = _data.attributes;
-			var shift:Number = getUnifiedPadding();
-			_width = getDefinedWidth();
-			_height = getDefinedHeight();
-			_actualWidth = Math.max( shift, _width - shift );
-			_actualHeight = Math.max( shift, _height - shift );
+			var widthPadding:Number = _tableDataContext.getComputedWidthOfPaddingAndBorders();
+			var heightPadding:Number = _tableDataContext.getComputedHeightOfPaddingAndBorders();
+			_width = getDefinedWidth( widthPadding ); 
+			_height = getDefinedHeight( heightPadding );
+			_actualWidth = Math.max( widthPadding, _width - widthPadding );
+			_actualHeight = Math.max( heightPadding, _height - heightPadding );
 			
 			// Set Unique ID associated with this cell container.
 			_uid = TableCellContainer.UID_PREFIX + TableCellContainer.ID;
@@ -145,18 +163,40 @@ package flashx.textLayout.container.table
 		/**
 		 * @private 
 		 * 
+		 * Assigns event handlers for interaction on this instance.
+		 */
+		protected function addHandlers():void
+		{
+			background.addEventListener( MouseEvent.CLICK, handleClick, false, 0, true );
+			selectionBackground.addEventListener( MouseEvent.CLICK, handleClick, false, 0, true );
+			border.addEventListener( MouseEvent.CLICK, handleClick, false, 0, true );
+		}
+		
+		/**
+		 * @private 
+		 * 
+		 * Removes event handlers for interaction on this instance.
+		 */
+		protected function removeHandlers():void
+		{
+			background.removeEventListener( MouseEvent.CLICK, handleClick, false );
+			selectionBackground.removeEventListener( MouseEvent.CLICK, handleClick, false );
+			border.removeEventListener( MouseEvent.CLICK, handleClick, false );
+		}
+		
+		/**
+		 * @private 
+		 * 
 		 * Validates the measured size of the container.
 		 */
-		protected function invalidateSize():void
+		protected function invalidateSize( w:Number, h:Number ):void
 		{
-			//TODO: Get background color from styles.
-			background.graphics.clear();
-			background.graphics.beginFill( 0xFFFFFF, 1 );
-			background.graphics.drawRect( 0, 0, _width, _height );
-			background.graphics.endFill();
-			
-			_actualWidth = getTargetWidth() - getUnifiedPadding();
+			decorate( w, h );
 			positionTarget();
+			
+			// Update model based dimension references.
+			_data.getTableDataModel().width = getDefinedWidth( w );
+			_data.getTableDataModel().height = getDefinedHeight( h );
 		}
 		
 		/**
@@ -166,11 +206,12 @@ package flashx.textLayout.container.table
 		 */
 		protected function invalidateSelection():void
 		{
-			background.graphics.clear();
-			background.graphics.beginFill( ( _selected ) ? 0xccccff : 0xFFFFFF, 1 );
-			background.graphics.drawRect( 0, 0, _width, _height );
-			background.graphics.endFill();
-			//			background.blendMode = ( _selected ) ? BlendMode.INVERT : BlendMode.NORMAL;
+			var w:Number = _data.getTableDataModel().width;
+			var h:Number = _data.getTableDataModel().height;
+			selectionBackground.graphics.clear();
+			selectionBackground.graphics.beginFill( ( _selected ) ? 0xccccff : 0xFFFFFF, ( selected ) ? 1 : 0 );
+			selectionBackground.graphics.drawRect( 0, 0, w, h );
+			selectionBackground.graphics.endFill();
 			
 			// If we have multi-select than update selection to encompass the whole range of the cell.
 			if( _selected )
@@ -285,8 +326,6 @@ package flashx.textLayout.container.table
 		 */
 		protected function composeCell( toWidth:Number, notify:Boolean = true ):void
 		{	
-			// TODO: Apply format from Style of Table.
-			var config:IConfiguration = getDefaultConfiguration();
 			// Create textflow and import data as HTML.
 			if( _data.mxmlChildren ) determineCellSize( _data.mxmlChildren, toWidth, notify );
 		}
@@ -309,27 +348,32 @@ package flashx.textLayout.container.table
 				elements = resolvePossibleBreaks( elements );	
 			}
 			
-			var unifiedPadding:Number = getUnifiedPadding();
+			var heightPadding:Number = _tableDataContext.getComputedHeightOfPaddingAndBorders();
+			var tempHeight:Number = _actualHeight;
+			var tempNumLines:int = _numLines;
+			
 			// If we are rerendering based on setting explicit values.
 			// 	forget about tryint to update dfault min values.
 			_minimumWidth = 0;
 			_minimumHeight = 0;
 			
-			var tempWidth:Number = _actualWidth + unifiedPadding;
-			var tempHeight:Number = _actualHeight + unifiedPadding;
-			var tempNumLines:int = _numLines;
+			_actualWidth = 0; 
+			_actualHeight = 0;
+			
 			_numLines = 0;
 			
 			cleanTextFlow();
 			var element:FlowElement;
 			var elementList:Array = []; // CellElement[]
 			var previousFormat:ITextLayoutFormat;
+			var computedFormat:ITextLayoutFormat;
 			// Loop through elements and pop from Array and place on TextFlow instance.
 			while( elements.length > 0 )
 			{
 				element = ( elements.shift() as FlowElement );
 				previousFormat = new FlowValueHolder( ( element.format as FlowValueHolder ) );
-				element.format = ( element.format ) ? TextLayoutFormatUtils.mergeFormats( _data.computedFormat, element.format ) : _data.computedFormat;
+				computedFormat = _data.computedFormat;
+				element.format = ( element.format ) ? TextLayoutFormatUtils.mergeFormats( computedFormat, element.format ) : computedFormat;
 				element.uid = _uid;
 				// Add to held list of elements.
 				elementList.push( CellElementPool.getCellElement( element, previousFormat ) );
@@ -352,12 +396,23 @@ package flashx.textLayout.container.table
 				CellElementPool.returnCellElement( cellElement );
 			}
 			
+			// If we ran through construction and an image was found at a size larger than the detemrined fixed width, we need to run it again and make sure it fits.
+			if( _pendingRecompose )
+			{
+				_width = _pendingRecomposeWidth + _tableDataContext.getComputedWidthOfPaddingAndBorders();
+				_pendingRecompose = false;
+				_pendingRecomposeWidth = -1;
+				update();
+				return;
+			}
+			
+			// Update measured properties.
 			updateMeasuredBounds();
-			// Reposition inner cell.
-			positionTarget();
+			// Update visual display.
+			invalidateSize( ( isNaN( _proposedMeasuredWidth ) ) ? _width : _proposedMeasuredWidth, _height );
 			// Notify listening clients.
 			_previousHeight = tempHeight;
-			_proposedHeight = _actualHeight + getUnifiedPadding();
+			_proposedHeight = _actualHeight;
 			// If we want to notify and the elements weren;t reassmebled due to line breaks, notify.
 			if( notify && original.length == elementLength )
 			{
@@ -381,6 +436,57 @@ package flashx.textLayout.container.table
 		}
 		
 		/**
+		 * @private
+		 * 
+		 * Draws a border on the display. 
+		 * @param border TableBorderLeg
+		 */
+		protected function drawLeg( leg:TableBorderLeg, w:Number, h:Number ):void
+		{
+			_tableBorderRenderer.drawBorder( leg, w, h );
+		}
+		
+		protected function decorate( w:Number, h:Number ):void
+		{
+			// Render background.
+			var style:ITableStyle = _tableDataContext.style;
+			var backgroundColor:*;
+			if( !style.isUndefined( style.backgroundColor ) )
+			{
+				backgroundColor = style.getComputedStyle().backgroundColor;
+			}
+			background.graphics.clear();
+			background.graphics.beginFill( ( backgroundColor ) ? backgroundColor : 0xFF0000, ( backgroundColor ) ? 1 : 0 );
+			background.graphics.drawRect( 0, 0, w, h );
+			background.graphics.endFill();
+			
+			// Render borders.
+			border.graphics.clear();
+			var tableStyle:ITableStyle = _tableDataContext.style.getComputedStyle();
+			var legs:Vector.<TableBorderLeg> = new Vector.<TableBorderLeg>();
+			var i:int;
+			var thickness:Number;
+			var color:uint;
+			var borderStyle:String;
+			var borderWidth:Array = _tableDataContext.determineBorderWidth();
+			var cellBorderStyle:IBorderStyle = tableStyle.getBorderStyle();
+			// Determine the border legs to be drawn.
+			for( i = 0; i < borderWidth.length; i++ )
+			{
+				thickness = borderWidth[i];
+				color = cellBorderStyle.borderColor[i];
+				borderStyle = cellBorderStyle.computeBorderStyleBasedOnWidth( thickness, cellBorderStyle.borderStyle[i] );
+				legs.push( new TableBorderLeg( i, thickness, color, borderStyle ) );
+			}
+			// Draw the legs to the display based on availability.
+			var leg:TableBorderLeg;
+			while( legs.length > 0 )
+			{
+				drawLeg( legs.shift(), w, h );
+			}
+		}
+		
+		/**
 		 * @private 
 		 * 
 		 * Positions the target display based on attributes and dimensions.
@@ -388,25 +494,45 @@ package flashx.textLayout.container.table
 		protected function positionTarget():void
 		{
 			// basing to wildcard in order to use Proxy.
-			var attributes:* = _data.attributes;
-			var padding:Number = getPadding();
-			
+			var attributes:* = _data.getComputedAttributes();
+			var h:Number = ( isNaN( _proposedMeasuredHeight ) ) ? _height : _proposedMeasuredHeight;
 			switch( attributes.valign )
 			{
 				case TableDataAttribute.MIDDLE:
-					targetDisplay.y = ( _height - _actualHeight ) * 0.5;
+					targetDisplay.y = ( h - _actualHeight ) * 0.5;
 					break;
 				case TableDataAttribute.BOTTOM:
-					targetDisplay.y = _height - _actualHeight - padding;
+					targetDisplay.y = h - _actualHeight - _tableDataContext.getBottomPadding();
 					break;
 				case TableDataAttribute.TOP:
 				default:
-					targetDisplay.y = padding;
+					targetDisplay.y = _tableDataContext.getTopPadding();
 					break;
 			}
+			
+			// Alignment is handled by formatting in line factory and the access of composition width which determines the container controller bounds. 
+			// THIS SWITCH HAS BEEN DEPRECATED. KEPT IN LINE AND COMMENTED FOR PRESERVATION.
+//			switch( attributes.align )
+//			{
+//				case TableDataAttribute.CENTER:
+//					targetDisplay.x = ( _width - _actualWidth ) / 2;
+//					break;
+//				case TableDataAttribute.RIGHT:
+//					targetDisplay.x = _width - _actualWidth - _tableDataContext.getRightPadding();
+//					break;
+//				case TableDataAttribute.LEFT:
+//				default:
+//					targetDisplay.x = _tableDataContext.getLeftPadding();
+//					break;
+//			}
 			// Default.
-			targetDisplay.y += _descent - 1;// - getPadding();
-			targetDisplay.x = getPadding();// ( _width - _actualWidth ) * 0.5;
+			targetDisplay.y += _descent - 1;
+			// Just align along x axis based on left padding.
+			targetDisplay.x = _tableDataContext.getLeftPadding();
+			
+//			actualBorder.graphics.clear();
+//			actualBorder.graphics.lineStyle( 1, 0 );
+//			actualBorder.graphics.drawRect( targetDisplay.x, targetDisplay.y, compositionWidth, _actualHeight );
 		}
 		
 		/**
@@ -416,28 +542,13 @@ package flashx.textLayout.container.table
 		 */
 		protected function updateMeasuredBounds():void
 		{
-			var unifiedPadding:Number = getUnifiedPadding();
+			var widthPadding:Number = _tableDataContext.getComputedWidthOfPaddingAndBorders();
+			var heightPadding:Number = _tableDataContext.getComputedHeightOfPaddingAndBorders();
 			// Redfine height on updated values.
-			var predefinedHeight:Number = getDefinedHeight();
-			if( predefinedHeight != 0 )
-			{
-				explicitHeight = Math.max( predefinedHeight, _actualHeight + unifiedPadding );
-				_height = explicitHeight;
-			}
-			else
-			{
-				_height = _actualHeight + unifiedPadding;
-			}
+			// Since we can grow in height, we run a max on explicit defined height and actual height.
+			_height = Math.max( getDefinedHeight( _actualHeight + heightPadding ), _actualHeight + heightPadding );
 			// Redefin width on updated values.
-			var predefinedWidth:Number = getDefinedWidth();
-			if( predefinedWidth != 0 )
-			{
-				_width = explicitWidth;
-			}
-			else
-			{
-				_width = _actualWidth + unifiedPadding;
-			}
+			_width = getDefinedWidth( _actualWidth + widthPadding );
 		}
 		
 		/**
@@ -452,7 +563,7 @@ package flashx.textLayout.container.table
 			var ascent:Number = ( line is TextLine ) ? ( line as TextLine ).ascent : 0;
 			var descent:Number = ( line is TextLine ) ? ( line as TextLine ).descent : 0;
 			var bounds:Rectangle = line.getBounds( this );
-			_actualWidth = Math.max( getTargetWidth() - getUnifiedPadding(), Math.max( _actualWidth, bounds.width ) );
+			_actualWidth = Math.max( _actualWidth, bounds.width );
 			var pt:Point = localToGlobal( new Point( bounds.left, bounds.top ) );
 			_actualHeight = pt.y + bounds.height + descent;//( descent * 2 );// ( ascent + descent );
 			
@@ -464,29 +575,19 @@ package flashx.textLayout.container.table
 			_minimumHeight = _actualHeight;
 			
 			_numLines++;
-		}
-		
-		/**
-		 * @private 
-		 * 
-		 * Returns padding within cell.
-		 */
-		protected function getPadding():Number
-		{
-			var attributes:* = _tableAttributes;
-			return attributes.cellpadding;
-		}
-		
-		/**
-		 * @private
-		 * 
-		 * Returns double padding to represent area of padding uniformly on cell. 
-		 * @return Number
-		 */
-		protected function getUnifiedPadding():Number
-		{
-			var attributes:* = _tableAttributes;
-			return attributes.cellpadding * 2;
+			
+			// If we have encountered an image and its width is greater than we alloted for composition, we need to track it and recompose later.
+			if( ( line is TextLine ) )
+			{
+				if( ( line as TextLine ).hasGraphicElement )
+				{
+					if( bounds.width > getDeterminedFixedWidth() )
+					{
+						_pendingRecompose = true;
+						_pendingRecomposeWidth = bounds.width;
+					}
+				}
+			}
 		}
 		
 		/**
@@ -497,6 +598,7 @@ package flashx.textLayout.container.table
 		 */
 		protected function handleClick( evt:MouseEvent ):void
 		{
+			var target:InteractiveObject = ( evt.target as InteractiveObject );
 			dispatchEvent( new TableCellFocusEvent( controller ) );
 		}
 		
@@ -512,6 +614,22 @@ package flashx.textLayout.container.table
 			notifyOfChange();
 		}
 		
+		protected function getDefinedWidth( orDefault:Number = Number.NaN ):Number
+		{
+			var definedWidth:Number = _tableDataContext.getDefinedWidth();
+			definedWidth = ( isNaN( definedWidth ) ) ? orDefault : definedWidth;
+			definedWidth = ( isNaN( definedWidth ) ) ? _width : definedWidth;
+			return Math.ceil( definedWidth );
+		}
+		
+		protected function getDefinedHeight( orDefault:Number = Number.NaN ):Number
+		{
+			var definedHeight:Number = _tableDataContext.getDefinedHeight();
+			definedHeight = ( isNaN( definedHeight ) ) ? orDefault : definedHeight;
+			definedHeight = ( isNaN( definedHeight ) ) ? _height : definedHeight;
+			return Math.ceil( definedHeight );
+		}
+		
 		/**
 		 * @private
 		 * 
@@ -521,11 +639,8 @@ package flashx.textLayout.container.table
 		 */
 		protected function getTargetWidth( orDefault:Number = -1 ):Number
 		{
-			// If width roperty of cell data is not set.
-			if( _data.attributes[TableDataAttribute.WIDTH] == TableDataAttribute.DEFAULT_DIMENSION )
-				return ( orDefault == -1 ) ? _width : orDefault;
-			
-			return getDefinedWidth();
+			var allotedWidth:Number = _tableDataContext.getAllotedWidth( this );
+			return ( isNaN(allotedWidth) ) ? orDefault : allotedWidth;
 		}
 		
 		/**
@@ -537,10 +652,20 @@ package flashx.textLayout.container.table
 		 */
 		protected function getTargetHeight( orDefault:Number = -1 ):Number
 		{
-			if( _data.attributes[TableDataAttribute.HEIGHT] == TableDataAttribute.DEFAULT_DIMENSION )
-				return ( orDefault == -1 ) ? _height : orDefault;
-			
-			return getDefinedHeight();	
+			var allotedHeight:Number = _tableDataContext.getAllotedHeight( this );
+			return ( isNaN(allotedHeight) ) ? orDefault : allotedHeight;
+		}
+		
+		/**
+		 * @private
+		 * 
+		 * Returns the determined fixed width to start composition. 
+		 * @return Number
+		 */
+		protected function getDeterminedFixedWidth():Number
+		{
+			var widthPadding:Number = _tableDataContext.getComputedWidthOfPaddingAndBorders();
+			return Math.max( getDefinedWidth( _width ), getTargetWidth( _width ) ) - widthPadding;
 		}
 		
 		/**
@@ -548,11 +673,9 @@ package flashx.textLayout.container.table
 		 */
 		public function process( notify:Boolean = true ):void
 		{
-			_actualWidth = 0;
-			_actualHeight = 0;
-			
 			// Compose cell based on determined width.
-			composeCell( getTargetWidth() - getUnifiedPadding(), notify );
+			var fixed:Number = getDeterminedFixedWidth();
+			composeCell( fixed, notify );
 		}
 		
 		/**
@@ -560,10 +683,9 @@ package flashx.textLayout.container.table
 		 */
 		public function preprocess():void
 		{
-			var unifiedPadding:Number = getUnifiedPadding();
 			// Request to compose cell in order to gain measured and actual size prior to processing.
-			composeCell( ( _width == 0 ) ? getTargetWidth( 1000000 ) : _width );
-			_width = _actualWidth + unifiedPadding;
+			var widthPadding:Number = _tableDataContext.getComputedWidthOfPadding();
+			composeCell( getTargetWidth( 1000000 ) - widthPadding );
 		}
 		
 		/**
@@ -572,7 +694,30 @@ package flashx.textLayout.container.table
 		 */
 		public function update():void
 		{
-			composeCell( getTargetWidth() - getUnifiedPadding() );
+			var fixed:Number = getDeterminedFixedWidth();
+			composeCell( fixed );
+		}
+		
+		/**
+		 * Measure forces an update to composition and invalidates the measured width of the cell. 
+		 * @param w Number
+		 */
+		public function measureOnWidth( w:Number ):void
+		{
+			if( w == _proposedMeasuredWidth ) return;
+			
+			var widthPadding:Number = _tableDataContext.getComputedWidthOfPaddingAndBorders();
+			var fixed:Number = Math.max( getDefinedWidth( w ), getTargetWidth( w ) ) - widthPadding;
+			composeCell( fixed, false );
+			
+			_proposedMeasuredWidth = w;
+			invalidateSize( w, _height );
+		}
+		
+		public function measureOnHeight( h:Number ):void
+		{
+			_proposedMeasuredHeight = h;
+			invalidateSize( ( isNaN(_proposedMeasuredWidth) ) ? _width : _proposedMeasuredWidth, _proposedMeasuredHeight );
 		}
 		
 		/**
@@ -638,30 +783,6 @@ package flashx.textLayout.container.table
 		}
 		
 		/**
-		 * @private
-		 * 
-		 * Returns the sepcified widht property held on the data attribute. 
-		 * @return Number
-		 */
-		protected function getDefinedWidth():Number
-		{
-			var attWidth:* = _data.attributes[TableDataAttribute.WIDTH];
-			return isNaN( Number(attWidth) ) ? 0 : Number(attWidth);
-		}
-		
-		/**
-		 * @private
-		 * 
-		 * Returns the specified height property held on the data attribute. 
-		 * @return Number
-		 */
-		protected function getDefinedHeight():Number
-		{
-			var attHeight:* = _data.attributes[TableDataAttribute.HEIGHT];
-			return isNaN( Number(attHeight) ) ? 0 : Number(attHeight);
-		}
-		
-		/**
 		 * Accessor/Modifier to get the width bounds of the cell representation.
 		 * ActualWidth corresponds to the cell width, not the overall width of the display.
 		 * @return Number
@@ -698,13 +819,6 @@ package flashx.textLayout.container.table
 		{
 			return Math.ceil( _width );
 		}
-		public function set measuredWidth( value:Number ):void
-		{
-			if( _width == value ) return;
-			
-			_width = value;
-			invalidateSize();
-		}
 		
 		/**
 		 * Accessor/Modifier to get the height bounds of the overall display for the cell.
@@ -715,13 +829,6 @@ package flashx.textLayout.container.table
 		{
 			return Math.ceil( _height );
 		}
-		public function set measuredHeight( value:Number ):void
-		{
-			if( _height == value ) return;
-			
-			_height = value;
-			invalidateSize();
-		}
 		
 		/**
 		 * Accessor/Modifier for the explicitly set width size on the cell attribute. 
@@ -730,13 +837,11 @@ package flashx.textLayout.container.table
 		 */
 		public function get explicitWidth():Number
 		{
-			var predefinedWidth:Number = getDefinedWidth();
-			return predefinedWidth == 0 ? Math.round( _actualWidth + getUnifiedPadding() ) : predefinedWidth;
+			return getDefinedWidth();
 		}
 		public function set explicitWidth( value:Number ):void
 		{
-			_data.attributes[TableDataAttribute.WIDTH] = Math.round( value );
-			measuredWidth = Math.ceil( value );
+			_tableDataContext.setDefinedWidth( Math.ceil( value ) );
 			process( false );
 		}
 		
@@ -747,16 +852,22 @@ package flashx.textLayout.container.table
 		 */
 		public function get explicitHeight():Number
 		{
-			var predefinedHeight:Number = getDefinedHeight();
-			return predefinedHeight == 0 ? Math.round( _actualHeight + getUnifiedPadding() ) : predefinedHeight;
+			return getDefinedHeight();
 		}
 		public function set explicitHeight( value:Number ):void
 		{
-			if( _data.attributes[TableAttribute.HEIGHT] == Math.round( value ) ) return;
-			
-			_data.attributes[TableDataAttribute.HEIGHT] = Math.round( value );
-			measuredHeight = Math.ceil( value );
+			_tableDataContext.setDefinedHeight( Math.ceil( value ) );
 			process( false );
+		}
+		
+		public function get compositionWidth():Number
+		{
+			return getDefinedWidth( _proposedMeasuredWidth ) - _tableDataContext.getComputedWidthOfPaddingAndBorders();
+		}
+		
+		public function get compositionHeight():Number
+		{
+			return _actualHeight;
 		}
 		
 		/**
@@ -822,7 +933,8 @@ package flashx.textLayout.container.table
 		 */
 		public function get minimumWidth():Number
 		{
-			return Math.ceil( _minimumWidth + getUnifiedPadding() );
+			var widthPadding:Number = _tableDataContext.getComputedWidthOfPaddingAndBorders();
+			return Math.ceil( _minimumWidth + widthPadding );
 		}
 		
 		/**
@@ -831,7 +943,21 @@ package flashx.textLayout.container.table
 		 */
 		public function get minimumHeight():Number
 		{
-			return Math.ceil( _minimumHeight + getUnifiedPadding() );
+			var heightPadding:Number = _tableDataContext.getComputedHeightOfPaddingAndBorders();
+			return Math.ceil( _minimumHeight + heightPadding );
+		}
+		
+		/**
+		 * Accessor/Modifier for maximum allot width for cell based on layout context. 
+		 * @return Number
+		 */
+		public function get maximumWidth():Number
+		{
+			return _maximumWidth;
+		}
+		public function set maximumWidth( value:Number ):void
+		{
+			_maximumWidth = value;
 		}
 		
 		/**

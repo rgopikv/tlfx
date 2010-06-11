@@ -1,15 +1,7 @@
 package flashx.textLayout.elements.list
 {
-	import flash.events.Event;
-	import flash.text.engine.GroupElement;
-	
-	import flashx.textLayout.elements.BreakElement;
 	import flashx.textLayout.elements.DivElement;
 	import flashx.textLayout.elements.FlowElement;
-	import flashx.textLayout.elements.ParagraphElement;
-	import flashx.textLayout.elements.SpanElement;
-	import flashx.textLayout.events.StatusChangeEvent;
-	import flashx.textLayout.events.UpdateEvent;
 	import flashx.textLayout.tlf_internal;
 	
 	use namespace tlf_internal;
@@ -20,8 +12,6 @@ package flashx.textLayout.elements.list
 		{
 			super();
 		}
-		
-		
 		
 		public override function addChild(child:FlowElement):FlowElement
 		{
@@ -245,7 +235,7 @@ package flashx.textLayout.elements.list
 						ind = item.indent;
 						while ( ind > prevItem.indent )
 						{
-							xmlStr += item.mode == ListItemElementX.UNORDERED ? '<ul>' : '<ol>';
+							xmlStr += item.mode == ListItemModeEnum.UNORDERED ? '<ul>' : '<ol>';
 							ind -= 24;
 						}
 					}
@@ -253,7 +243,7 @@ package flashx.textLayout.elements.list
 					{
 						ind = prevItem.indent;
 						
-						var lastList:String = prevItem.mode == ListItemElementX.UNORDERED ? '<ul>' : '<ol>';
+						var lastList:String = prevItem.mode == ListItemModeEnum.UNORDERED ? '<ul>' : '<ol>';
 						var lastListIndex:int = xmlStr.lastIndexOf(lastList);
 						while ( ind > item.indent )
 						{
@@ -281,16 +271,16 @@ package flashx.textLayout.elements.list
 					}
 					else if ( item.mode != prevItem.mode )
 					{
-						xmlStr += item.mode == ListItemElementX.UNORDERED ? '<ul>' : '<ol>';
+						xmlStr += item.mode == ListItemModeEnum.UNORDERED ? '<ul>' : '<ol>';
 					}
 				}
 				else
 				{
-					xmlStr += item.mode == ListItemElementX.UNORDERED ? '<ul>' : '<ol>';
+					xmlStr += item.mode == ListItemModeEnum.UNORDERED ? '<ul>' : '<ol>';
 					ind = item.indent;
 					while (ind > 0)
 					{
-						xmlStr = new String(item.mode == ListItemElementX.UNORDERED ? '<ul>' : '<ol>') + xmlStr;
+						xmlStr = new String(item.mode == ListItemModeEnum.UNORDERED ? '<ul>' : '<ol>') + xmlStr;
 						ind-=24;
 					}
 				}
@@ -302,7 +292,7 @@ package flashx.textLayout.elements.list
 			}
 			
 			xmlStr = xmlStr.replace( /\n/ig, '' );
-			xmlStr += ( items[0] as ListItemElementX ).mode == ListItemElementX.UNORDERED ? '</ul>' : '</ol>';
+			xmlStr += ( items[0] as ListItemElementX ).mode == ListItemModeEnum.UNORDERED ? '</ul>' : '</ol>';
 			
 			//	Ensure that everything is properly closed
 			xmlStr = cleanExport( xmlStr );
@@ -369,14 +359,10 @@ package flashx.textLayout.elements.list
 			return returnValue;
 		}
 		
-		
-		
 		tlf_internal override function canOwnFlowElement(elem:FlowElement):Boolean
 		{
 			return elem is ListItemElementX || elem is ListPaddingElement;
 		}
-		
-		
 		
 		public function get listItems():Array
 		{
