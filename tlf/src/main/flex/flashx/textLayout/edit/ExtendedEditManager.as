@@ -846,7 +846,11 @@ package flashx.textLayout.edit
 				//				format.apply( child.format );
 				//				child.format = format;
 				
-				to.addChildAt( addAt, child );
+				try {
+					to.addChildAt( addAt, child );
+				} catch ( e:* ) {
+					trace(e, "child:", child, "target:", to);
+				}
 			}
 		}
 		
@@ -863,7 +867,11 @@ package flashx.textLayout.edit
 				format.apply( new TextLayoutFormat( child.format ? child.format : null ) );
 				child.format = format;
 				
-				to.addChildAt( addAt, child );
+				try {
+					to.addChildAt( addAt, child );
+				} catch ( e:* ) {
+					trace(e, "child:", child, "target:", to);
+				}
 			}
 		}
 		
