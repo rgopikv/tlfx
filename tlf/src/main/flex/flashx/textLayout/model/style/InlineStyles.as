@@ -21,8 +21,6 @@ package flashx.textLayout.model.style
 	public class InlineStyles extends EventDispatcher
 	{
 		public var node:XML;
-		public var styleId:String;
-		public var styleClass:String;
 		protected var _appliedStyle:*; 			/* Style applied from stylesheet */
 		protected var _explicitStyle:Object; 	/* Generic object fo key/value pairs for style properties. */
 		
@@ -43,11 +41,16 @@ package flashx.textLayout.model.style
 		 */
 		public function serialize( tag:XML ):void
 		{	
-			if( styleId != null )
-				tag.@id = styleId;
-			
-			if( styleClass != null )
-				tag["@class"] = styleClass;
+			var nodeAttributes:XMLList = node.attributes();
+			var propertyName:String;
+			var propertyValue:String;
+			var attribute:XML;
+			for each( attribute in nodeAttributes )
+			{
+				propertyName = attribute.name().localName;
+				propertyValue = attribute.toString();
+				tag["@" + propertyName] = propertyValue;
+			}
 		}
 		
 		/**
@@ -56,18 +59,19 @@ package flashx.textLayout.model.style
 		 */
 		public function deserialize( tag:XML ):void
 		{
-			id = null;
-			styleClass = null;
 			node = tag;
-			
-			var id:String = ( tag ) ? tag.@id : null;
-			if( id && id.length > 0 ) styleId = id;
-			
-			var clazz:String = ( tag ) ? tag["@class"] : null;
-			if( clazz && clazz.length > 0 ) styleClass = clazz; 
-			
 			var style:String = ( tag ) ? tag.@style : null;
 			if( style && style.length > 0 ) explicitStyle = StyleAttributeUtil.parseStyles( style );
+		}
+		
+		public function get styleId():String
+		{
+			return StyleAttributeUtil.isValidStyleString( node.@id ) ? node.@id : null;
+		}
+		
+		public function get styleClass():String
+		{
+			return StyleAttributeUtil.isValidStyleString( node["@class"] ) ? node["@class"] : null;
 		}
 		
 		/**

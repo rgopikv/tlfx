@@ -222,8 +222,8 @@ package flashx.textLayout.utils
 		static public function assignDimensionsToTableBaseStyles( fragment:XML, width:Number, height:Number ):void
 		{
 			var styleString:String = fragment.@style;
-			var w:String = DimensionTokenUtil.export( width );
-			var h:String = DimensionTokenUtil.export( height );
+			var w:String = DimensionTokenUtil.exportAsPixel( width );
+			var h:String = DimensionTokenUtil.exportAsPixel( height );
 			if( StyleAttributeUtil.isValidStyleString( styleString ) )
 			{
 				var styles:Object = StyleAttributeUtil.parseStyles( styleString );
