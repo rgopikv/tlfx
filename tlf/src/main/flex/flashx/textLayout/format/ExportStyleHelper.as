@@ -149,6 +149,7 @@ package flashx.textLayout.format
 			var styleProperty:StyleProperty;
 			var childPropertyValue:*;
 			var parentPropertyValue:*;
+			var explicitPropertyValue:*;
 			var i:int;
 			for( i = 0; i < propertyList.length(); i++ )
 			{
@@ -158,8 +159,13 @@ package flashx.textLayout.format
 				{
 					try
 					{
+						var explicitProperty:String
+						var explicitValue:*;
+						
 						childPropertyValue = childFormat[property];
 						parentPropertyValue = parentFormat[property];
+						explicitPropertyValue = explicitStyle[StyleAttributeUtil.dasherize(property)];
+						
 						// Special case for links. If they have been decorated as none, then they
 						//	could possibly equal the property value of parent
 						//	Therefore apply no text-decoration style, however default is 'underline'.
@@ -171,18 +177,35 @@ package flashx.textLayout.format
 								parentPropertyValue = undefined;
 							}
 						}
+						// Differigng between child and parent, assumed a custom style.
 						if( childPropertyValue != parentPropertyValue )
 						{
 							styleProperty = StyleProperty.normalizePropertyForCSS( property, childPropertyValue, childFormat );
 							// Reassign original set value
 							if( explicitStyle && explicitStyle[StyleAttributeUtil.dasherize( styleProperty.property )] != null )
 							{
-								var explicitProperty:String = StyleAttributeUtil.dasherize( styleProperty.property );
-								var explicitValue:* = explicitStyle[explicitProperty];
+								explicitProperty = StyleAttributeUtil.dasherize( styleProperty.property );
+								explicitValue = explicitStyle[explicitProperty];
 								if( StyleProperty.isEqual( styleProperty, new StyleProperty( explicitProperty, explicitValue ) ) )
 									styleProperty.value = explicitValue;
-							}
+							} 
 							styles.push( styleProperty );			
+						}
+						// If the same, need to check explicitly set styles and see if they differ.
+						else
+						{
+							styleProperty = StyleProperty.normalizePropertyForCSS( property, childPropertyValue, childFormat );
+							if( explicitStyle && explicitStyle[StyleAttributeUtil.dasherize( styleProperty.property )] != null )
+							{
+								explicitProperty = StyleAttributeUtil.dasherize( styleProperty.property );
+								explicitValue = explicitStyle[explicitProperty];
+								if( !StyleProperty.isEqual( styleProperty, new StyleProperty( explicitProperty, explicitValue ) ) )
+								{
+									delete explicitStyle[explicitProperty];
+									styleProperty.value = styleProperty.value;
+									styles.push( styleProperty );
+								}
+							}
 						}
 					}
 					catch( e:Error )
@@ -242,7 +265,8 @@ package flashx.textLayout.format
 		public function applyStyleAttributesFromDifferingStyles( node:XML, parentFormat:ITextLayoutFormat, elementFormat:ITextLayoutFormat, element:FlowElement = null ):Boolean
 		{
 			var differingStyles:Array = getDifferingStyles( elementFormat, parentFormat, element );
-			
+			var explicitStyles:Object = getExplicitStyleOfElement( element );
+			var requiresInlineStyleAttributes:Boolean = ( element ) ? applySelectorAttributes( node, element ) : false;
 			if( differingStyles.length > 0 )
 			{
 				var i:int;
@@ -250,26 +274,19 @@ package flashx.textLayout.format
 				var property:String;
 				var value:String;
 				var style:String = StyleAttributeUtil.isValidStyleString( node.@style ) ? node.@style : "";
-				delete node.@style;
 				for( i = 0; i < differingStyles.length; i++ )
 				{
 					attribute = differingStyles[i] as StyleProperty;
 					property = StyleAttributeUtil.dasherize( attribute.property );
 					value = attribute.value;
-					style += property + StyleAttributeUtil.STYLE_PROPERTY_DELIMITER + value + StyleAttributeUtil.STYLE_DELIMITER;
+					if( !explicitStyles.hasOwnProperty( property ) )
+						style += property + StyleAttributeUtil.STYLE_PROPERTY_DELIMITER + value + StyleAttributeUtil.STYLE_DELIMITER;
 				}
-//				applySelectorAttributes( node, element );
 			}
 			// Apply @style if key/value pairs are available.
 			if( StyleAttributeUtil.isValidStyleString( style ) ) 
 			{
 				node.@style = style;
-			}
-			// Apply other attributes that relate to style like id and class.
-			var requiresInlineStyleAttributes:Boolean;
-			if( element )
-			{
-				requiresInlineStyleAttributes = applySelectorAttributes( node, element );	
 			}
 			return ( differingStyles.length > 0 ) || requiresInlineStyleAttributes;	
 		}

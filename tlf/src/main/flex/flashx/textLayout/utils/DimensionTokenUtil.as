@@ -42,7 +42,7 @@ package flashx.textLayout.utils
 		
 		private static function isNonTokenedNumberValue( value:* ):Boolean
 		{
-			var charMatch:Array = value.toString().match( /[^0-9]/ );
+			var charMatch:Array = value.toString().match( /[^0-9.]/ );
 			return ( !charMatch || charMatch.length == 0 );
 		}
 		

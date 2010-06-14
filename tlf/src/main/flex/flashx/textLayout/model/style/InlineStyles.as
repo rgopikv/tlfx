@@ -48,8 +48,19 @@ package flashx.textLayout.model.style
 			for each( attribute in nodeAttributes )
 			{
 				propertyName = attribute.name().localName;
+				if( propertyName == "style" ) continue;
 				propertyValue = attribute.toString();
 				tag["@" + propertyName] = propertyValue;
+			}
+			
+			var styleAttribute:String = "";
+			for( propertyName in _explicitStyle )
+			{
+				styleAttribute += StyleAttributeUtil.assembleStyleProperty( propertyName, _explicitStyle[propertyName] );
+			}
+			if( StyleAttributeUtil.isValidStyleString( styleAttribute ) )
+			{
+				tag.@style = styleAttribute;
 			}
 		}
 		
