@@ -78,6 +78,12 @@ package flashx.textLayout.model.style
 			return null;
 		}
 		
+		public function hasProperty( name:String ):Boolean
+		{
+			var propertyList:Vector.<String> = BorderStyle.definition;
+			return propertyList.indexOf( name ) != -1;
+		}
+		
 		/**
 		 * Returns the computed style of this instance in a new instance based on predefined properties and defaults. 
 		 * @return IBorderStyle
@@ -128,7 +134,7 @@ package flashx.textLayout.model.style
 			for( i = 0; i < _weightedRules.length; i++ )
 			{
 				propertyName = _weightedRules[i];
-				if( !hasOwnProperty( propertyName ) ) continue;
+				if( !hasProperty( propertyName ) ) continue;
 				
 				value = this[propertyName];
 				shorthandModel = BoxModelUnitShorthandUtil.deserializeShortHand( value );
