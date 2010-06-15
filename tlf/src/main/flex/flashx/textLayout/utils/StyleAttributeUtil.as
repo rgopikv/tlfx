@@ -192,7 +192,7 @@ package flashx.textLayout.utils
 			var description:Vector.<String> = TableStyle.fullDefinition;
 			for each( property in description )
 			{
-				if( explicitStyles.hasOwnProperty( property ) )
+				if( explicitStyles && explicitStyles.hasOwnProperty( property ) )
 				{
 					styleDefinition += StyleAttributeUtil.assembleStyleProperty( property, explicitStyles[property] );
 				}

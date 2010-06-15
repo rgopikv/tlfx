@@ -3,6 +3,7 @@ package flashx.textLayout.elements.table
 	import flash.utils.getQualifiedClassName;
 	
 	import flashx.textLayout.elements.ContainerFormattedElement;
+	import flashx.textLayout.elements.FlowElement;
 	import flashx.textLayout.events.InlineStyleEvent;
 	import flashx.textLayout.formats.ITextLayoutFormat;
 	import flashx.textLayout.formats.TextLayoutFormat;
@@ -31,6 +32,21 @@ package flashx.textLayout.elements.table
 		{
 			super();
 			_pendingInitializationStyle = new TableStyle();
+		}
+		
+		/**
+		 * @inherit
+		 * 
+		 * Override to apply proper properties to copy. 
+		 * @param startPos int
+		 * @param endPos int
+		 * @return FlowElement
+		 */
+		override public function shallowCopy(startPos:int=0, endPos:int=-1):FlowElement
+		{
+			var copy:TableBaseElement = super.shallowCopy(startPos, endPos) as TableBaseElement;
+			copy.context = _context;
+			return copy;
 		}
 		
 		protected function modifyFormatOnFormattableAttributes( attributes:IAttribute ):void
@@ -184,6 +200,11 @@ package flashx.textLayout.elements.table
 		public function getContext():ITableBaseDecorationContext
 		{
 			return _context;
+		}
+		
+		tlf_internal function set context( value:ITableBaseDecorationContext ):void
+		{
+			_context = value;
 		}
 		
 		/**
