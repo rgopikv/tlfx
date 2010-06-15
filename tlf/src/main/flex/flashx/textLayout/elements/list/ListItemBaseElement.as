@@ -137,7 +137,7 @@ package flashx.textLayout.elements.list
 			if( _userStyles == null )
 			{
 				_userStyles = {};
-				var inline:InlineStyles = new InlineStyles();
+				var inline:InlineStyles = new InlineStyles( <li /> );
 				inline.addEventListener( InlineStyleEvent.APPLIED_STYLE_CHANGE, handleAppliedStyleChange );
 				inline.addEventListener( InlineStyleEvent.EXPLICIT_STYLE_CHANGE, handleExplicitStyleChange );
 				_userStyles.inline = inline;

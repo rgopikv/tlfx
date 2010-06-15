@@ -14,8 +14,10 @@ package flashx.textLayout.elements.list
 	import flashx.textLayout.elements.ParagraphElement;
 	import flashx.textLayout.elements.SpanElement;
 	import flashx.textLayout.elements.SubParagraphGroupElement;
+	import flashx.textLayout.events.ModelChange;
 	import flashx.textLayout.events.UpdateEvent;
 	import flashx.textLayout.format.ExportStyleHelper;
+	import flashx.textLayout.formats.ITextLayoutFormat;
 	import flashx.textLayout.formats.TextDecoration;
 	import flashx.textLayout.formats.TextLayoutFormat;
 	import flashx.textLayout.model.style.IListStyle;
@@ -44,25 +46,19 @@ package flashx.textLayout.elements.list
 			_bulletSpan = new SpanElement();
 			addChild( _bulletSpan );
 			
-			_bulletFormat = new TextLayoutFormat();
-			
-			_bulletFormat.fontSize = 12;
-			_bulletFormat.color = 0;
-			_bulletFormat.fontWeight = FontWeight.NORMAL;
-			_bulletFormat.textDecoration = TextDecoration.NONE;
-			_bulletFormat.fontStyle = FontPosture.NORMAL;
-			_bulletFormat.lineThrough = false;
-			_bulletFormat.paddingBottom = _bulletFormat.paddingTop = _bulletFormat.paragraphSpaceAfter = _bulletFormat.paragraphSpaceBefore = 0;
-			
-			_bulletSpan.format = _bulletFormat;
-			
 			update();
+		}
+		
+		public function updateBulletFormat():void
+		{
+			_bulletFormat = new TextLayoutFormat( computedFormat );
+			_bulletFormat.paragraphSpaceAfter = _bulletFormat.paragraphSpaceBefore = _bulletFormat.paragraphStartIndent = 0;
+			if( _bulletSpan ) _bulletSpan.format = _bulletFormat;
 		}
 		
 		public function update():void
 		{
 			_computedStyle = _style.getComputedStyle();
-			_bulletSpan.format = _bulletFormat;
 			_bulletSpan.text = getSeparator();
 		}
 		
@@ -122,10 +118,10 @@ package flashx.textLayout.elements.list
 		}
 		
 		//	KK - Removed on 05/24/2010 - it was causing selection issues (could never select the last atom of any ListItemElement)
-//		tlf_internal override function ensureTerminatorAfterReplace(oldLastLeaf:FlowLeafElement):void
-//		{
-//			//	Nothing, to prevent extra line breaks
-//		}
+		//		tlf_internal override function ensureTerminatorAfterReplace(oldLastLeaf:FlowLeafElement):void
+		//		{
+		//			//	Nothing, to prevent extra line breaks
+		//		}
 		
 		/** @private */
 		tlf_internal override function normalizeRange(normalizeStart:uint,normalizeEnd:uint):void
@@ -151,9 +147,9 @@ package flashx.textLayout.elements.list
 					else if (child.mergeToPreviousIfPossible())
 					{
 						//	KK - Removed to stop elements merging together
-//						var prevElement:FlowElement = this.getChildAt(idx-1);
-//						// possibly optimize the start to the length of prevelement before the merge
-//						prevElement.normalizeRange(0,prevElement.textLength);
+						//						var prevElement:FlowElement = this.getChildAt(idx-1);
+						//						// possibly optimize the start to the length of prevelement before the merge
+						//						prevElement.normalizeRange(0,prevElement.textLength);
 					}
 					else
 						idx++;
@@ -361,6 +357,11 @@ package flashx.textLayout.elements.list
 			return getChildAt(0).getAbsoluteStart() + getChildAt(0).textLength;
 		}
 		
+		public function get nonListRelatedContent():Array /* FlowElement[] */
+		{
+			return mxmlChildren.slice( 1, mxmlChildren.length );
+		}
+		
 		public function get seperatorLength():uint
 		{
 			return getChildAt(0).textLength;
@@ -384,6 +385,25 @@ package flashx.textLayout.elements.list
 		public function set source( value:XML ):void
 		{
 			_source = value;
+		}
+		
+		/**
+		 * @inherit
+		 * Override to perform specific operations based on changeType.
+		 */
+		tlf_internal override function modelChanged(changeType:String, changeStart:int, changeLen:int, needNormalize:Boolean = true, bumpGeneration:Boolean = true):void
+		{
+			super.modelChanged( changeType, changeStart, changeLen, needNormalize, bumpGeneration );
+			switch( changeType )
+			{
+				case ModelChange.TEXTLAYOUT_FORMAT_CHANGED:
+					updateBulletFormat();
+					break;
+				case ModelChange.ELEMENT_ADDED:
+					updateBulletFormat();
+					break;
+				
+			}
 		}
 	}
 }

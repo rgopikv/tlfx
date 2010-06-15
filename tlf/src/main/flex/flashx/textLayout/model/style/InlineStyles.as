@@ -41,16 +41,19 @@ package flashx.textLayout.model.style
 		 */
 		public function serialize( tag:XML ):void
 		{	
-			var nodeAttributes:XMLList = node.attributes();
-			var propertyName:String;
-			var propertyValue:String;
-			var attribute:XML;
-			for each( attribute in nodeAttributes )
+			if( node )
 			{
-				propertyName = attribute.name().localName;
-				if( propertyName == "style" ) continue;
-				propertyValue = attribute.toString();
-				tag["@" + propertyName] = propertyValue;
+				var nodeAttributes:XMLList = node.attributes();
+				var propertyName:String;
+				var propertyValue:String;
+				var attribute:XML;
+				for each( attribute in nodeAttributes )
+				{
+					propertyName = attribute.name().localName;
+					if( propertyName == "style" ) continue;
+					propertyValue = attribute.toString();
+					tag["@" + propertyName] = propertyValue;
+				}
 			}
 			
 			var styleAttribute:String = "";
@@ -77,11 +80,13 @@ package flashx.textLayout.model.style
 		
 		public function get styleId():String
 		{
+			if( !node ) return null;
 			return StyleAttributeUtil.isValidStyleString( node.@id ) ? node.@id : null;
 		}
 		
 		public function get styleClass():String
 		{
+			if( !node ) return null;
 			return StyleAttributeUtil.isValidStyleString( node["@class"] ) ? node["@class"] : null;
 		}
 		
