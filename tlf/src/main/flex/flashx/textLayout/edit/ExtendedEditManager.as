@@ -562,7 +562,7 @@ package flashx.textLayout.edit
 					else
 					{
 						var fg1:FlowGroupElement = textFlow.findLeaf( absoluteStart ).parent;
-						var fg2:FlowGroupElement = textFlow.findLeaf( absoluteStart - 1 ).parent;
+						var fg2:FlowGroupElement = textFlow.findLeaf( Math.max( 0, absoluteStart - 1 ) ).parent;
 						var ss:SelectionState;
 						
 						try {
