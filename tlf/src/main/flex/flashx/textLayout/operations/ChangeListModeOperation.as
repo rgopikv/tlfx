@@ -115,6 +115,20 @@ package flashx.textLayout.operations
 			_htmlImporter.importStyleHelper.assignInlineStyle( node, list );
 			_htmlImporter.importStyleHelper.apply();
 			
+			// Weed out empty items
+			for ( var i:int = list.numChildren-1; i > -1; i-- )
+			{
+				if ( list.getChildAt(i) is ListItemElementX )
+				{
+					var item:ListItemElementX = list.getChildAt(i) as ListItemElementX;
+					if ( item.modifiedTextLength == 0 )
+						list.removeChildAt(i);
+				}
+			}
+			
+			//	Update in case any items were removed
+			list.update();
+			
 			return tf.addChildAt( index, list ) as ListElementX;
 		}
 		
