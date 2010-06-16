@@ -370,7 +370,29 @@ package flashx.textLayout.elements.list
 		public function get modifiedTextLength():uint
 		{
 			//	Changed to textLength-2 because after implementation of Tidy (as of 6/10/2010) I noticed the text length was incorrect.
-			return Math.max((textLength-2) - seperatorLength, 0);
+			var len:uint = 0;
+			for ( var i:int = 1; i < numChildren; i++ )
+			{
+				var child:FlowElement = getChildAt(i);
+				
+				if ( child is SpanElement )
+					len += (child as SpanElement).text.match( /\w/g ).length;
+				else if ( child is LinkElement )
+				{
+					for ( var j:int = 0; j < (child as LinkElement).numChildren; j++ )
+					{
+						var linkChild:FlowElement = (child as LinkElement).getChildAt(j);
+						
+						if ( linkChild is SpanElement )
+							len += (linkChild as SpanElement).text.match( /\w/g ).length;
+						else
+							len++;
+					}
+				}
+				else
+					len++;
+			}
+			return len;
 		}
 		
 		public function set indent( value:uint ):void

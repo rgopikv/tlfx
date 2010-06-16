@@ -9,7 +9,9 @@ package flashx.textLayout.operations
 	import flashx.textLayout.elements.DivElement;
 	import flashx.textLayout.elements.FlowElement;
 	import flashx.textLayout.elements.FlowGroupElement;
+	import flashx.textLayout.elements.LinkElement;
 	import flashx.textLayout.elements.ParagraphElement;
+	import flashx.textLayout.elements.SpanElement;
 	import flashx.textLayout.elements.TextFlow;
 	import flashx.textLayout.elements.list.ListElementX;
 	import flashx.textLayout.elements.list.ListItemElementX;
@@ -142,6 +144,7 @@ package flashx.textLayout.operations
 			var j:int;
 			var p:ParagraphElement;
 			var item:ListItemElementX;
+			var pchild:FlowElement;
 			for ( i = paragraphs.length-1; i > -1; i-- )
 			{
 				item = new ListItemElementX();
@@ -152,7 +155,32 @@ package flashx.textLayout.operations
 					item.indent = int(p.paragraphStartIndent) > 0 ? int( 24 * (p.paragraphStartIndent % 24) ) : 0;
 					//	TODO:	Find out why formatting appears correct before conversion in RTE, but no format has been set	-	KK (06/10/2010)
 					for ( j = p.numChildren-1; j > -1; j-- )
-						item.addChildAt(0, p.removeChildAt(j));
+					{
+						pchild = p.getChildAt(j);
+						
+						//	Prevent adding blank list items by ensuring that they have either word characters or a TLF element
+						if ( pchild is SpanElement )
+						{
+							if ( (pchild as SpanElement).text.match( /\w/g ).length > 0 )
+								item.addChildAt(0, p.removeChildAt(j));
+						}
+						else if ( pchild is LinkElement )
+						{
+							testLinkChildren:for ( var k:int = 0; k < (pchild as LinkElement).numChildren; k++ )
+							{
+								if ( (pchild as LinkElement).getChildAt(k) is SpanElement )
+								{
+									if ( ((pchild as LinkElement).getChildAt(k) as SpanElement).text.match( /\w/g ).length > 0 )
+									{
+										item.addChildAt(0, p.removeChildAt(j));
+										break testLinkChildren;
+									}
+								}
+							}
+						}
+						else
+							item.addChildAt(0, p.removeChildAt(j));
+					}
 				}
 				list.addChildAt( 0, item );
 				p.parent.removeChild(p);

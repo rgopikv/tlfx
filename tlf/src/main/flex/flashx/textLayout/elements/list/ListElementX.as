@@ -1,7 +1,10 @@
 package flashx.textLayout.elements.list
 {
+	import flash.utils.getQualifiedClassName;
+	
 	import flashx.textLayout.elements.DivElement;
 	import flashx.textLayout.elements.FlowElement;
+	import flashx.textLayout.elements.ListItemElement;
 	import flashx.textLayout.tlf_internal;
 	
 	use namespace tlf_internal;
@@ -125,9 +128,10 @@ package flashx.textLayout.elements.list
 		protected function ensureIndentation():void
 		{
 			var items:Array = listItems;
-			var groups:Array = [];
-			var group:Array;
+			var groups:Vector.<Vector.<ListItemElementX>> = new Vector.<Vector.<ListItemElementX>>();;
+			var group:Vector.<ListItemElementX>;
 			var prevItem:ListItemElementX;
+			var groupItem:ListItemElementX;
 			if ( items.length > 0 )
 			{
 				for ( var i:int = 0; i < items.length; i++ )
@@ -137,62 +141,155 @@ package flashx.textLayout.elements.list
 					
 					if ( prevItem )
 					{
-						if ( item.indent > prevItem.indent )
+						//	Non matching indents
+						if ( uint(item.indent) != uint(prevItem.indent) )
 						{
-							if ( groups[item.indent/24] )
+							//	Should hold Vector for this grouping already
+							if ( groups.length > uint(item.indent/24) )
 							{
-								(groups[item.indent/24] as Array).push(item);
+								group = groups[uint(item.indent/24)];
+								
+								//	If group holds items to test against
+								if ( group.length > 0 )
+								{
+									groupItem = group[group.length-1];
+									
+									//	Matching modes
+									if ( groupItem.mode == item.mode )
+										groups[uint(item.indent/24)].push(item);
+									//	Non matching modes
+									else
+									{
+										//	Holds at least one more grouping above the current, test for similarity
+										if ( groups.length > uint(item.indent/24)+1 )
+										{
+											group = groups[uint(item.indent/24)+1];
+											
+											//	If group holds items to test against
+											if ( group.length > 0 )
+											{
+												groupItem = group[group.length-1];
+												
+												//	Matching modes
+												if ( groupItem.mode == item.mode )
+													groups[uint(item.indent/24)+1].push(item);
+												//	Non matching modes, must splice in new Vector
+												else
+												{
+													//	Splice in AFTER original Vector
+													groups.splice( uint(item.indent/24), 0, new Vector.<ListItemElementX>() );
+													groups[uint(item.indent/24)+1].push( item );
+												}
+											}
+											//	No items to test, add item
+											else
+												groups[uint(item.indent/24)+1].push(item);
+										}
+										//	Does not hold any more groupings, add new
+										else
+										{
+											groups.push( new Vector.<ListItemElementX>() );
+											groups[groups.length-1].push( item );
+										}
+									}
+								}
+								//	No items to test against, add item
+								else
+									groups[uint(item.indent/24)].push(item);
 							}
+							//	No Vector yet exists
 							else
 							{
-								ind = (item.indent-prevItem.indent)/24;
+								if ( uint(item.indent) > uint(prevItem.indent) )
+									ind = uint(item.indent-prevItem.indent)/24;
+								else
+									ind = uint(item.indent/24)-(groups.length-1);
 								
-								//	Ensure that all slots are filled
 								while ( ind > 0 )
 								{
-									groups.push([]);
+									groups.push( new Vector.<ListItemElementX>() );
 									ind--;
 								}
 								
-								(groups[groups.length-1] as Array).push(item);
+								groups[uint(item.indent/24)].push(item);
 							}
 						}
-						else if ( item.indent < prevItem.indent )
-						{
-							if ( !groups[item.indent/24] )
-							{
-								ind = (item.indent/24)-(groups.length-1);
-								while ( ind > 0 )
-								{
-									groups.push([]);
-									ind--;
-								}
-							}
-							(groups[item.indent/24] as Array).push(item);
-						}
+						//	Non matching modes
 						else if ( item.mode != prevItem.mode )
 						{
-							groups.push([]);
-							(groups[groups.length-1] as Array).push(item);
+							//	+1 becase we want to insert it in the next group
+							if ( groups.length > uint(item.indent/24)+1 )
+								groups[uint(item.indent/24)+1].push(item);
+							else
+							{
+								groups.splice( uint(item.indent/24)+1, 0, groups[uint(item.indent/24)+1], new Vector.<ListItemElementX>() );
+								groups[uint(item.indent/24)+2].push(item);
+							}
 						}
+						//	Same group
 						else
 						{
-							if ( !groups[item.indent/24] )
+							group = groups[uint(item.indent/24)];
+							
+							//	If group holds items to test against
+							if ( group.length > 0 )
 							{
-								ind = (item.indent/24)-(groups.length-1);
-								while ( ind > 0 )
+								groupItem = group[group.length-1];
+								
+								//	Matching modes
+								if ( groupItem.mode == item.mode )
+									groups[uint(item.indent/24)].push(item);
+								//	Non matching modes
+								else
 								{
-									groups.push([]);
-									ind--;
+									//	Holds at least one more grouping above the current, test for similarity
+									if ( groups.length > uint(item.indent/24)+1 )
+									{
+										group = groups[uint(item.indent/24)+1];
+										
+										//	If group holds items to test against
+										if ( group.length > 0 )
+										{
+											groupItem = group[group.length-1];
+											
+											//	Matching modes
+											if ( groupItem.mode == item.mode )
+												groups[uint(item.indent/24)+1].push(item);
+											//	Non matching modes, must splice in new Vector
+											else
+											{
+												//	Splice in AFTER original Vector
+												if ( groups.length > uint(item.indent/24)+2 )
+													groups[uint(item.indent/24)+2].push( item );
+												else
+												{
+													groups.splice( uint(item.indent/24)+1, 0, groups[uint(item.indent/24)+1], new Vector.<ListItemElementX>() );
+													groups[uint(item.indent/24)+2].push(item);
+												}
+											}
+										}
+										//	No items to test, add item
+										else
+											groups[uint(item.indent/24)+1].push(item);
+									}
+									//	Does not hold any more groupings, add new
+									else
+									{
+										groups.push( new Vector.<ListItemElementX>() );
+										groups[groups.length-1].push( item );
+									}
 								}
 							}
-							(groups[item.indent/24] as Array).push(item);
+							//	No items to test against, add item
+							else
+								groups[uint(item.indent/24)].push(item);
 						}
 					}
 					else
 					{
-						groups.push([]);
-						(groups[groups.length-1] as Array).push(item);
+						//	First item. Create Vector to hold it and push it into that Vector.
+						groups.push( new Vector.<ListItemElementX>() );
+						groups[groups.length-1].push( item );
 					}
 					
 					prevItem = item;
@@ -200,10 +297,10 @@ package flashx.textLayout.elements.list
 				
 				for ( i = 0; i < groups.length; i++ )
 				{
-					group = groups[i] as Array;
+					group = groups[i];
 					for ( var j:int = 0; j < group.length; j++ )
 					{
-						item = group[j] as ListItemElementX;
+						item = group[j];
 						item.indent = Math.min( 240, Math.max( item.indent, i*24 ) );
 					}
 				}
