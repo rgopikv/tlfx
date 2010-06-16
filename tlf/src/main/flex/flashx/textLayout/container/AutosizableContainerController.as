@@ -10,12 +10,17 @@ package flashx.textLayout.container
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	import flash.text.engine.TextLine;
+	import flash.utils.getQualifiedClassName;
 	
+	import flashx.textLayout.compose.TextFlowLine;
+	import flashx.textLayout.edit.SelectionFormat;
+	import flashx.textLayout.edit.SelectionState;
 	import flashx.textLayout.elements.Configuration;
 	import flashx.textLayout.elements.FlowElement;
 	import flashx.textLayout.elements.IConfiguration;
 	import flashx.textLayout.elements.InlineGraphicElement;
 	import flashx.textLayout.elements.InlineGraphicElementStatus;
+	import flashx.textLayout.elements.ParagraphElement;
 	import flashx.textLayout.elements.TextFlow;
 	import flashx.textLayout.events.AutosizableContainerEvent;
 	import flashx.textLayout.events.StatusChangeEvent;
@@ -303,6 +308,52 @@ package flashx.textLayout.container
 					elements.push( element );
 			}
 			return elements;
+		}
+		
+		/** Add selection shapes to the displaylist. @private */
+		override tlf_internal function addSelectionShapes(selFormat:SelectionFormat, selectionAbsoluteStart:int, selectionAbsoluteEnd:int): void
+		{
+			if (!interactionManager || textLength == 0 || selectionAbsoluteStart == -1 || selectionAbsoluteEnd == -1)
+				return;
+			
+			var prevLine:TextFlowLine;
+			var nextLine:TextFlowLine;
+			
+			if (selectionAbsoluteStart != selectionAbsoluteEnd)
+			{
+				super.addSelectionShapes(selFormat, selectionAbsoluteStart, selectionAbsoluteEnd);	
+			}
+			else
+			{
+				var lineIdx:int = flowComposer.findLineIndexAtPosition(selectionAbsoluteStart);
+				// TODO: there is ambiguity - are we at the end of the currentLine or the beginning of the next one?
+				// however must stick to the end of the last line
+				if (lineIdx == flowComposer.numLines)
+					lineIdx--;
+				// [TA] 04-07-2010 Limiting access.
+				lineIdx = Math.max( 0, lineIdx );
+				if( flowComposer.getLineAt( lineIdx ) == null ) 
+				{
+					trace( "[TA] Entered Possible Missing Line clause" );
+					//	[KK] 06/16/2010 Attempting to provide new TextLines by adding a ParagraphElement with a SpanElement inside of it
+					try {
+						textFlow.createContentElement();
+						
+						var p:ParagraphElement = textFlow.addChild(new ParagraphElement()) as ParagraphElement;
+						textFlow.flowComposer.updateAllControllers();
+						
+						addMonitoredElement( p );
+						
+						if ( textFlow.interactionManager )
+							textFlow.interactionManager.setSelectionState( new SelectionState( textFlow, p.getAbsoluteStart(), p.getAbsoluteStart() ) );
+					} catch (e:*) {
+						trace( "[KK] {" + getQualifiedClassName(this) + "} :: Couldn't correct text line problem." );
+						return;
+					}
+				}
+				// End [TA]
+				super.addSelectionShapes(selFormat, selectionAbsoluteStart, selectionAbsoluteEnd);
+			}
 		}
 		
 		/**

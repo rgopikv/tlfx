@@ -31,6 +31,7 @@ package flashx.textLayout.container
 	import flash.ui.ContextMenu;
 	import flash.ui.ContextMenuClipboardItems;
 	import flash.utils.Timer;
+	import flash.utils.getQualifiedClassName;
 	
 	import flashx.textLayout.compose.FlowDamageType;
 	import flashx.textLayout.compose.IFlowComposer;
@@ -42,6 +43,7 @@ package flashx.textLayout.container
 	import flashx.textLayout.edit.IInteractionEventHandler;
 	import flashx.textLayout.edit.ISelectionManager;
 	import flashx.textLayout.edit.SelectionFormat;
+	import flashx.textLayout.edit.SelectionState;
 	import flashx.textLayout.elements.BackgroundManager;
 	import flashx.textLayout.elements.ContainerFormattedElement;
 	import flashx.textLayout.elements.FlowElement;
@@ -49,7 +51,9 @@ package flashx.textLayout.container
 	import flashx.textLayout.elements.FlowValueHolder;
 	import flashx.textLayout.elements.InlineGraphicElement;
 	import flashx.textLayout.elements.ParagraphElement;
+	import flashx.textLayout.elements.SpanElement;
 	import flashx.textLayout.elements.TextFlow;
+	import flashx.textLayout.events.DamageEvent;
 	import flashx.textLayout.events.TextLayoutEvent;
 	import flashx.textLayout.events.UpdateCompleteEvent;
 	import flashx.textLayout.formats.BlockProgression;
@@ -2581,13 +2585,13 @@ package flashx.textLayout.container
 				if( flowComposer.getLineAt( lineIdx ) == null ) 
 				{
 					trace( "[TA] Entered Possible Missing Line clause" );
-					return;	
+					return;
 				}
 				// End [TA]
 				if (flowComposer.getLineAt(lineIdx).controller == this)
 				{
 					prevLine = lineIdx != 0 ? flowComposer.getLineAt(lineIdx-1) : null;
-					nextLine = lineIdx != flowComposer.numLines-1 ? flowComposer.getLineAt(lineIdx+1) : null
+					nextLine = lineIdx != flowComposer.numLines-1 ? flowComposer.getLineAt(lineIdx+1) : null;
 					flowComposer.getLineAt(lineIdx).hilitePointSelection(selFormat, selectionAbsoluteStart, DisplayObject(this._container), prevLine, nextLine);
 				}
 			}
