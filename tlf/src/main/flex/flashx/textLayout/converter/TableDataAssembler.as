@@ -53,6 +53,14 @@ package flashx.textLayout.converter
 			}
 		}
 		
+		protected function affixDimensionsToStyleForElement( element:TableDataElement, fragment:XML, width:Number, height:Number ):void
+		{	
+			var explicitStyles:Object = StyleAttributeUtil.getExplicitStyle( element );
+			if( explicitStyles.hasOwnProperty( "width" ) ) delete explicitStyles["width"];
+			if( explicitStyles.hasOwnProperty( "height" ) ) delete explicitStyles["height"];
+			StyleAttributeUtil.assignDimensionsToTableBaseStyles( fragment, width, height );
+		}
+		
 		/**
 		 * Creates a valid <td /> based on supplied data assumed as a TableData instance. 
 		 * @param value * A TableData instance.
@@ -73,7 +81,7 @@ package flashx.textLayout.converter
 			// Assign defined attributes.
 			FragmentAttributeUtil.assignAttributes( fragment, attributes );
 			StyleAttributeUtil.assembleTableBaseStyles( fragment, td );
-			StyleAttributeUtil.assignDimensionsToTableBaseStyles( fragment, dataModel.width, dataModel.height );
+			affixDimensionsToStyleForElement( td, fragment, dataModel.width, dataModel.height );
 			// Stylize td or th element tag.
 			htmlExporter.exportStyleHelper.applyStyleAttributesFromElement( fragment, td );
 			
