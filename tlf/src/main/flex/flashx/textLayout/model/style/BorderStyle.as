@@ -78,7 +78,7 @@ package flashx.textLayout.model.style
 			return null;
 		}
 		
-		public function hasProperty( name:String ):Boolean
+		override flash_proxy function hasProperty( name:* ):Boolean
 		{
 			var propertyList:Vector.<String> = BorderStyle.definition;
 			return propertyList.indexOf( name ) != -1;
