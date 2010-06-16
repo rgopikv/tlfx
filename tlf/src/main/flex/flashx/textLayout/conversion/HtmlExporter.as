@@ -448,7 +448,7 @@ package flashx.textLayout.conversion
 				//	If the child is a SpanElement and the only text is a newline character, skip
 				if ( child is SpanElement )
 				{
-					if ( ( child as SpanElement ).text == '\n' )
+					if ( ( child as SpanElement ).text.match( /\w/g ).length == 0 )
 						continue;
 				}
 				
