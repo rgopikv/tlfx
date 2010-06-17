@@ -243,6 +243,15 @@ package flashx.textLayout.operations
 			var anchorIndex:int = textFlow.flowComposer.findControllerIndexAtPosition( anchor );
 			var activeIndex:int = textFlow.flowComposer.findControllerIndexAtPosition( active );
 			
+			// If we are in a single container controller, run regular deletion operation
+			// This will ensure that any previously applied formatting is maintained.
+			if( anchorIndex == activeIndex ) 
+			{
+				deleteSelectedText();
+				return;
+			}
+			// Else we are removing elements across cells.
+			// If we are going over more than one cell, we do not need to maintain formatting of elements.
 			var i:int;
 			var cellController:ContainerController;
 			var cellDisplay:TableCellDisplay;

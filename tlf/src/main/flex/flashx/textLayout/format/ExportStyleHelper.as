@@ -38,6 +38,17 @@ package flashx.textLayout.format
 		 */
 		public function ExportStyleHelper() {}
 		
+		protected function getInlineStyleOfElement( element:FlowElement ):InlineStyles
+		{
+			if( element )
+			{
+				if( element.userStyles && ( element.userStyles.inline is InlineStyles ) )
+				{
+					return element.userStyles.inline as InlineStyles;
+				}
+			}
+			return null;
+		}
 		/**
 		 * Returns the explicit styles set on the element id available. 
 		 * @param element FlowElement
@@ -45,14 +56,32 @@ package flashx.textLayout.format
 		 */
 		protected function getExplicitStyleOfElement( element:FlowElement ):Object
 		{
-			if( element )
+			var inline:InlineStyles = getInlineStyleOfElement( element );
+			if( inline )
 			{
-				if( element.userStyles && ( element.userStyles.inline as InlineStyles ) )
-				{
-					return ( element.userStyles.inline as InlineStyles ).explicitStyle;
-				}
+				return inline.explicitStyle;
 			}
 			return null;
+		}
+		
+		protected function mergeDifferingAndExplicitStyles( styles:Object, explicitStyles:Object ):Array /* StyleProperty[] */
+		{
+			var styleList:Array = []; /* StyleProperty[] */
+			// Fill out styles with no-conflictingly styles from explicit.
+			var property:String;
+			for( property in explicitStyles )
+			{
+				if( !styles.hasOwnProperty( property ) )
+					styles[property] = explicitStyles[property];
+			}
+			// Fill out style list with StyleProperty instances.
+			var styleProperty:StyleProperty;
+			for( property in styles )
+			{
+				styleProperty = new StyleProperty( property, styles[property] );
+				styleList.push( styleProperty );
+			}
+			return styleList;
 		}
 		
 		/**
@@ -140,16 +169,17 @@ package flashx.textLayout.format
 		 * @param element FlowElement Optional flow element to determine validity of styles.
 		 * @return Array An array of StyleProperty
 		 */
-		protected function getDifferingStyles( childFormat:ITextLayoutFormat, parentFormat:ITextLayoutFormat, element:FlowElement = null ):Array /* StyleProperty[] */
+		protected function getDifferingStyles( childFormat:ITextLayoutFormat, parentFormat:ITextLayoutFormat, element:FlowElement = null ):Object
 		{
-			var styles:Array = []; /* StyleProperty[] */
+			var styles:Object = {};
 			var property:String;
 			var propertyList:XMLList = describeType( childFormat )..accessor;
 			var explicitStyle:Object = getExplicitStyleOfElement( element );
 			var styleProperty:StyleProperty;
 			var childPropertyValue:*;
 			var parentPropertyValue:*;
-			var explicitPropertyValue:*;
+			var explicitProperty:String
+			var explicitValue:*;
 			var i:int;
 			for( i = 0; i < propertyList.length(); i++ )
 			{
@@ -159,12 +189,8 @@ package flashx.textLayout.format
 				{
 					try
 					{
-						var explicitProperty:String
-						var explicitValue:*;
-						
 						childPropertyValue = childFormat[property];
 						parentPropertyValue = parentFormat[property];
-						explicitPropertyValue = explicitStyle[StyleAttributeUtil.dasherize(property)];
 						
 						// Special case for links. If they have been decorated as none, then they
 						//	could possibly equal the property value of parent
@@ -177,35 +203,22 @@ package flashx.textLayout.format
 								parentPropertyValue = undefined;
 							}
 						}
+						
 						// Differigng between child and parent, assumed a custom style.
 						if( childPropertyValue != parentPropertyValue )
 						{
 							styleProperty = StyleProperty.normalizePropertyForCSS( property, childPropertyValue, childFormat );
-							// Reassign original set value
+							
 							if( explicitStyle && explicitStyle[StyleAttributeUtil.dasherize( styleProperty.property )] != null )
 							{
+								// Run a check that if new style is actually equal to the declard explicit style on import.
+								// For instance, if explicitly set as rgb(255,0,0) and we have #ff0000, than keep the original explicit value.
 								explicitProperty = StyleAttributeUtil.dasherize( styleProperty.property );
 								explicitValue = explicitStyle[explicitProperty];
 								if( StyleProperty.isEqual( styleProperty, new StyleProperty( explicitProperty, explicitValue ) ) )
 									styleProperty.value = explicitValue;
 							} 
-							styles.push( styleProperty );			
-						}
-						// If the same, need to check explicitly set styles and see if they differ.
-						else
-						{
-							styleProperty = StyleProperty.normalizePropertyForCSS( property, childPropertyValue, childFormat );
-							if( explicitStyle && explicitStyle[StyleAttributeUtil.dasherize( styleProperty.property )] != null )
-							{
-								explicitProperty = StyleAttributeUtil.dasherize( styleProperty.property );
-								explicitValue = explicitStyle[explicitProperty];
-								if( !StyleProperty.isEqual( styleProperty, new StyleProperty( explicitProperty, explicitValue ) ) )
-								{
-									delete explicitStyle[explicitProperty];
-									styleProperty.value = styleProperty.value;
-									styles.push( styleProperty );
-								}
-							}
+							styles[styleProperty.property] = styleProperty.value;
 						}
 					}
 					catch( e:Error )
@@ -219,24 +232,6 @@ package flashx.textLayout.format
 		}
 		
 		/**
-		 * @private
-		 * 
-		 * Serializes inline styles onto XML related to element. 
-		 * @param node XML
-		 * @param element FlowElement
-		 */
-		protected function applySelectorAttributes( node:XML, element:FlowElement ):Boolean
-		{
-			var inlineStyle:InlineStyles = ( element.userStyles ) ? element.userStyles.inline as InlineStyles : null;
-			if( inlineStyle )
-			{
-				inlineStyle.serialize( node );
-				return inlineStyle.styleId != null || inlineStyle.styleClass != null;
-			}
-			return false;
-		}
-		
-		/**
 		 * Applies inline style attribute to element. Returns flag of inline styles applied to the xml node.
 		 * @param node XML
 		 * @param element FlowElement
@@ -246,7 +241,9 @@ package flashx.textLayout.format
 		{
 			if ( element )
 			{
-				// TODO: Strip styles based on stylesheet assignment.
+				var inline:InlineStyles = getInlineStyleOfElement( element );
+				// serialize attributes.
+				if( inline ) inline.serialize( node );
 				var childFormat:ITextLayoutFormat = element.format;
 				var parentFormat:ITextLayoutFormat = getComputedParentFormat( element );
 				return applyStyleAttributesFromDifferingStyles( node, parentFormat, childFormat, element );
@@ -264,23 +261,25 @@ package flashx.textLayout.format
 		 */
 		public function applyStyleAttributesFromDifferingStyles( node:XML, parentFormat:ITextLayoutFormat, elementFormat:ITextLayoutFormat, element:FlowElement = null ):Boolean
 		{
-			var differingStyles:Array = getDifferingStyles( elementFormat, parentFormat, element );
+			var differingStyles:Object = getDifferingStyles( elementFormat, parentFormat, element );
 			var explicitStyles:Object = getExplicitStyleOfElement( element );
-			var requiresInlineStyleAttributes:Boolean = ( element ) ? applySelectorAttributes( node, element ) : false;
-			if( differingStyles.length > 0 )
+			var applicableStyles:Array = mergeDifferingAndExplicitStyles( differingStyles, explicitStyles );
+			// If we have some applicable styles that differ, strip style node and reassemble.
+			// The applicable styles should be a list of StyleProperty instances rom a merge of differing child/parent styles and those explicitly set on import.
+			if( applicableStyles.length > 0 )
 			{
 				var i:int;
 				var attribute:StyleProperty;
 				var property:String;
 				var value:String;
-				var style:String = StyleAttributeUtil.isValidStyleString( node.@style ) ? node.@style : "";
-				for( i = 0; i < differingStyles.length; i++ )
+				var style:String = "";
+				delete node.@style;
+				for( i = 0; i < applicableStyles.length; i++ )
 				{
-					attribute = differingStyles[i] as StyleProperty;
-					property = StyleAttributeUtil.dasherize( attribute.property );
+					attribute = applicableStyles[i] as StyleProperty;
+					property = attribute.property;
 					value = attribute.value;
-					if( !explicitStyles.hasOwnProperty( property ) )
-						style += property + StyleAttributeUtil.STYLE_PROPERTY_DELIMITER + value + StyleAttributeUtil.STYLE_DELIMITER;
+					style += StyleAttributeUtil.assembleStyleProperty( property, value );
 				}
 			}
 			// Apply @style if key/value pairs are available.
@@ -288,7 +287,7 @@ package flashx.textLayout.format
 			{
 				node.@style = style;
 			}
-			return ( differingStyles.length > 0 ) || requiresInlineStyleAttributes;	
+			return ( applicableStyles.length > 0 );	
 		}
 	}
 }
