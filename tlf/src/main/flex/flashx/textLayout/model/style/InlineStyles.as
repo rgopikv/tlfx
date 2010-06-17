@@ -9,6 +9,7 @@ package flashx.textLayout.model.style
 	import flashx.textLayout.events.InlineStyleEvent;
 	import flashx.textLayout.formats.ITextLayoutFormat;
 	import flashx.textLayout.formats.TextLayoutFormat;
+	import flashx.textLayout.utils.FragmentAttributeUtil;
 	import flashx.textLayout.utils.StyleAttributeUtil;
 
 	[Event(name="appliedStyleChange", type="flashx.textLayout.events.InlineStyleEvent")]
@@ -52,10 +53,12 @@ package flashx.textLayout.model.style
 					propertyName = attribute.name().localName;
 					if( propertyName == "style" ) continue;
 					propertyValue = attribute.toString();
-					tag["@" + propertyName] = propertyValue;
+					if( !FragmentAttributeUtil.exists( node, propertyName ) ) 
+						tag["@" + propertyName] = propertyValue;
 				}
 			}
 			
+			// Assemble incoming explicit styles to style tag. This will likely be merged in other helpers for export of node.
 			var styleAttribute:String = "";
 			for( propertyName in _explicitStyle )
 			{
@@ -81,13 +84,13 @@ package flashx.textLayout.model.style
 		public function get styleId():String
 		{
 			if( !node ) return null;
-			return StyleAttributeUtil.isValidStyleString( node.@id ) ? node.@id : null;
+			return FragmentAttributeUtil.exists( node, "id" ) ? node.@id : null;
 		}
 		
 		public function get styleClass():String
 		{
 			if( !node ) return null;
-			return StyleAttributeUtil.isValidStyleString( node["@class"] ) ? node["@class"] : null;
+			return FragmentAttributeUtil.exists( node, "class" ) ? node["@class"] : null;
 		}
 		
 		/**
