@@ -245,6 +245,9 @@ package flashx.textLayout.edit
 							
 							textFlow.flowComposer.updateAllControllers();
 							
+							event.keyCode = Keyboard.DELETE;
+							super.keyDownHandler(event);
+							
 							return;
 						}
 						
@@ -282,6 +285,9 @@ package flashx.textLayout.edit
 							setSelectionState( new SelectionState( textFlow, newItem.actualStart+newItem.text.length-1, newItem.actualStart+newItem.text.length-1 ) );
 							
 							textFlow.flowComposer.updateAllControllers();
+							
+							event.keyCode = Keyboard.DELETE;
+							super.keyDownHandler(event);
 						}
 						//	Multiple lists
 						else
