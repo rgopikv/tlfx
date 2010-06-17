@@ -132,7 +132,7 @@ package flashx.textLayout.model.attribute
 		 * @param property String
 		 * @return Boolean
 		 */
-		public function hasProperty( property:String ):Boolean
+		public function hasAttributeProperty( property:String ):Boolean
 		{
 			return attributes[property] != null;
 		}
@@ -199,7 +199,7 @@ package flashx.textLayout.model.attribute
 		
 		public function isUndefined( property:String ):Boolean
 		{
-			return !hasProperty( property );
+			return !hasAttributeProperty( property );
 		}
 	}
 }

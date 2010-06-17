@@ -58,7 +58,7 @@ package flashx.textLayout.model.table
 				var determinedBorderWidth:Array = borderStyle.getDeterminedBorderWidth();
 				if( determinedBorderWidth ) return determinedBorderWidth;
 				// Else search for undefined border and equate to either parent table border or computed border for default.
-				if( _attributes.hasProperty( "border" ) )
+				if( _attributes.hasAttributeProperty( "border" ) )
 				{
 					var b:int = BoxModelStyleUtil.normalizeBorderUnit( _attributes["border"] );
 					if( b != TableAttribute.DEFAULT_BORDER )

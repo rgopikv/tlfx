@@ -78,7 +78,7 @@ package flashx.textLayout.model.style
 			return null;
 		}
 		
-		override flash_proxy function hasProperty( name:* ):Boolean
+		protected function hasBorderProperty( name:String ):Boolean
 		{
 			var propertyList:Vector.<String> = BorderStyle.definition;
 			return propertyList.indexOf( name ) != -1;
@@ -134,7 +134,7 @@ package flashx.textLayout.model.style
 			for( i = 0; i < _weightedRules.length; i++ )
 			{
 				propertyName = _weightedRules[i];
-				if( !hasProperty( propertyName ) ) continue;
+				if( !hasBorderProperty( propertyName ) ) continue;
 				
 				value = this[propertyName];
 				shorthandModel = BoxModelUnitShorthandUtil.deserializeShortHand( value );

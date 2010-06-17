@@ -261,6 +261,7 @@
     <classEntry path="flashx.undo.IUndoManager"/>
     <classEntry path="flashx.undo.UndoManager"/>
     <classEntry path="flashx.textLayout.operations.ChangeListModeOperation"/>
+    <classEntry path="flashx.textLayout.elements.DecoratingParagraphElement"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests>

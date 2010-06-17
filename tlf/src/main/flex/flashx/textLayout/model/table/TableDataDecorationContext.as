@@ -14,12 +14,20 @@ package flashx.textLayout.model.table
 	{
 		protected var _parentModel:Table;
 		protected var _tableContext:ITableDecorationContext;
+		protected var _tableBorderAttributeWidth:Array;
 		
 		public function TableDataDecorationContext( parentModel:TableModelBase, model:TableModelBase, attributes:IAttribute = null, style:ITableStyle = null )
 		{
 			super( model, attributes, style );
 			_parentModel = parentModel as Table;
 			_tableContext = _parentModel.getContextImplementation();
+			// Get default cell border width based on table attribute for border.
+			if( _tableContext.attributes.hasAttributeProperty( "border" ) )
+			{
+				var b:int = BoxModelStyleUtil.normalizeBorderUnit( _tableContext.attributes["border"] );
+				b = ( b != TableAttribute.DEFAULT_BORDER ) ? 1 : 0;
+				_tableBorderAttributeWidth = [b,b,b,b];
+			}
 		}
 		
 		public function determinePadding():Array
@@ -119,14 +127,15 @@ package flashx.textLayout.model.table
 			{
 				// Get determined border width. This fills an array of border based on super styles like border, borderTop, etc.
 				// If we have a determined border width object, we can use that.
-				var determinedBorderWidth:Array = borderStyle.getDeterminedBorderWidth();
-				if( determinedBorderWidth ) return determinedBorderWidth;
-				// Else search for undefined border and equate to either parent table border or computed border for default.
-				else if( _tableContext.attributes.hasProperty( "border" ) )
+				var dBorderWidth:Array = borderStyle.getDeterminedBorderWidth();
+				if( dBorderWidth != null )
 				{
-					var b:Number = BoxModelStyleUtil.normalizeBorderUnit( _tableContext.attributes["border"] );
-					b = ( b != TableAttribute.DEFAULT_BORDER ) ? 1 : 0;
-					borderWidth = [b, b, b, b];
+					return dBorderWidth;	
+				}
+				// Else search for undefined border and equate to either parent table border or computed border for default.
+				else if( _tableBorderAttributeWidth != null )
+				{
+					borderWidth = _tableBorderAttributeWidth;
 				}
 			}
 			return borderWidth;
