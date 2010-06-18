@@ -3,6 +3,7 @@ package flashx.textLayout.edit
 	import flash.desktop.ClipboardFormats;
 	import flash.events.KeyboardEvent;
 	import flash.ui.Keyboard;
+	import flash.utils.setTimeout;
 	
 	import flashx.textLayout.container.table.ICellContainer;
 	import flashx.textLayout.conversion.ConversionType;
@@ -23,6 +24,7 @@ package flashx.textLayout.edit
 	import flashx.textLayout.elements.list.ListPaddingElement;
 	import flashx.textLayout.elements.table.TableElement;
 	import flashx.textLayout.formats.TextLayoutFormat;
+	import flashx.textLayout.operations.DummyOperation;
 	import flashx.textLayout.operations.PasteOperation;
 	import flashx.textLayout.tlf_internal;
 	import flashx.undo.IUndoManager;
@@ -157,7 +159,7 @@ package flashx.textLayout.edit
 						}
 						
 						for each ( list in lists )
-							list.update();
+						list.update();
 						
 						textFlow.flowComposer.updateAllControllers();
 						return;
@@ -184,6 +186,8 @@ package flashx.textLayout.edit
 						
 						var first:ListItemElementX;
 						var last:ListItemElementX;
+						
+						var origSelectionState:SelectionState = getSelectionState();
 						
 						//	Sometimes this appears as 0 when it isn't
 						if ( startItem.modifiedTextLength == 0 )
@@ -231,6 +235,9 @@ package flashx.textLayout.edit
 							}
 							
 							list.removeChild(startItem);
+							
+							textFlow.flowComposer.updateAllControllers();
+							
 							list.update();
 							
 							//	Set selection state to beginning in order to prevent a TLF bug which caused nothing after the (now) split list(s) to be selectable
@@ -238,8 +245,6 @@ package flashx.textLayout.edit
 							setSelectionState( new SelectionState( textFlow, 0, 0 ) );
 							
 							//	update after every set selection in order to force a refresh for the same TLF bug
-							
-							textFlow.flowComposer.updateAllControllers();
 							
 							setSelectionState( new SelectionState( textFlow, p.getAbsoluteStart(), p.getAbsoluteStart() ) );
 							
@@ -267,7 +272,7 @@ package flashx.textLayout.edit
 								newItem.indent = startItem.indent;
 								newItem.correctChildren();
 							}
-							//	Single line
+								//	Single line
 							else
 							{
 								deleteText( new SelectionState( textFlow, absoluteStart, absoluteEnd ) );
@@ -282,14 +287,14 @@ package flashx.textLayout.edit
 							
 							list.update();
 							
-							setSelectionState( new SelectionState( textFlow, newItem.actualStart+newItem.text.length-1, newItem.actualStart+newItem.text.length-1 ) );
+							setSelectionState( new SelectionState( textFlow, newItem.actualStart+newItem.modifiedTextLength-1, newItem.actualStart+newItem.modifiedTextLength-1 ) );
 							
 							textFlow.flowComposer.updateAllControllers();
 							
-							event.keyCode = Keyboard.DELETE;
-							super.keyDownHandler(event);
+							performDummyOperation( getSelectionState() );
+							event.preventDefault();
 						}
-						//	Multiple lists
+							//	Multiple lists
 						else
 						{
 							//	Delete text between lists
@@ -305,12 +310,12 @@ package flashx.textLayout.edit
 								{
 									deleteText( new SelectionState( textFlow, absoluteStart, item.actualStart + item.text.length ) );
 								}
-								//	Reset text (end)
+									//	Reset text (end)
 								else if ( i == items.length-1 )
 								{
 									deleteText( new SelectionState( textFlow, item.actualStart, absoluteEnd ) );
 								}
-								//	Delete
+									//	Delete
 								else
 								{
 									item.parent.removeChild(item);
@@ -349,6 +354,11 @@ package flashx.textLayout.edit
 							
 							var selPoint:uint = Math.min( newItem.actualStart+newItem.text.length-1, textFlow.textLength-1 );
 							setSelectionState( new SelectionState( textFlow, selPoint, selPoint ) );
+							
+							textFlow.flowComposer.updateAllControllers();
+							
+							performDummyOperation( getSelectionState() );
+							event.preventDefault();
 						}
 					}
 					else
@@ -434,7 +444,7 @@ package flashx.textLayout.edit
 								
 								cleanEmptyLists( textFlow );
 							}
-							//	No text
+								//	No text
 							else if ( startItem.text.length == 0 )
 							{
 								if ( start-1 < 0 )
@@ -482,7 +492,7 @@ package flashx.textLayout.edit
 												}
 											}
 										}
-										//	i is NOT 0
+											//	i is NOT 0
 										else
 										{
 											var iclone:int = i;
@@ -533,7 +543,7 @@ package flashx.textLayout.edit
 								return;
 							}
 						}
-						//	Selection
+							//	Selection
 						else
 						{
 							//	Get the offset of the start of the item from the start of the selection
@@ -767,7 +777,7 @@ package flashx.textLayout.edit
 											//	If startItem came before - set selection to end of it
 											if ( tl < 0 )
 												setSelectionState( new SelectionState( textFlow, startItem.actualStart + startItem.text.length, startItem.actualStart + startItem.text.length ) );
-											//	If startItem came after - set selection to beginning of it
+												//	If startItem came after - set selection to beginning of it
 											else if ( tl > 0 )
 												setSelectionState( new SelectionState( textFlow, startItem.actualStart, startItem.actualStart ) );
 											else
@@ -785,7 +795,7 @@ package flashx.textLayout.edit
 								else
 									list.parent.removeChild(list);
 							}
-							//	Deleting from end of line
+								//	Deleting from end of line
 							else if ( absoluteStart == startItem.getAbsoluteStart() + startItem.textLength - 1 )
 							{
 								//	Find next item to merge with
@@ -807,7 +817,7 @@ package flashx.textLayout.edit
 									
 									nextElement.parent.removeChild(nextElement);
 								}
-								//	Was not last item, merge with next item
+									//	Was not last item, merge with next item
 								else
 								{
 									extractChildrenToListItemElement( nextItem, startItem );
@@ -823,7 +833,7 @@ package flashx.textLayout.edit
 								return;
 							}
 						}
-						//	Selection
+							//	Selection
 						else
 						{
 							endElement = textFlow.findLeaf( absoluteEnd ).getParagraph();
@@ -854,10 +864,10 @@ package flashx.textLayout.edit
 					cleanEmptyLists( textFlow );
 					
 					for each ( list in lists )
-					{
-						if ( list )
-							list.update();
-					}
+				{
+					if ( list )
+						list.update();
+				}
 					break;
 				default:
 					super.keyDownHandler( event );
@@ -867,6 +877,24 @@ package flashx.textLayout.edit
 			
 			setSelectionState( new SelectionState( textFlow, absoluteStart, absoluteStart, textFlow.format ) );
 			textFlow.flowComposer.updateAllControllers();
+		}
+		
+		/**
+		 * Perform a dummy operation in order to force the entire textFlow and all of it's container controllers (including AutosizeableContainerControllers) to update properly.
+		 * 
+		 * @param operationState
+		 * 
+		 * [KK]
+		 */		
+		public function performDummyOperation(operationState:SelectionState = null):void
+		{
+			operationState = defaultOperationState(operationState);
+			if (!operationState)
+				return;
+			
+			var op:DummyOperation;
+			op = new DummyOperation( operationState );
+			doOperation(op);
 		}
 		
 		private function extractChildrenToParagraphElement( from:FlowGroupElement, to:ParagraphElement ):void
@@ -1022,11 +1050,11 @@ package flashx.textLayout.edit
 			}
 			doOperation(new PasteOperation(operationState, scrapToPaste));
 		}
-
+		
 		public function get htmlImporter():IHTMLImporter
 		{
 			return _htmlImporter;
 		}
-
+		
 	}
 }

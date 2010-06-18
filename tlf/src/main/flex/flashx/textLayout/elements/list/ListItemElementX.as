@@ -49,6 +49,11 @@ package flashx.textLayout.elements.list
 			update();
 		}
 		
+//		tlf_internal override function ensureTerminatorAfterReplace(oldLastLeaf:FlowLeafElement):void
+//		{
+//			//	Nothing
+//		}
+		
 		public function updateBulletFormat():void
 		{
 			_bulletFormat = new TextLayoutFormat( computedFormat );
