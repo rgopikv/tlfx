@@ -100,12 +100,17 @@ package flashx.textLayout.converter
 			cell.tableDataModel = new TableData( table );
 			
 			var content:Array = parseToFlow( td.children() ).mxmlChildren;
+			// If no parse of children, it is a closed out empty node.
+			// As such, fill with default conent for editing in TLFX.
+			if( content == null )
+			{
+				content = [TableDataElement.getDefaultContent()];
+			}
 			var i:int;
 			for( i = 0; i < content.length; i++ )
 			{
 				cell.addChild( content[i] as FlowElement );
 			}
-//			cell.getContext().attributes.modifyAttributes( parentingAttributes );
 			cell.getContext().modifyAttributes( parseAttributes( td ) );
 			_htmlImporter.importStyleHelper.assignInlineStyle( td, cell );
 			return cell;
@@ -125,12 +130,17 @@ package flashx.textLayout.converter
 			cell.tableDataModel = new TableHeading( table );
 			
 			var content:Array = parseToFlow( th.children() ).mxmlChildren;
+			// If no parse of children, it is a closed out empty node.
+			// As such, fill with default conent for editing in TLFX.
+			if( content == null )
+			{
+				content = [TableDataElement.getDefaultContent()];
+			}
 			var i:int;
 			for( i = 0; i < content.length; i++ )
 			{
 				cell.addChild( content[i] as FlowElement );
 			}
-//			cell.getContext().attributes.modifyAttributes( parentingAttributes );
 			cell.getContext().modifyAttributes( parseAttributes( th ) );
 			_htmlImporter.importStyleHelper.assignInlineStyle( th, cell );
 			return cell;

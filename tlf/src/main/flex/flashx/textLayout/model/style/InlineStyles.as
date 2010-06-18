@@ -53,7 +53,7 @@ package flashx.textLayout.model.style
 					propertyName = attribute.name().localName;
 					if( propertyName == "style" ) continue;
 					propertyValue = attribute.toString();
-					if( !FragmentAttributeUtil.exists( node, propertyName ) ) 
+					if( !FragmentAttributeUtil.exists( tag, propertyName ) ) 
 						tag["@" + propertyName] = propertyValue;
 				}
 			}
