@@ -288,7 +288,12 @@ package flashx.textLayout.elements.list
 					else
 					{
 						//	First item. Create Vector to hold it and push it into that Vector.
-						groups.push( new Vector.<ListItemElementX>() );
+						ind = uint( item.indent / 24 );
+						while ( ind > -1 )
+						{
+							groups.push( new Vector.<ListItemElementX>() );
+							ind--;
+						}
 						groups[groups.length-1].push( item );
 					}
 					

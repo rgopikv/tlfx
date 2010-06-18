@@ -543,7 +543,7 @@ package flashx.textLayout.edit
 								return;
 							}
 						}
-							//	Selection
+						//	Selection
 						else
 						{
 							//	Get the offset of the start of the item from the start of the selection
