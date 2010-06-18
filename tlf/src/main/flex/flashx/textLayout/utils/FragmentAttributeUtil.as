@@ -47,5 +47,11 @@ package flashx.textLayout.utils
 			var attribute:String = node["@" + attributeName];
 			return attribute != null && attribute.length > 0;
 		}
+		
+		static public function hasAttributes( node:XML ):Boolean
+		{
+			var attributes:XMLList = node.attributes();
+			return ( attributes && attributes.length() > 0 );
+		}
 	}
 }

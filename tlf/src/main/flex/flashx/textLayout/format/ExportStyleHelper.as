@@ -23,6 +23,7 @@ package flashx.textLayout.format
 	import flashx.textLayout.formats.ITextLayoutFormat;
 	import flashx.textLayout.formats.TextAlign;
 	import flashx.textLayout.model.style.InlineStyles;
+	import flashx.textLayout.utils.FragmentAttributeUtil;
 	import flashx.textLayout.utils.StyleAttributeUtil;
 
 	/**
@@ -287,7 +288,8 @@ package flashx.textLayout.format
 			{
 				node.@style = style;
 			}
-			return ( applicableStyles.length > 0 );	
+			var hasAttributes:Boolean = FragmentAttributeUtil.hasAttributes( node );
+			return ( applicableStyles.length > 0 ) || hasAttributes;	
 		}
 	}
 }
