@@ -363,6 +363,7 @@ package flashx.textLayout.elements.list
 							else
 							{
 								//	BROKEN!
+								trace( '[KK] {' + getQualifiedClassName(this) + '} :: Exporting of a ListElement encountered a fatal error.' );
 							}
 						}
 					}
