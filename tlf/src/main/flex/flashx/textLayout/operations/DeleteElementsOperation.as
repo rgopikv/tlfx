@@ -20,6 +20,7 @@ package flashx.textLayout.operations
 	import flashx.textLayout.elements.table.TableDataElement;
 	import flashx.textLayout.elements.table.TableElement;
 	import flashx.textLayout.elements.table.TableRowElement;
+	import flashx.textLayout.formats.ITextLayoutFormat;
 	import flashx.textLayout.model.table.Table;
 	import flashx.textLayout.tlf_internal;
 	
@@ -147,8 +148,21 @@ package flashx.textLayout.operations
 			// Remove elements from model.
 			if (absoluteStart < absoluteEnd)
 			{
+				var firstElement:FlowElement;
+				// If they have selected the whole text, grab format to aply to new empty element afterward.
+				if( ( absoluteEnd - absoluteStart ) == textFlow.textLength - 1 )
+				{
+					firstElement = textFlow.getChildAt( 0 ).shallowCopy();
+				}
 				_deleteSelectionOperation = new DeleteTextOperation(originalSelectionState);
 				_deleteSelectionOperation.doOperation();
+				
+				// TLF gloms on to the last element as the new leading element in an empty text flow.
+				// If we selected everything and deleted/inserted, we actually want the properties from the first element from prior state of text flow. (As per Word functionality).
+				if( firstElement && textFlow.numChildren == 1 )
+				{
+					textFlow.replaceChildren( 0, 1, firstElement );
+				}
 			}
 		}
 		

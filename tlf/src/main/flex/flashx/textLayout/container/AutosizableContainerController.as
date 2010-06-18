@@ -330,6 +330,7 @@ package flashx.textLayout.container
 				// however must stick to the end of the last line
 				if (lineIdx == flowComposer.numLines)
 					lineIdx--;
+				
 				// [TA] 04-07-2010 Limiting access.
 				lineIdx = Math.max( 0, lineIdx );
 				if( flowComposer.getLineAt( lineIdx ) == null ) 
@@ -338,14 +339,15 @@ package flashx.textLayout.container
 					//	[KK] 06/16/2010 Attempting to provide new TextLines by adding a ParagraphElement with a SpanElement inside of it
 					try {
 						textFlow.createContentElement();
+						if( textFlow.numChildren == 0 )
+						{
+							var p:ParagraphElement = textFlow.addChild(new ParagraphElement()) as ParagraphElement;
+							textFlow.flowComposer.updateAllControllers();
+							addMonitoredElement( p );
 						
-						var p:ParagraphElement = textFlow.addChild(new ParagraphElement()) as ParagraphElement;
-						textFlow.flowComposer.updateAllControllers();
-						
-						addMonitoredElement( p );
-						
-						if ( textFlow.interactionManager )
-							textFlow.interactionManager.setSelectionState( new SelectionState( textFlow, p.getAbsoluteStart(), p.getAbsoluteStart() ) );
+							if ( textFlow.interactionManager )
+								textFlow.interactionManager.setSelectionState( new SelectionState( textFlow, p.getAbsoluteStart(), p.getAbsoluteStart() ) );
+						}
 					} catch (e:*) {
 						trace( "[KK] {" + getQualifiedClassName(this) + "} :: Couldn't correct text line problem." );
 						return;
