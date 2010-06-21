@@ -1232,7 +1232,9 @@ package flashx.textLayout.edit
 							// [TA] 04-27-2010 :: In order to stay consistant with inline styles,
 							//						any computed styles for the first child from parent need to be applied.
 							//						Other wise, user-defined styles are wiped.
-							curFlowElement.format = TextLayoutFormatUtils.overwrite( sibParagraph.computedFormat, ( curFlowElement.format ) ? curFlowElement.format : new TextLayoutFormat() );
+							// [TA] 06-21-2010 :: Checking if first child of sibling paragraph is a SpanElement. If it is, the style is
+							//						attributed as that which previous paragraph holds. We need to merge with any inline styles.
+							if( curFlowElement is SpanElement ) curFlowElement.format = TextLayoutFormatUtils.mergeFormats( sibParagraph.computedFormat, ( curFlowElement.format ) ? curFlowElement.format : new TextLayoutFormat() );
 							// [END TA]
 							sibParagraph.replaceChildren(0, 1, null);
 							para.replaceChildren(para.numChildren, para.numChildren, curFlowElement);
