@@ -14,6 +14,7 @@ package flashx.textLayout.elements.list
 	import flashx.textLayout.elements.ParagraphElement;
 	import flashx.textLayout.elements.SpanElement;
 	import flashx.textLayout.elements.SubParagraphGroupElement;
+	import flashx.textLayout.elements.VarElement;
 	import flashx.textLayout.events.ModelChange;
 	import flashx.textLayout.events.UpdateEvent;
 	import flashx.textLayout.format.ExportStyleHelper;
@@ -211,6 +212,13 @@ package flashx.textLayout.elements.list
 				
 				switch ( Class( getDefinitionByName( getQualifiedClassName( child ) ) ) )
 				{
+					case VarElement:	//	Must come before SpanElement as VarElement extends SpanElement
+						var vEl:VarElement = child as VarElement;
+						childXML = <span class="cc-var" title="whatever">{vEl.textContent}</span>;
+						styleExporter.applyStyleAttributesFromElement( childXML, vEl );
+						if ( vEl.id && vEl.id.length > 0 )
+							childXML.@id = vEl.id;
+						break;
 					case SpanElement:
 						var span:SpanElement = child as SpanElement;
 						childXML = <span>{span.text}</span>;

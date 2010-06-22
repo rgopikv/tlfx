@@ -321,6 +321,7 @@ package flashx.textLayout.container
 			
 			if (selectionAbsoluteStart != selectionAbsoluteEnd)
 			{
+				trace( "[KK] {" + getQualifiedClassName(this) + "} :: Calling super." );
 				super.addSelectionShapes(selFormat, selectionAbsoluteStart, selectionAbsoluteEnd);	
 			}
 			else
@@ -335,10 +336,11 @@ package flashx.textLayout.container
 				lineIdx = Math.max( 0, lineIdx );
 				if( flowComposer.getLineAt( lineIdx ) == null ) 
 				{
-					trace( "[TA] Entered Possible Missing Line clause" );
+					trace( "[TA] {" + getQualifiedClassName(this) + "} :: Entered Possible Missing Line clause" );
 					//	[KK] 06/16/2010 Attempting to provide new TextLines by adding a ParagraphElement with a SpanElement inside of it
 					try {
-						textFlow.createContentElement();
+						//	Removed textFlow.createContentElement() because it doesn't do ANYTHING.
+						textFlow.normalize();
 						if( textFlow.numChildren == 0 )
 						{
 							var p:ParagraphElement = textFlow.addChild(new ParagraphElement()) as ParagraphElement;

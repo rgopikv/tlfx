@@ -2584,11 +2584,27 @@ package flashx.textLayout.container
 				lineIdx = Math.max( 0, lineIdx );
 				if( flowComposer.getLineAt( lineIdx ) == null ) 
 				{
-					trace( "[TA] Entered Possible Missing Line clause" );
-					return;
+					trace( "[TA] {" + getQualifiedClassName(this) + "} :: Entered Possible Missing Line clause. {ContainerController}" );
+					try {
+						//	Removed textFlow.createContentElement() because it doesn't do ANYTHING.
+						textFlow.normalize();
+						if( textFlow.numChildren == 0 )
+						{
+							var p:ParagraphElement = textFlow.addChild(new ParagraphElement()) as ParagraphElement;
+							textFlow.flowComposer.updateAllControllers();
+							
+							if ( textFlow.interactionManager )
+								textFlow.interactionManager.setSelectionState( new SelectionState( textFlow, p.getAbsoluteStart(), p.getAbsoluteStart() ) );
+						}
+					} catch (e:*) {
+						trace( "[KK] {" + getQualifiedClassName(this) + "} :: Couldn't correct text line problem." );
+						return;
+					}
 				}
 				// End [TA]
-				if (flowComposer.getLineAt(lineIdx).controller == this)
+				
+				//	[KK]	Added a null check to correct select issues after deleting all content
+				if (flowComposer.getLineAt(lineIdx) && flowComposer.getLineAt(lineIdx).controller == this)
 				{
 					prevLine = lineIdx != 0 ? flowComposer.getLineAt(lineIdx-1) : null;
 					nextLine = lineIdx != flowComposer.numLines-1 ? flowComposer.getLineAt(lineIdx+1) : null;

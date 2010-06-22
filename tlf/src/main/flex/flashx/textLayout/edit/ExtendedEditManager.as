@@ -3,6 +3,7 @@ package flashx.textLayout.edit
 	import flash.desktop.ClipboardFormats;
 	import flash.events.KeyboardEvent;
 	import flash.ui.Keyboard;
+	import flash.utils.getQualifiedClassName;
 	import flash.utils.setTimeout;
 	
 	import flashx.textLayout.container.table.ICellContainer;
@@ -549,7 +550,46 @@ package flashx.textLayout.edit
 							//	Get the offset of the start of the item from the start of the selection
 							start = startItem.actualStart - absoluteStart;
 							
-							deleteText( getSelectionState() );
+							//	End flow element
+							endElement = textFlow.findLeaf(absoluteEnd);
+							
+							//	Get it's parent (ListItemElementX)
+							var fge:FlowGroupElement = endElement.parent;
+							
+							
+							if ( fge is ListItemElementX )
+							{
+								item = fge as ListItemElementX;
+								list = item.parent as ListElementX;
+								
+								//	Find where the major delete operation should end
+								if ( list.getChildIndex(item) > 0 )
+								{
+									for ( j = list.getChildIndex(item)-1; j > -1; j-- )
+									{
+										if ( list.getChildAt(j) is ListPaddingElement )
+											j = list.parent.getChildIndex(list)-1;	//	Get element BEFORE list
+										i = list.getChildAt(j).getAbsoluteStart() + list.getChildAt(j).textLength;
+										break;
+									}
+								}
+								else
+								{
+									//	Get element before list and set i to be the end of that
+									j = list.parent.getChildIndex(list)-1;
+									i = list.parent.getChildAt(j).getAbsoluteStart() + list.parent.getChildAt(j).textLength;
+								}
+							}
+							else
+								i = absoluteEnd;
+							
+							textFlow.flowComposer.updateAllControllers();
+							
+							deleteText( new SelectionState( textFlow, absoluteStart, i ) );
+							
+							if ( item && list )
+								//	Trim list item's text
+								deleteText( new SelectionState( textFlow, item.actualStart, absoluteEnd+1 ) );
 							
 							tl = 1;
 							
@@ -564,7 +604,40 @@ package flashx.textLayout.edit
 								}
 							}
 							
+							list = lists[0] as ListElementX;
+							endList = lists[ lists.length-1 ] as ListElementX;
+							
 							cleanEmptyLists( textFlow );
+							
+							//	Update to show changes to textFlow
+							textFlow.flowComposer.updateAllControllers();
+							
+							//	Join the lists
+							if ( list && endList )
+							{
+								//	Find where to add the list items
+								for ( i = list.numChildren-1; i > -1; i-- )
+								{
+									if ( list.getChildAt(i) is ListItemElementX )
+									{
+										j = i+1;
+										break;
+									}
+								}
+								
+								//	Merge lists
+								for ( i = endList.numChildren-1; i > -1; i-- )
+								{
+									if ( endList.getChildAt(i) is ListItemElementX )
+									{
+										list.addChildAt(j, endList.removeChildAt(i));
+									}
+								}
+								
+								endList.parent.removeChild(endList);
+							}
+							else
+								trace( '[KK] {' + getQualifiedClassName(this) + '} :: Could not merge resulting lists from multiple list backspacing.' );
 							
 							for each ( list in lists )
 							{
@@ -573,6 +646,10 @@ package flashx.textLayout.edit
 							}
 							
 							setSelectionState( new SelectionState( textFlow, absoluteStart-tl, absoluteStart-tl ) );
+							
+							performDummyOperation( getSelectionState() );
+							event.preventDefault();
+							return;
 						}
 					}
 					else
