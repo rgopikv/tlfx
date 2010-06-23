@@ -321,7 +321,6 @@ package flashx.textLayout.container
 			
 			if (selectionAbsoluteStart != selectionAbsoluteEnd)
 			{
-				trace( "[KK] {" + getQualifiedClassName(this) + "} :: Calling super." );
 				super.addSelectionShapes(selFormat, selectionAbsoluteStart, selectionAbsoluteEnd);	
 			}
 			else

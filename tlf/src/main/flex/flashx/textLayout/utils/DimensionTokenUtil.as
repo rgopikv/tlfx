@@ -61,7 +61,7 @@ package flashx.textLayout.utils
 		static public function normalize( token:String ):Number
 		{
 			// Find token.
-			var charMatch:Array = token.match( /[^0-9.]/ );
+			var charMatch:Array = token.match( /[^0-9\.]/ );
 			var unit:String = ( charMatch && charMatch.length > 0 ) ? token.substring( token.indexOf( charMatch[0] ), token.length ) : "";
 			if( unit.length > 0 ) token = token.replace( unit, "" );
 			
