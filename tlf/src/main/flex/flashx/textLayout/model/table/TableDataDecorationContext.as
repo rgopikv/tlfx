@@ -25,7 +25,11 @@ package flashx.textLayout.model.table
 			if( _tableContext.attributes.hasAttributeProperty( "border" ) )
 			{
 				var b:int = BoxModelStyleUtil.normalizeBorderUnit( _tableContext.attributes["border"] );
-				b = ( b != TableAttribute.DEFAULT_BORDER ) ? 1 : 0;
+				b = ( b != TableAttribute.DEFAULT_BORDER ) 
+					? ( b > 0 ) 
+						? 1
+						: 0
+					: 0;
 				_tableBorderAttributeWidth = [b,b,b,b];
 			}
 		}

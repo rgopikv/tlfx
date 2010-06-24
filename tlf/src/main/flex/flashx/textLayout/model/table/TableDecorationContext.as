@@ -80,7 +80,7 @@ package flashx.textLayout.model.table
 			}
 			if( !_style.isUndefined(_style.borderCollapse) )
 			{
-				spacing = ( _style.borderCollapse == TableCollapseStyleEnum.COLLAPSE_COLLAPSE ) ? 2 : spacing;
+				spacing = ( _style.borderCollapse == TableCollapseStyleEnum.COLLAPSE_COLLAPSE ) ? 0 : spacing;
 			}
 			return spacing;
 		}
