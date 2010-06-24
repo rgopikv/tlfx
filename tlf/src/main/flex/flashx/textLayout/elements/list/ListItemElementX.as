@@ -57,7 +57,7 @@ package flashx.textLayout.elements.list
 		
 		public function updateBulletFormat():void
 		{
-			_bulletFormat = new TextLayoutFormat( computedFormat );
+			_bulletFormat = new TextLayoutFormat( computedFormat ? TextLayoutFormat(computedFormat) : format ? TextLayoutFormat(format) : new TextLayoutFormat() );
 			_bulletFormat.paragraphSpaceAfter = _bulletFormat.paragraphSpaceBefore = _bulletFormat.paragraphStartIndent = 0;
 			if( _bulletSpan ) _bulletSpan.format = _bulletFormat;
 		}
@@ -93,7 +93,10 @@ package flashx.textLayout.elements.list
 			
 			//	Add a SpanElement afterwords if the new element is not a SpanElement
 			if ( !(child is SpanElement) )
+			{
 				super.addChild( new SpanElement() );
+				getChildAt( numChildren-1 ).format = computedFormat ? TextLayoutFormat(computedFormat) : format ? TextLayoutFormat(format) : new TextLayoutFormat();
+			}
 			return child;
 		}
 		
@@ -118,6 +121,7 @@ package flashx.textLayout.elements.list
 				if ( !hasSpan )
 				{
 					super.addChildAt(index+2, new SpanElement());
+					getChildAt( index+2 ).format = computedFormat ? TextLayoutFormat(computedFormat) : format ? TextLayoutFormat(format) : new TextLayoutFormat();
 				}
 			}
 			return child;
@@ -186,6 +190,7 @@ package flashx.textLayout.elements.list
 			if (numChildren == 0 || textLength == 0)
 			{
 				var s:SpanElement = new SpanElement();
+				s.format = computedFormat ? TextLayoutFormat(computedFormat) : format ? TextLayoutFormat(format) : new TextLayoutFormat();
 				replaceChildren(0,0,s);
 				s.normalizeRange(0,s.textLength);
 			}
@@ -319,7 +324,7 @@ package flashx.textLayout.elements.list
 				{
 					var childSpan:SpanElement = getChildAt(i) as SpanElement;
 					var childSpanFormat:TextLayoutFormat = new TextLayoutFormat();
-					childSpanFormat.apply(childSpan.computedFormat);
+					childSpanFormat.apply(childSpan.computedFormat ? TextLayoutFormat(computedFormat) : format ? TextLayoutFormat(format) : new TextLayoutFormat());
 					if ( !(TextLayoutFormat.isEqual( computedFormat, childSpanFormat )) )
 					{
 						indexes.push( i );
@@ -333,6 +338,7 @@ package flashx.textLayout.elements.list
 			children.reverse();
 			
 			var span:SpanElement = new SpanElement();
+			span.format = computedFormat ? TextLayoutFormat(computedFormat) : format ? TextLayoutFormat(format) : new TextLayoutFormat();
 			span.text = value;
 			addChild( span );
 			

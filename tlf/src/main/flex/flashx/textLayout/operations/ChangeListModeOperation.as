@@ -17,6 +17,7 @@ package flashx.textLayout.operations
 	import flashx.textLayout.elements.list.ListItemElementX;
 	import flashx.textLayout.elements.list.ListItemModeEnum;
 	import flashx.textLayout.format.IImportStyleHelper;
+	import flashx.textLayout.formats.TextLayoutFormat;
 	
 	public class ChangeListModeOperation extends FlowTextOperation
 	{
@@ -159,10 +160,17 @@ package flashx.textLayout.operations
 			var p:ParagraphElement;
 			var item:ListItemElementX;
 			var pchild:FlowElement;
+			var node:XML;
 			for ( i = paragraphs.length-1; i > -1; i-- )
 			{
 				item = new ListItemElementX();
 				p = paragraphs[i] as ParagraphElement;
+				
+				//	[KK] Get any inline styling for application to new item
+				node = _htmlExporter.getSimpleMarkupModelForElement( p );
+				
+				//	[KK] Hack to fix inheriting formatting from when ParagraphElement is inside DivElement
+				item.format = p.computedFormat ? TextLayoutFormat(p.computedFormat) : p.format ? TextLayoutFormat(p.format) : new TextLayoutFormat();
 				item.mode = _mode;
 				if ( p && !(p is ListItemElementX) )
 				{
@@ -196,9 +204,13 @@ package flashx.textLayout.operations
 							item.addChildAt(0, p.removeChildAt(j));
 					}
 				}
+				//	[KK] Apply inline styling from ParagraphElement to ListItemElementX
+				_htmlImporter.importStyleHelper.assignInlineStyle( node, item );
 				list.addChildAt( 0, item );
 				p.parent.removeChild(p);
 			}
+			//	[KK] Apply all styling
+			_htmlImporter.importStyleHelper.apply();
 			list.update();
 		}
 		
@@ -556,7 +568,7 @@ package flashx.textLayout.operations
 				{
 					changeListModeOnAlreadyCreatedList( items, lists, _mode );
 				}
-					//	Create
+				//	Create
 				else
 				{
 					//	Add ListElementX at position of first element
@@ -575,7 +587,7 @@ package flashx.textLayout.operations
 					}
 				}
 			}
-				//	Destruction
+			//	Destruction
 			else
 			{
 				//	Multiple lists

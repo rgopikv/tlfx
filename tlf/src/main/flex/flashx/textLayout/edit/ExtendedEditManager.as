@@ -2,6 +2,7 @@ package flashx.textLayout.edit
 {
 	import flash.desktop.ClipboardFormats;
 	import flash.events.KeyboardEvent;
+	import flash.events.TextEvent;
 	import flash.ui.Keyboard;
 	import flash.utils.getQualifiedClassName;
 	import flash.utils.setTimeout;
@@ -15,8 +16,10 @@ package flashx.textLayout.edit
 	import flashx.textLayout.elements.DivElement;
 	import flashx.textLayout.elements.FlowElement;
 	import flashx.textLayout.elements.FlowGroupElement;
+	import flashx.textLayout.elements.FlowLeafElement;
 	import flashx.textLayout.elements.InlineGraphicElement;
 	import flashx.textLayout.elements.LinkElement;
+	import flashx.textLayout.elements.ListItemElement;
 	import flashx.textLayout.elements.ParagraphElement;
 	import flashx.textLayout.elements.SpanElement;
 	import flashx.textLayout.elements.TextFlow;
@@ -62,6 +65,26 @@ package flashx.textLayout.edit
 			return null;
 		}
 		
+		override public function textInputHandler(event:TextEvent):void
+		{
+			var startGroupElement:FlowGroupElement = textFlow.findLeaf(absoluteStart).parent;
+			
+			if ( startGroupElement is ListItemElementX && (startGroupElement as ListItemElementX).modifiedTextLength == 0 && event.text != '\n' && event.text != '\r' )
+			{
+				var s:SpanElement = new SpanElement();
+				s.text = event.text;
+				(startGroupElement as ListItemElementX).addChildAt(0,s);
+				(startGroupElement as ListItemElementX).correctChildren();
+				performDummyOperation(getSelectionState());
+				
+				setSelectionState( new SelectionState( textFlow, s.getAbsoluteStart()+1, s.getAbsoluteStart()+1 ) );
+				updateAllControllers();
+				return;
+			}
+			else
+				super.textInputHandler(event);
+		}
+		
 		override public function keyDownHandler(event:KeyboardEvent):void
 		{
 			var items:Array = SelectionHelper.getSelectedListItems( textFlow, true );
@@ -90,6 +113,8 @@ package flashx.textLayout.edit
 			var j:int;
 			
 			var tl:int;
+			
+			var node:XML;
 			
 			var transferItems:Vector.<ListItemElementX> = new Vector.<ListItemElementX>();
 			var transferChildren:Vector.<FlowElement> = new Vector.<FlowElement>();
@@ -213,6 +238,15 @@ package flashx.textLayout.edit
 							
 							p = new ParagraphElement();
 							
+							//	[KK]	Apply inline styling from ListElementX to ParagraphElement
+							node = _htmlExporter.getSimpleMarkupModelForElement(list);
+							if ( node )
+								_htmlImporter.importStyleHelper.assignInlineStyle( node, p );
+							else
+								trace('Error assigning inline styling #1');
+							
+							//	[KK]	Hack to appropriate all of ListElementX's formatting
+							p.format = list.computedFormat ? TextLayoutFormat(list.computedFormat) : list.format ? TextLayoutFormat(list.format) : new TextLayoutFormat();
 							if ( startItem == first )
 								list.parent.addChildAt( list.parent.getChildIndex(list), p );
 							else if ( startItem == last )
@@ -223,6 +257,15 @@ package flashx.textLayout.edit
 								
 								endList = new ListElementX();
 								list.parent.addChildAt( list.parent.getChildIndex(list)+1, endList );
+								
+								//	[KK]	Still set from export above
+								if ( node )
+									_htmlImporter.importStyleHelper.assignInlineStyle( node, endList );
+								else
+									trace('Error assigning inline styling #2');
+								
+								//	[KK]	Hack to appropriate all of ListElementX's formatting
+								endList.format = list.computedFormat ? TextLayoutFormat(list.computedFormat) : list.format ? TextLayoutFormat(list.format) : new TextLayoutFormat();
 								
 								list.parent.addChildAt( list.parent.getChildIndex(list)+1, p );
 								
@@ -251,6 +294,9 @@ package flashx.textLayout.edit
 							
 							textFlow.flowComposer.updateAllControllers();
 							
+							//	[KK]	Apply styling
+							_htmlImporter.importStyleHelper.apply();
+							
 							event.keyCode = Keyboard.DELETE;
 							super.keyDownHandler(event);
 							
@@ -271,6 +317,16 @@ package flashx.textLayout.edit
 								newItem = startItem.splitAtPosition( absoluteStart-startItem.actualStart+startItem.seperatorLength ) as ListItemElementX;
 								newItem.mode = startItem.mode;
 								newItem.indent = startItem.indent;
+								
+								//	[KK]	Hack to appropriate all of ListItemElementX's formatting
+								newItem.format = startItem.computedFormat ? TextLayoutFormat(startItem.computedFormat) : startItem.format ? TextLayoutFormat(startItem.format) : new TextLayoutFormat();
+								
+								node = _htmlExporter.getSimpleMarkupModelForElement( startItem );
+								if ( node )
+									_htmlImporter.importStyleHelper.assignInlineStyle( node, newItem );
+								else
+									trace('Error assigning inline styling #3');
+								
 								newItem.correctChildren();
 							}
 								//	Single line
@@ -283,6 +339,16 @@ package flashx.textLayout.edit
 								newItem = startItem.splitAtPosition( absoluteStart-startItem.actualStart+startItem.seperatorLength ) as ListItemElementX;
 								newItem.mode = startItem.mode;
 								newItem.indent = startItem.indent;
+								
+								//	[KK]	Hack to appropriate all of ListItemElementX's formatting
+								newItem.format = startItem.computedFormat ? TextLayoutFormat(startItem.computedFormat) : startItem.format ? TextLayoutFormat(startItem.format) : new TextLayoutFormat();
+								
+								node = _htmlExporter.getSimpleMarkupModelForElement( startItem );
+								if ( node )
+									_htmlImporter.importStyleHelper.assignInlineStyle( node, newItem );
+								else
+									trace('Error assigning inline styling #4');
+								
 								newItem.correctChildren();
 							}
 							
@@ -333,6 +399,16 @@ package flashx.textLayout.edit
 							newItem = new ListItemElementX();
 							newItem.mode = startItem.mode;
 							newItem.indent = startItem.indent;
+							
+							//	[KK]	Hack to appropriate all of ListItemElementX's formatting
+							newItem.format = startItem.computedFormat ? TextLayoutFormat(startItem.computedFormat) : startItem.format ? TextLayoutFormat(startItem.format) : new TextLayoutFormat();
+							
+							node = _htmlExporter.getSimpleMarkupModelForElement( startItem );
+							if ( node )
+								_htmlImporter.importStyleHelper.assignInlineStyle( node, newItem );
+							else
+								trace('Error assigning inline styling #5');
+							
 							children.push( newItem );
 							
 							children.reverse();
@@ -634,7 +710,11 @@ package flashx.textLayout.edit
 									}
 								}
 								
-								endList.parent.removeChild(endList);
+								try {
+									endList.parent.removeChild(endList);
+								} catch ( e:* ) {
+									trace('Could not remove endlist, {' + (endList ? endList : 'null') + '}, from it\'s parent, {' + (endList ? (endList.parent ? endList.parent : 'null') : 'endList is null' ) + '}');
+								}
 							}
 							else
 								trace( '[KK] {' + getQualifiedClassName(this) + '} :: Could not merge resulting lists from multiple list backspacing.' );

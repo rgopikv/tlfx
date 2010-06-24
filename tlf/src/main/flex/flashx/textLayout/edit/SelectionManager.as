@@ -821,6 +821,10 @@ package flashx.textLayout.edit
 			var tfl:TextFlowLine = textFlow.flowComposer.getLineAt(lineIndex);
 			var textLine:TextLine = tfl.getTextLine(true);
 			
+			//	[KK]	Prevents throwing an error message, but sets selection to 0
+			if ( !textLine )
+				return 0;
+			
 			// adjust localX,localY to be relative to the textLine.  
 			// Can't use localToGlobal/globalToLocal because textLine may not be on the display list due to virtualization
 			// we may need to bring this back if textline's can be rotated or placed by any mechanism other than a translation
