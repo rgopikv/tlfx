@@ -246,7 +246,7 @@ package flashx.textLayout.container
 			{
 				_containerFlow.removeChildAt( 0 );
 			}
-			
+			var generation:int = textFlow.generation;
 			// Get monitored elements and add to internal text flow for TextLine creation.
 			var i:int = 0;
 			_processedElements = getMonitoredElements();
@@ -268,6 +268,8 @@ package flashx.textLayout.container
 			// Return the elements and resize.
 			returnMonitoredElements();
 			setCompositionSize( compositionWidth, _actualHeight );
+			
+			textFlow.setGeneration( generation );
 			
 			// Notify of change in size if applicable.
 			var offset:Number = _actualHeight - _previousHeight;

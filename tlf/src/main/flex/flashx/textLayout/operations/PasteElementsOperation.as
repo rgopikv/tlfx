@@ -12,6 +12,7 @@ package flashx.textLayout.operations
 	import flashx.textLayout.elements.FlowGroupElement;
 	import flashx.textLayout.elements.FlowLeafElement;
 	import flashx.textLayout.elements.ParagraphElement;
+	import flashx.textLayout.elements.SpanElement;
 	import flashx.textLayout.elements.TextFlow;
 	import flashx.textLayout.elements.table.TableDataElement;
 	import flashx.textLayout.events.ModelChange;
@@ -67,7 +68,18 @@ package flashx.textLayout.operations
 			// Else sever the div and add the lower children as needed to be re-adsed to the flow.
 			else if( parent is DivElement )
 			{
-				_elementsToPaste.push( hotSwapFlowGroup( ( parent as FlowGroupElement ), para ) );
+				var groupElement:FlowElement = hotSwapFlowGroup( ( parent as FlowGroupElement ), para );
+				// If we have split the div.
+				if( groupElement )
+				{
+					_elementsToPaste.push( groupElement );
+				}
+				// Else we had the cursor at the end of a div and want to add content afterword.
+				//	Remove the paragraph at cursor in order to not add an extra line on insertion.
+				else
+				{
+					( parent as DivElement ).removeChild( para );
+				}
 			}
 			else if( parent is TableDataElement )
 			{
@@ -77,12 +89,25 @@ package flashx.textLayout.operations
 			length = _elementInsertIndex + _elementsToPaste.length;
 			index = 0;
 			var element:FlowElement;
+			var insertPosition:Number;
+			var insertLength:int;
 			// Update the text flow with required elements in past operation.
 			for( i = _elementInsertIndex; i < length; i++ )
 			{
 				element = _elementsToPaste[index++];
-				element.modelChanged( ModelChange.ELEMENT_ADDED, element.getAbsoluteStart(), element.textLength );
 				textFlow.addChildAt( i, element );
+				element.modelChanged( ModelChange.ELEMENT_ADDED, element.getAbsoluteStart(), element.textLength );
+				
+				if( isNaN( insertPosition ) ) insertPosition = element.getAbsoluteStart();
+				insertLength += element.textLength;
+			}
+			
+			if( _elementsToPaste.length == 0 ) return;
+			
+			if( textFlow.interactionManager )
+			{
+				textFlow.interactionManager.notifyInsertOrDelete( insertPosition, insertLength );
+				textFlow.interactionManager.setSelectionState( new SelectionState( textFlow, insertPosition, insertPosition ) );
 			}
 		}
 		
@@ -116,6 +141,8 @@ package flashx.textLayout.operations
 		 */
 		protected function hotSwapFlowGroup( groupElement:FlowGroupElement, para:ParagraphElement ):FlowElement
 		{
+			if( absoluteStart == groupElement.getAbsoluteStart() + groupElement.textLength - 1 ) return null;
+			
 			var index:int = 0;
 			var length:int;
 			index = groupElement.getChildIndex( para );

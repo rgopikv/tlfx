@@ -428,8 +428,13 @@ package flashx.textLayout.elements
 				assert(str && str.length && str.charAt(str.length-1) == SpanElement.kParagraphTerminator,
 					"attempting to remove para terminator when it doesn't exist");
 			}
-			replaceTextInternal(textLength-1,textLength,"");
-			modelChanged(ModelChange.TEXT_DELETED,textLength > 0 ? textLength-1 : 0,1);
+			// [TA] 06.23.2010 :: Check for textLength in order to avoid a range error which can occur.
+			if( textLength > 0 )
+			{
+				replaceTextInternal(textLength-1,textLength,"");
+				modelChanged(ModelChange.TEXT_DELETED,textLength > 0 ? textLength-1 : 0,1);	
+			}
+			// [END TA]
 		}
 		// **************************************** 
 		// Begin tree modification support code
