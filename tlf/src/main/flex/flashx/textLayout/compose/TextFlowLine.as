@@ -1328,9 +1328,9 @@ package flashx.textLayout.compose
 		 	var blockRect:Rectangle = new Rectangle();
 		 	var startElem:FlowLeafElement = _para.findLeaf(begIdx);
 			
-			//	[KK]	Prevent throwing an error
-			if ( !startElem )
-				return null;
+//			//	[KK]	Prevent throwing an error
+//			if ( !startElem )
+//				return null;
 			
 			var startMetrics:Rectangle = startElem.getComputedFontMetrics().emBox;
 			
@@ -1853,9 +1853,9 @@ package flashx.textLayout.compose
 			var blockRectArray:Array = makeSelectionBlocks(idx, endIdx, _para.getAbsoluteStart(), blockProgression, direction, heightAndAdj);
 			CONFIG::debug{ assert(blockRectArray.length == 1, "A point selection should return a single selection rectangle!"); }
 			
-			//	[KK]	Error protection from makeSelectionBlocks() returning null
-			if ( !blockRectArray || blockRectArray.length < 1 )
-				return null;
+//			//	[KK]	Error protection from makeSelectionBlocks() returning null
+//			if ( !blockRectArray || blockRectArray.length < 1 )
+//				return null;
 			
 			var rect:Rectangle = blockRectArray[0];
 			

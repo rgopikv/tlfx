@@ -238,15 +238,16 @@ package flashx.textLayout.edit
 							
 							p = new ParagraphElement();
 							
+							//	[FORMATING]
 //							//	[KK]	Apply inline styling from ListElementX to ParagraphElement
 //							node = _htmlExporter.getSimpleMarkupModelForElement(list);
 //							if ( node )
 //								_htmlImporter.importStyleHelper.assignInlineStyle( node, p );
 //							else
 //								trace('Error assigning inline styling #1');
-//							
-//							//	[KK]	Hack to appropriate all of ListElementX's formatting
-//							p.format = list.computedFormat ? TextLayoutFormat(list.computedFormat) : list.format ? TextLayoutFormat(list.format) : new TextLayoutFormat();
+							
+							//	[KK]	Hack to appropriate all of ListElementX's formatting
+							p.format = list.computedFormat ? TextLayoutFormat(list.computedFormat) : list.format ? TextLayoutFormat(list.format) : new TextLayoutFormat();
 							if ( startItem == first )
 								list.parent.addChildAt( list.parent.getChildIndex(list), p );
 							else if ( startItem == last )
@@ -258,12 +259,13 @@ package flashx.textLayout.edit
 								endList = new ListElementX();
 								list.parent.addChildAt( list.parent.getChildIndex(list)+1, endList );
 								
-//								//	[KK]	Still set from export above
-//								if ( node )
-//									_htmlImporter.importStyleHelper.assignInlineStyle( node, endList );
-//								else
-//									trace('Error assigning inline styling #2');
-//								
+								//	[KK]	Still set from export above
+								if ( node )
+									_htmlImporter.importStyleHelper.assignInlineStyle( node, endList );
+								else
+									trace('Error assigning inline styling #2');
+								
+								//	[FORMATING]
 //								//	[KK]	Hack to appropriate all of ListElementX's formatting
 //								endList.format = list.computedFormat ? TextLayoutFormat(list.computedFormat) : list.format ? TextLayoutFormat(list.format) : new TextLayoutFormat();
 								
@@ -280,7 +282,8 @@ package flashx.textLayout.edit
 							
 							list.removeChild(startItem);
 							
-						//	textFlow.flowComposer.updateAllControllers();
+//							//	[KK]	¡¡¡ REMOVED because it causes an error !!! Do not put back in. The editor will not resize.
+//							textFlow.flowComposer.updateAllControllers();
 							
 							list.update();
 							
@@ -294,6 +297,7 @@ package flashx.textLayout.edit
 							
 							textFlow.flowComposer.updateAllControllers();
 							
+							//	[FORMATING]
 //							//	[KK]	Apply styling
 //							_htmlImporter.importStyleHelper.apply();
 							
@@ -318,6 +322,7 @@ package flashx.textLayout.edit
 								newItem.mode = startItem.mode;
 								newItem.indent = startItem.indent;
 								
+								//	[FORMATING]
 //								//	[KK]	Hack to appropriate all of ListItemElementX's formatting
 //								newItem.format = startItem.computedFormat ? TextLayoutFormat(startItem.computedFormat) : startItem.format ? TextLayoutFormat(startItem.format) : new TextLayoutFormat();
 //								
@@ -340,6 +345,7 @@ package flashx.textLayout.edit
 								newItem.mode = startItem.mode;
 								newItem.indent = startItem.indent;
 								
+								//	[FORMATING]
 //								//	[KK]	Hack to appropriate all of ListItemElementX's formatting
 //								newItem.format = startItem.computedFormat ? TextLayoutFormat(startItem.computedFormat) : startItem.format ? TextLayoutFormat(startItem.format) : new TextLayoutFormat();
 //								
@@ -400,6 +406,7 @@ package flashx.textLayout.edit
 							newItem.mode = startItem.mode;
 							newItem.indent = startItem.indent;
 							
+							//	[FORMATING]
 //							//	[KK]	Hack to appropriate all of ListItemElementX's formatting
 //							newItem.format = startItem.computedFormat ? TextLayoutFormat(startItem.computedFormat) : startItem.format ? TextLayoutFormat(startItem.format) : new TextLayoutFormat();
 //							
@@ -441,6 +448,11 @@ package flashx.textLayout.edit
 					else
 					{
 						super.keyDownHandler(event);
+						
+						performDummyOperation( getSelectionState() );
+						
+						textFlow.flowComposer.updateAllControllers();
+						
 						return;
 					}
 					break;

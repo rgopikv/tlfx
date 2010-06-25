@@ -95,7 +95,8 @@ package flashx.textLayout.elements.list
 			if ( !(child is SpanElement) )
 			{
 				super.addChild( new SpanElement() );
-				getChildAt( numChildren-1 ).format = computedFormat ? TextLayoutFormat(computedFormat) : format ? TextLayoutFormat(format) : new TextLayoutFormat();
+				//	[FORMATING]
+//				getChildAt( numChildren-1 ).format = computedFormat ? TextLayoutFormat(computedFormat) : format ? TextLayoutFormat(format) : new TextLayoutFormat();
 			}
 			return child;
 		}
@@ -190,7 +191,8 @@ package flashx.textLayout.elements.list
 			if (numChildren == 0 || textLength == 0)
 			{
 				var s:SpanElement = new SpanElement();
-				s.format = computedFormat ? TextLayoutFormat(computedFormat) : format ? TextLayoutFormat(format) : new TextLayoutFormat();
+				//	[FORMATING]
+//				s.format = computedFormat ? TextLayoutFormat(computedFormat) : format ? TextLayoutFormat(format) : new TextLayoutFormat();
 				replaceChildren(0,0,s);
 				s.normalizeRange(0,s.textLength);
 			}
@@ -324,6 +326,7 @@ package flashx.textLayout.elements.list
 				{
 					var childSpan:SpanElement = getChildAt(i) as SpanElement;
 					var childSpanFormat:TextLayoutFormat = new TextLayoutFormat();
+					//	[FORMATING]
 //					childSpanFormat.apply(childSpan.computedFormat ? TextLayoutFormat(computedFormat) : format ? TextLayoutFormat(format) : new TextLayoutFormat());
 					if ( !(TextLayoutFormat.isEqual( computedFormat, childSpanFormat )) )
 					{
@@ -338,6 +341,7 @@ package flashx.textLayout.elements.list
 			children.reverse();
 			
 			var span:SpanElement = new SpanElement();
+			//	[FORMATING]
 //			span.format = computedFormat ? TextLayoutFormat(computedFormat) : format ? TextLayoutFormat(format) : new TextLayoutFormat();
 			span.text = value;
 			addChild( span );
