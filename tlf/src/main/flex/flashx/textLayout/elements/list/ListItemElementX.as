@@ -324,7 +324,7 @@ package flashx.textLayout.elements.list
 				{
 					var childSpan:SpanElement = getChildAt(i) as SpanElement;
 					var childSpanFormat:TextLayoutFormat = new TextLayoutFormat();
-					childSpanFormat.apply(childSpan.computedFormat ? TextLayoutFormat(computedFormat) : format ? TextLayoutFormat(format) : new TextLayoutFormat());
+//					childSpanFormat.apply(childSpan.computedFormat ? TextLayoutFormat(computedFormat) : format ? TextLayoutFormat(format) : new TextLayoutFormat());
 					if ( !(TextLayoutFormat.isEqual( computedFormat, childSpanFormat )) )
 					{
 						indexes.push( i );
@@ -338,7 +338,7 @@ package flashx.textLayout.elements.list
 			children.reverse();
 			
 			var span:SpanElement = new SpanElement();
-			span.format = computedFormat ? TextLayoutFormat(computedFormat) : format ? TextLayoutFormat(format) : new TextLayoutFormat();
+//			span.format = computedFormat ? TextLayoutFormat(computedFormat) : format ? TextLayoutFormat(format) : new TextLayoutFormat();
 			span.text = value;
 			addChild( span );
 			
@@ -373,6 +373,8 @@ package flashx.textLayout.elements.list
 		{
 			if ( numChildren > 1 )
 				return getChildAt(1).getAbsoluteStart();
+			else if ( numChildren == 0 )
+				return 0;
 			return getChildAt(0).getAbsoluteStart() + getChildAt(0).textLength;
 		}
 		
@@ -383,7 +385,7 @@ package flashx.textLayout.elements.list
 		
 		public function get seperatorLength():uint
 		{
-			return getChildAt(0).textLength;
+			return getSeparator().length;
 		}
 		
 		public function get modifiedTextLength():uint
