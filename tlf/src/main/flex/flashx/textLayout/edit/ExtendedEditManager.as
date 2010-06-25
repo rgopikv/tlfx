@@ -280,7 +280,7 @@ package flashx.textLayout.edit
 							
 							list.removeChild(startItem);
 							
-							textFlow.flowComposer.updateAllControllers();
+						//	textFlow.flowComposer.updateAllControllers();
 							
 							list.update();
 							
@@ -354,8 +354,8 @@ package flashx.textLayout.edit
 							
 							list.update();
 							
-							setSelectionState( new SelectionState( textFlow, newItem.actualStart+newItem.modifiedTextLength-1, newItem.actualStart+newItem.modifiedTextLength-1 ) );
-							
+							setSelectionState( new SelectionState( textFlow, newItem.actualStart+newItem.modifiedTextLength, newItem.actualStart+newItem.modifiedTextLength ) );
+							refreshSelection();
 							textFlow.flowComposer.updateAllControllers();
 							
 							performDummyOperation( getSelectionState() );

@@ -13,7 +13,7 @@ package flashx.textLayout.elements.list
 		{
 			super();
 			var span:SpanElement = new SpanElement();
-			span.text = '';
+			span.text = ' ';
 			addChild(span);
 		}
 		

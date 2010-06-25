@@ -22,6 +22,7 @@ package flashx.textLayout.edit
 	import flashx.textLayout.elements.SpanElement;
 	import flashx.textLayout.elements.SubParagraphGroupElement;
 	import flashx.textLayout.elements.TextFlow;
+	import flashx.textLayout.elements.list.ListPaddingElement;
 	import flashx.textLayout.formats.Float;
 	import flashx.textLayout.formats.ITextLayoutFormat;
 	import flashx.textLayout.formats.TextLayoutFormat;
@@ -486,6 +487,67 @@ package flashx.textLayout.edit
 			{
 				newPar = para.splitAtPosition(paraSplitPos) as ParagraphElement;
 			}
+			
+			//you can't have empty paragraphs.  Put the span back
+			// This now handled in normalize()
+			if (para.numChildren == 0)
+			{
+				//If we are injecting a new Span, we need to clone the attributes from 
+				//the newPar's first child.  If we don't, then contents of para will have
+				//no formatting. (2464521)
+				var newFormattedSpan:SpanElement = new SpanElement();
+				newFormattedSpan.quickCloneTextLayoutFormat(newPar.getChildAt(0));
+				para.replaceChildren(0, 0, newFormattedSpan);
+			}
+			
+			return newPar;
+		}
+		
+		public static function splitParagraphCloseList(para:ParagraphElement, paraSplitPos:int, pointFormat:ITextLayoutFormat=null):ParagraphElement
+		{
+			CONFIG::debug { assert(((paraSplitPos >= 0) && (paraSplitPos <= para.textLength - 1)), "Invalid call to ParaEdit.splitParagraph"); }
+			
+			var newPar:ParagraphElement;
+			var paraStartAbsolute:int = para.getAbsoluteStart();
+			var absSplitPos:int = paraStartAbsolute + paraSplitPos;
+			
+			/*if ((paraSplitPos == para.textLength - 1))
+			{*/
+				//newPar = para.shallowCopy() as ParagraphElement;
+				newPar = new ListPaddingElement();
+				//newPar.replaceChildren(0, 0, new SpanElement());
+				var startIdx:int = para.parent.getChildIndex(para);
+				para.parent.replaceChildren(startIdx, startIdx, newPar);
+				if (newPar.textLength == 1)
+				{
+					//we have an empty paragraph.  Make sure that the first
+					//span of this paragraph has the same character attributes
+					//of the last span of this
+					
+					var lastSpan:FlowLeafElement = para.getLastLeaf();
+					var prevSpan:FlowLeafElement;
+					if (lastSpan != null && lastSpan.textLength == 1)
+					{
+						//if the lastSpan is only a newline, you really want the span right before
+						var elementIdx:int = lastSpan.parent.getChildIndex(lastSpan);
+						if (elementIdx > 0)
+						{
+							prevSpan = lastSpan.parent.getChildAt(elementIdx - 1) as SpanElement;
+							if (prevSpan != null) lastSpan = prevSpan;
+						}
+					}
+					if (lastSpan != null)
+					{
+						ParaEdit.setTextStyleChange(para.getTextFlow(), absSplitPos + 1, absSplitPos + 2, lastSpan.format);
+					}
+					if (pointFormat != null)
+						ParaEdit.applyTextStyleChange(para.getTextFlow(),absSplitPos + 1, absSplitPos + 2, pointFormat, null);
+				}							
+				/*}
+			else
+			{
+				newPar = para.splitAtPosition(paraSplitPos) as ParagraphElement;
+			}*/
 			
 			//you can't have empty paragraphs.  Put the span back
 			// This now handled in normalize()
