@@ -305,6 +305,8 @@
     <classEntry path="flashx.undo.UndoManager"/>
     <classEntry path="flashx.textLayout.operations.BackspaceElementIntoDivOperation"/>
     <classEntry path="flashx.textLayout.operations.DeleteElementIntoDivOperation"/>
+    <classEntry path="flashx.textLayout.model.style.BackgroundShorthand"/>
+    <classEntry path="flashx.textLayout.utils.BackgroundShorthandUtil"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests>

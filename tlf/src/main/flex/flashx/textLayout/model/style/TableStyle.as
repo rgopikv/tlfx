@@ -7,6 +7,7 @@ package flashx.textLayout.model.style
 	
 	import flashx.textLayout.model.attribute.Attribute;
 	import flashx.textLayout.tlf_internal;
+	import flashx.textLayout.utils.BackgroundShorthandUtil;
 	import flashx.textLayout.utils.BoxModelStyleUtil;
 	import flashx.textLayout.utils.ColorValueUtil;
 	import flashx.textLayout.utils.StyleAttributeUtil;
@@ -21,6 +22,7 @@ package flashx.textLayout.model.style
 		protected var _borderCollapse:String;
 		protected var _borderSpacing:* = Number.NaN;
 		protected var _backgroundColor:* = Number.NaN;
+		protected var _background:*;
 		protected var _padding:*;
 		protected var _verticalAlign:String;
 		protected var _width:*;
@@ -120,7 +122,14 @@ package flashx.textLayout.model.style
 				// Create computed style based on defined properties.
 				_style = new _factoryClass();
 				_style.borderSpacing = ( _borderSpacing ) ? BoxModelStyleUtil.normalizeBorderUnit(_borderSpacing) : getDefaultBorderSpacing();
-				_style.backgroundColor = ( !isUndefined( _backgroundColor ) ) ? ColorValueUtil.normalizeForLayoutFormat(_backgroundColor) : Number.NaN;
+				_style.backgroundColor = computeBackgroundColor();
+				
+				var i:int;
+				for( i = 0; i < _weightedRules.length; i++ )
+				{
+					modifyStyleOnRule( _style, _weightedRules[i] );
+				}
+				
 				_style.verticalAlign = _verticalAlign || TableVerticalAlignEnum.TOP;
 				modifyOnValueCriteria( _style );
 				_isDirty = false;
@@ -164,6 +173,42 @@ package flashx.textLayout.model.style
 		override protected function modifyOnValueCriteria( boxStyle:IBoxModelUnitStyle ):void
 		{
 			// nothing.
+		}
+		
+		/**
+		 * @private
+		 * 
+		 * Modified specific styles on supplied style based on rule property name. 
+		 * @param style IBorderStyle
+		 * @param propertyName String
+		 */
+		protected function modifyStyleOnRule( style:ITableStyle, propertyName:String ):void
+		{
+			if( TableStyle.definition.indexOf( propertyName ) == -1 ) return;
+			
+			var value:* = this[propertyName];
+			switch( propertyName )
+			{
+				case "background":
+					var shorthand:BackgroundShorthand = BackgroundShorthandUtil.deserializeShortHand( value );
+					style.backgroundColor = shorthand.color;
+					break;
+				case "backgroundColor":
+					style.backgroundColor = ColorValueUtil.normalizeForLayoutFormat(value);
+					break;
+			}
+		}
+		
+		/**
+		 * @private 
+		 * 
+		 * Determines background color based on direct backroundColor property and the shorthand background property.
+		 */
+		protected function computeBackgroundColor():Number
+		{
+			var shorthandColor:* = ( !isUndefined( _background ) ) ? BackgroundShorthandUtil.deserializeShortHand( _background ).color : Number.NaN;
+			var bgColor:* = ( !isUndefined( _backgroundColor ) ) ? ColorValueUtil.normalizeForLayoutFormat(_backgroundColor) : Number.NaN;
+			return ( isNaN( bgColor ) ) ? shorthandColor : bgColor;
 		}
 		
 		/**
@@ -230,6 +275,22 @@ package flashx.textLayout.model.style
 			_backgroundColor = value;
 			_isDirty = true;
 		}
+		
+		/**
+		 * @copy ITableStyle#background
+		 */
+		public function get background():*
+		{
+			return _background;
+		}
+		public function set background( value:* ):void
+		{
+			if( _background == value ) return;
+			
+			_background = value;
+			_isDirty = true;
+		}
+		
 		/**
 		 * @see ITableStyle#verticalAlign
 		 */
@@ -301,7 +362,9 @@ package flashx.textLayout.model.style
 			for each( property in description )
 			{
 				if( isUndefined( this[property] ) )
+				{
 					this[property] = tableStyle[property];
+				}
 			}
 			_borderStyle.merge( tableStyle.getBorderStyle() );
 			_paddingStyle.merge( tableStyle.getPaddingStyle() );
@@ -329,7 +392,9 @@ package flashx.textLayout.model.style
 			for each( property in description )
 			{
 				if( this[property] )
+				{
 					style[property] = this[property];
+				}
 			}
 			
 			style.defineWeight( _weightedRules );

@@ -35,6 +35,7 @@ package flashx.textLayout.container.table
 	import flashx.textLayout.model.table.ITableDecorationContext;
 	import flashx.textLayout.model.table.TableBorderLeg;
 	import flashx.textLayout.model.table.TableCellBorderRenderer;
+	import flashx.textLayout.utils.ColorValueUtil;
 	import flashx.textLayout.utils.TextLayoutFormatUtils;
 	
 	[Event(name="cellResize", type="com.constantcontact.texteditor.event.TableCellContainerEvent")]
@@ -190,7 +191,7 @@ package flashx.textLayout.container.table
 		 * Validates the measured size of the container.
 		 */
 		protected function invalidateSize( w:Number, h:Number ):void
-		{
+		{	
 			decorate( w, h );
 			positionTarget();
 			
@@ -408,11 +409,15 @@ package flashx.textLayout.container.table
 			
 			// Update measured properties.
 			updateMeasuredBounds();
-			// Update visual display.
-			invalidateSize( ( isNaN( _proposedMeasuredWidth ) ) ? _width : _proposedMeasuredWidth, _height );
+			
 			// Notify listening clients.
 			_previousHeight = tempHeight;
 			_proposedHeight = _actualHeight;
+			if( _previousHeight != _proposedHeight )
+			{
+				// Update visual display.
+				invalidateSize( ( isNaN( _proposedMeasuredWidth ) ) ? _width : _proposedMeasuredWidth, _height );	
+			}
 			// If we want to notify and the elements weren;t reassmebled due to line breaks, notify.
 			if( notify && original.length == elementLength )
 			{
@@ -450,13 +455,9 @@ package flashx.textLayout.container.table
 		{
 			// Render background.
 			var style:ITableStyle = _tableDataContext.style;
-			var backgroundColor:*;
-			if( !style.isUndefined( style.backgroundColor ) )
-			{
-				backgroundColor = style.getComputedStyle().backgroundColor;
-			}
+			var backgroundColor:Number = style.getComputedStyle().backgroundColor;
 			background.graphics.clear();
-			background.graphics.beginFill( ( backgroundColor ) ? backgroundColor : 0xFF0000, ( backgroundColor ) ? 1 : 0 );
+			background.graphics.beginFill( ( !isNaN(backgroundColor) ) ? backgroundColor : 0xFF0000, ( !isNaN(backgroundColor) ) ? 1 : 0 );
 			background.graphics.drawRect( 0, 0, w, h );
 			background.graphics.endFill();
 			
@@ -715,7 +716,7 @@ package flashx.textLayout.container.table
 		}
 		
 		public function measureOnHeight( h:Number ):void
-		{
+		{	
 			_proposedMeasuredHeight = h;
 			invalidateSize( ( isNaN(_proposedMeasuredWidth) ) ? _width : _proposedMeasuredWidth, _proposedMeasuredHeight );
 		}

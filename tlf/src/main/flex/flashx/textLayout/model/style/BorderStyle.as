@@ -175,6 +175,8 @@ package flashx.textLayout.model.style
 		 */
 		protected function modifyStyleOnRule( style:IBorderStyle, propertyName:String ):void
 		{
+			if( BorderStyle.definition.indexOf( propertyName ) == -1 ) return;
+			
 			var styleArray:Array;
 			var shorthandModel:BoxModelShorthand;
 			var value:* = this[propertyName];

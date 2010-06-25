@@ -43,6 +43,12 @@ package flashx.textLayout.model.style
 		function get backgroundColor():*;
 		function set backgroundColor( value:* ):void;
 		/**
+		 * Accessor/Modifier for short hand declaration of background style. 
+		 * @return *
+		 */
+		function get background():*;
+		function set background( value:* ):void;
+		/**
 		 * Accessor/Modifier for the vertical align property. 
 		 * @return String
 		 */
