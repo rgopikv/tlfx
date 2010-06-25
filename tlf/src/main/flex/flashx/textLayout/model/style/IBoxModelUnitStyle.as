@@ -34,6 +34,12 @@ package flashx.textLayout.model.style
 		function defineExplicitWeight( rules:Array ):void;
 		
 		/**
+		 * Returns the top-down order of rule declarations. 
+		 * @return Array
+		 */
+		function get weightedRules():Array;
+		
+		/**
 		 * Pretty printing. 
 		 * @return String
 		 */

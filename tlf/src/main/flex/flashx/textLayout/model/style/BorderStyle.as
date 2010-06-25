@@ -108,6 +108,7 @@ package flashx.textLayout.model.style
 				normalizeBorderWidthStyle( _style, borderWidthList );
 				normalizeBorderColorStyle( _style, borderColorList );
 				modifyOnValueCriteria( _style );
+				
 				_isDirty = false;
 			}
 			return _style;
@@ -145,17 +146,21 @@ package flashx.textLayout.model.style
 				{
 					boxBorder.top = boxBorder.bottom = boxBorder.left = boxBorder.right = shorthandModel.width;
 				}
-				else if( propertyName == "borderTop" )
+				else if( propertyName == "borderTop" || propertyName == "borderTopWidth" )
 				{
 					boxBorder.top = shorthandModel.width;
 				}
-				else if( propertyName == "borderRight" )
+				else if( propertyName == "borderRight" || propertyName == "borderRightWidth" )
 				{
 					boxBorder.right = shorthandModel.width;
 				}
-				else if( propertyName == "borderBottom" )
+				else if( propertyName == "borderBottom" || propertyName == "borderBottomWidth" )
 				{
 					boxBorder.bottom = shorthandModel.width;
+				}
+				else if( propertyName == "borderLeft" || propertyName == "borderLeftWidth" )
+				{
+					boxBorder.left = shorthandModel.width;
 				}
 			}
 			return (boxBorder) ? boxBorder.toBorderModel() : null;
@@ -643,6 +648,7 @@ package flashx.textLayout.model.style
 				if( isUndefined( this[property] ) )
 					this[property] = borderStyle[property];
 			}
+			super.merge( style );
 		}
 		
 		override public function defineWeight( weightedRules:Array ):void
@@ -699,6 +705,9 @@ package flashx.textLayout.model.style
 				"|| Border Style\n" +
 				"======================\n" +
 				"border: " + _border + "\n" +
+				"borderLeft: " + _borderLeft + "\n" +
+				"borderRight: " + _borderRight + "\n" +
+				"borderBottom: " + _borderBottom + "\n" +
 				"borderStyleLeft: " + _borderLeftStyle + "\n" +
 				"borderStyleRight: " + _borderRightStyle + "\n" +
 				"borderStyleBottom: " + _borderBottomStyle + "\n" +

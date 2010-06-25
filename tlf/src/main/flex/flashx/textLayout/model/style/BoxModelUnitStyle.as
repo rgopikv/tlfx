@@ -126,6 +126,15 @@ package flashx.textLayout.model.style
 		public function merge( style:IBoxModelUnitStyle ):void
 		{
 			// abstract.
+			var mergeWeight:Array = style.weightedRules;
+			var i:int;
+			var rule:String;
+			for( i == 0; i < mergeWeight.length; i++ )
+			{
+				rule = mergeWeight[i];
+				if( _weightedRules.indexOf( rule ) == -1 )
+					_weightedRules.push( rule );
+			}
 		}
 		
 		public function defineWeight( weightedRules:Array ):void
@@ -136,6 +145,11 @@ package flashx.textLayout.model.style
 		public function defineExplicitWeight( rules:Array ):void
 		{
 			// abstract.
+		}
+		
+		public function get weightedRules():Array
+		{
+			return _weightedRules;
 		}
 		
 		/**

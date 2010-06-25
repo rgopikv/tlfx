@@ -2,6 +2,8 @@ package flashx.textLayout.model.style
 {
 	import flash.utils.describeType;
 	import flash.utils.flash_proxy;
+	import flash.utils.getDefinitionByName;
+	import flash.utils.getQualifiedClassName;
 	
 	import flashx.textLayout.model.attribute.Attribute;
 	import flashx.textLayout.tlf_internal;
@@ -37,6 +39,8 @@ package flashx.textLayout.model.style
 		
 		protected var _exportablePropertyList:Array;
 		
+		protected var _factoryClass:Class;
+		
 		private static var _description:Vector.<String>;
 		private static var _fullDescription:Vector.<String>;
 		
@@ -50,6 +54,8 @@ package flashx.textLayout.model.style
 			
 			_weightedRules = [];
 			_exportablePropertyList = ["width", "height"];
+			
+			_factoryClass = getDefinitionByName( getQualifiedClassName( this ) ) as Class;
 		}
 		
 		protected function getDefaultBorderStyle():String
@@ -112,7 +118,7 @@ package flashx.textLayout.model.style
 			if( !_style || _isDirty )
 			{
 				// Create computed style based on defined properties.
-				_style = new TableStyle();
+				_style = new _factoryClass();
 				_style.borderSpacing = ( _borderSpacing ) ? BoxModelStyleUtil.normalizeBorderUnit(_borderSpacing) : getDefaultBorderSpacing();
 				_style.backgroundColor = ( !isUndefined( _backgroundColor ) ) ? ColorValueUtil.normalizeForLayoutFormat(_backgroundColor) : Number.NaN;
 				_style.verticalAlign = _verticalAlign || TableVerticalAlignEnum.TOP;
@@ -299,6 +305,7 @@ package flashx.textLayout.model.style
 			}
 			_borderStyle.merge( tableStyle.getBorderStyle() );
 			_paddingStyle.merge( tableStyle.getPaddingStyle() );
+			super.merge( style );
 		}
 		
 		override public function defineWeight( weightedRules:Array ):void

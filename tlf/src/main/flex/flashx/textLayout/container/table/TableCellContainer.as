@@ -462,14 +462,14 @@ package flashx.textLayout.container.table
 			
 			// Render borders.
 			border.graphics.clear();
-			var tableStyle:ITableStyle = _tableDataContext.style.getComputedStyle();
+			var cellStyle:ITableStyle = _tableDataContext.style.getComputedStyle();
 			var legs:Vector.<TableBorderLeg> = new Vector.<TableBorderLeg>();
 			var i:int;
 			var thickness:Number;
 			var color:uint;
 			var borderStyle:String;
 			var borderWidth:Array = _tableDataContext.determineBorderWidth();
-			var cellBorderStyle:IBorderStyle = tableStyle.getBorderStyle();
+			var cellBorderStyle:IBorderStyle = cellStyle.getBorderStyle();
 			// Determine the border legs to be drawn.
 			for( i = 0; i < borderWidth.length; i++ )
 			{

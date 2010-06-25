@@ -190,6 +190,7 @@ package flashx.textLayout.model.style
 				if( isUndefined( this[property] ) )
 					this[property] = style[property];
 			}
+			super.merge( style );
 		}
 		
 		protected function copy():IPaddingStyle

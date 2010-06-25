@@ -13,13 +13,7 @@ package flashx.textLayout.utils
 		protected static function isStyleUnit( value:* ):Boolean
 		{
 			var list:Array = BorderStyleEnum.getList();
-			var i:int;
-			for( i = 0; i < list.length; i++ )
-			{
-				if( value == list[i] )
-					return true;
-			}
-			return false;
+			return list.indexOf( value ) != -1;
 		}
 		
 		protected static function isWidthUnit( value:* ):Boolean
@@ -57,6 +51,7 @@ package flashx.textLayout.utils
 			{
 				value = units[i].toString();
 				if( value.charAt(0) == "#" || value.substr(0,3) == "rgb" ) continue;
+				if( isStyleUnit( value ) ) continue;
 				if( isWidthUnit( units[i] ) )
 					return i;
 			}

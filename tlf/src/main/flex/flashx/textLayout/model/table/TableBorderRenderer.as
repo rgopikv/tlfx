@@ -4,9 +4,9 @@ package flashx.textLayout.model.table
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	
+	import flashx.textLayout.model.style.BorderStyleEnum;
 	import flashx.textLayout.model.style.IBorderStyle;
 	import flashx.textLayout.model.style.ITableStyle;
-	import flashx.textLayout.model.style.BorderStyleEnum;
 	import flashx.textLayout.model.table.ITableDecorationContext;
 	import flashx.textLayout.operations.PasteOperation;
 	
@@ -43,6 +43,19 @@ package flashx.textLayout.model.table
 		protected function isBorderDrawable( leg:TableBorderLeg ):Boolean
 		{
 			return leg.thickness > 0 && leg.style != BorderStyleEnum.NONE && leg.style != BorderStyleEnum.HIDDEN && leg.style != BorderStyleEnum.UNDEFINED;
+		}
+		
+		/**
+		 * Returns flag of border sizes all being 1 px. 
+		 * @param top Number
+		 * @param right Number
+		 * @param bottom Number
+		 * @param left Number
+		 * @return Boolean;
+		 */
+		protected function isOnePixelBorder( top:Number, right:Number, bottom:Number, left:Number ):Boolean
+		{
+			return top == 1 && right == 1 && bottom == 1 && left == 1;
 		}
 		
 		/**
