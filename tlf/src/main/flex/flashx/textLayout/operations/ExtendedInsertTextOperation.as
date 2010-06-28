@@ -10,6 +10,7 @@ package flashx.textLayout.operations
 	import flashx.textLayout.elements.FlowElement;
 	import flashx.textLayout.elements.FlowLeafElement;
 	import flashx.textLayout.elements.InlineGraphicElement;
+	import flashx.textLayout.elements.ParagraphElement;
 	import flashx.textLayout.elements.SpanElement;
 	import flashx.textLayout.elements.TCYElement;
 	import flashx.textLayout.elements.VarElement;
@@ -26,9 +27,9 @@ package flashx.textLayout.operations
 		
 		public function ExtendedInsertTextOperation(operationState:SelectionState, text:String, htmlImporter:IHTMLImporter, htmlExporter:IHTMLExporter, deleteSelectionState:SelectionState=null)
 		{
-			super(operationState, text, deleteSelectionState);
 			_htmlImporter = htmlImporter;
 			_htmlExporter = htmlExporter;
+			super(operationState, text, deleteSelectionState);
 		}
 		
 		// [TA] 05-27-2010 :: Check to see if element is a non-writable element so as to progress to next sibling when editing.

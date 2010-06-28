@@ -10,12 +10,18 @@ package flashx.textLayout.operations
 	import flashx.textLayout.container.table.TableCellContainer;
 	import flashx.textLayout.container.table.TableCellDisplay;
 	import flashx.textLayout.container.table.TableDisplayContainer;
+	import flashx.textLayout.converter.IHTMLExporter;
+	import flashx.textLayout.converter.IHTMLImporter;
 	import flashx.textLayout.edit.SelectionState;
 	import flashx.textLayout.edit.TextFlowEdit;
 	import flashx.textLayout.elements.FlowElement;
 	import flashx.textLayout.elements.FlowGroupElement;
 	import flashx.textLayout.elements.FlowLeafElement;
+	import flashx.textLayout.elements.ParagraphElement;
+	import flashx.textLayout.elements.SpanElement;
 	import flashx.textLayout.elements.TextFlow;
+	import flashx.textLayout.elements.list.ListElementX;
+	import flashx.textLayout.elements.list.ListItemElementX;
 	import flashx.textLayout.elements.table.ITableElementManager;
 	import flashx.textLayout.elements.table.TableDataElement;
 	import flashx.textLayout.elements.table.TableElement;
@@ -34,6 +40,9 @@ package flashx.textLayout.operations
 	{
 		protected var _keyCode:int;
 		protected var _displayContext:IEditorDisplayContext;
+		protected var _htmlImporter:IHTMLImporter;
+		protected var _htmlExporter:IHTMLExporter;
+		
 		protected var _deleteSelectionOperation:DeleteTextOperation;
 		protected var _containerMarks:Vector.<ContainerMark>;
 		protected var _controllerMarks:Vector.<ContainerControllerMark>;
@@ -49,11 +58,13 @@ package flashx.textLayout.operations
 		 * @param operationState SelectionState
 		 * @param keyCode The key code that invoked this operation is needed as Backspace has a different connatation to removal of elements as Delete does.
 		 */
-		public function DeleteElementsOperation( operationState:SelectionState, displayContext:IEditorDisplayContext, keyCode:int )
+		public function DeleteElementsOperation( operationState:SelectionState, displayContext:IEditorDisplayContext, keyCode:int, htmlImporter:IHTMLImporter, htmlExporter:IHTMLExporter )
 		{
 			super(operationState);
 			_keyCode = keyCode;
 			_displayContext = displayContext;
+			_htmlImporter = htmlImporter;
+			_htmlExporter = htmlExporter;
 			_containerMarks = new Vector.<ContainerMark>();
 			_controllerMarks = new Vector.<ContainerControllerMark>();
 			
@@ -79,6 +90,11 @@ package flashx.textLayout.operations
 				parent = parent.parent;
 			}
 			return ( parent ) ? parent : leaf;
+		}
+		
+		protected function isElementDirectlyEditable( element:FlowElement ):Boolean
+		{
+			return !( element is TableElement ) && !( element is ListElementX ) && !( element is ListItemElementX );
 		}
 		
 		/**
@@ -122,8 +138,15 @@ package flashx.textLayout.operations
 				// Else run regular operation within TableElement.
 				else if( ( (startParent is TableElement) && (endParent is TableElement) ) && startParent == endParent )
 				{
-					emptyCells( startParent as TableElement, absoluteStart, absoluteEnd );
-					updateSelectionState();
+					var isNotWholeTableSelected:Boolean = emptyCells( startParent as TableElement, absoluteStart, absoluteEnd );
+					if( isNotWholeTableSelected )
+					{
+						updateSelectionState();
+					}
+					else
+					{
+						deleteElements( startParentIndex, endParentIndex );
+					}
 				}
 				// Else handle as would normally.
 				else
@@ -149,10 +172,27 @@ package flashx.textLayout.operations
 			if (absoluteStart < absoluteEnd)
 			{
 				var firstElement:FlowElement;
+				var node:XML;
 				// If they have selected the whole text, grab format to aply to new empty element afterward.
 				if( ( absoluteEnd - absoluteStart ) == textFlow.textLength - 1 )
 				{
-					firstElement = textFlow.getChildAt( 0 ).shallowCopy();
+					firstElement = textFlow.getChildAt( 0 );
+					// If not directly editable element which is the case with ListElements and TableElements as they hold a context of child elements for flow,
+					//	find the first editable element based on leaf/paragraph.
+					if( !isElementDirectlyEditable( firstElement ) )
+					{
+						firstElement = textFlow.findLeaf( 0 ).getParagraph().shallowCopy();
+						// Grab paragraph and see if we have any default children. Of not, shove in a span.
+						if( firstElement is ParagraphElement && ( firstElement as ParagraphElement ).numChildren == 0 )
+						{
+							( firstElement as ParagraphElement ).addChild( new SpanElement() );
+							node = <p/>;
+						}
+					}
+					else
+					{
+						firstElement = firstElement.shallowCopy();	
+					}
 				}
 				_deleteSelectionOperation = new DeleteTextOperation(originalSelectionState);
 				_deleteSelectionOperation.doOperation();
@@ -162,6 +202,9 @@ package flashx.textLayout.operations
 				if( firstElement && textFlow.numChildren == 1 )
 				{
 					textFlow.replaceChildren( 0, 1, firstElement );
+					if( !node ) node = _htmlExporter.getSimpleMarkupModelForElement( firstElement );
+					_htmlImporter.importStyleHelper.assignInlineStyle( node, firstElement );
+					_htmlImporter.importStyleHelper.apply();
 				}
 			}
 		}
@@ -190,10 +233,10 @@ package flashx.textLayout.operations
 			for( i = 0; i < _tableElementsToDelete.length; i++ )
 			{
 				tableElement =  _tableElementsToDelete[i];
+				tableElement.dispose();
 				// If table element is still held on text flow model, remove it.
 				if( textFlow.mxmlChildren.indexOf( tableElement ) > -1 )
 				{
-					tableElement.dispose();
 					TextFlowEdit.findAndRemoveTableElement( tableElement );	
 				}
 					// Else pop it from held list of deleted tables.
@@ -250,7 +293,7 @@ package flashx.textLayout.operations
 		 * @param startIndex int
 		 * @param endIndex int
 		 */
-		protected function emptyCells( tableElement:TableElement, startIndex:int, endIndex:int ):void
+		protected function emptyCells( tableElement:TableElement, startIndex:int, endIndex:int ):Boolean
 		{
 			var anchor:int = ( startIndex > endIndex ) ? endIndex : startIndex;
 			var active:int = ( startIndex > endIndex ) ? startIndex : endIndex;
@@ -262,7 +305,11 @@ package flashx.textLayout.operations
 			if( anchorIndex == activeIndex ) 
 			{
 				deleteSelectedText();
-				return;
+				return true;
+			}
+			else if( tableElement.getTableModel().cellAmount == ( activeIndex - anchorIndex + 1 ) )
+			{
+				return false;
 			}
 			// Else we are removing elements across cells.
 			// If we are going over more than one cell, we do not need to maintain formatting of elements.
@@ -279,6 +326,7 @@ package flashx.textLayout.operations
 				tableData = cellContainer.getData() as TableDataElement;
 				tableData.replaceChildren( 0, tableData.mxmlChildren.length, TableDataElement.getDefaultContent() );
 			}
+			return true;
 		}
 		
 		/**
@@ -376,6 +424,18 @@ package flashx.textLayout.operations
 					}
 				}
 			}
+			// Check to see if we deleted all the text of a previous autosizabel container controller.
+			controller = textFlow.flowComposer.getControllerAt(textFlow.flowComposer.findControllerIndexAtPosition( absoluteStart ));
+			if( controller is AutosizableContainerController )
+			{
+				var autoController:AutosizableContainerController = controller as AutosizableContainerController;
+				var containerStart:int = autoController.absoluteStart;
+				var containerEnd:int = containerStart + autoController.textLength;
+				if( containerStart == absoluteStart && absoluteEnd > containerEnd )
+				{
+					markAutosizableController( autoController );
+				}
+			}	
 			
 			// Now go through marked controllers and remove them from the text flow.
 			var controllerMark:ContainerControllerMark;

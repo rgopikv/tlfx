@@ -28,7 +28,7 @@ package flashx.textLayout.operations
 			if (deleteSelectionState.anchorPosition != deleteSelectionState.activePosition)
 			{
 				_deleteSelectionState = deleteSelectionState;
-				delSelOp = new DeleteElementsOperation( deleteSelectionState, _displayContext, _keyCode );
+				delSelOp = new DeleteElementsOperation( deleteSelectionState, _displayContext, _keyCode, _htmlImporter, _htmlExporter );
 			}
 		}
 		
