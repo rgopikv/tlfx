@@ -56,8 +56,8 @@ package flashx.textLayout.converter
 		protected function affixDimensionsToStyleForElement( element:TableDataElement, fragment:XML, width:Number, height:Number ):void
 		{	
 			var explicitStyles:Object = StyleAttributeUtil.getExplicitStyle( element );
-			if( explicitStyles.hasOwnProperty( "width" ) ) delete explicitStyles["width"];
-			if( explicitStyles.hasOwnProperty( "height" ) ) delete explicitStyles["height"];
+			if( explicitStyles && explicitStyles.hasOwnProperty( "width" ) ) delete explicitStyles["width"];
+			if( explicitStyles && explicitStyles.hasOwnProperty( "height" ) ) delete explicitStyles["height"];
 			StyleAttributeUtil.assignDimensionsToTableBaseStyles( fragment, width, height );
 		}
 		
