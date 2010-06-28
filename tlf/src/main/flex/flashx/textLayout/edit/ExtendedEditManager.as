@@ -81,6 +81,17 @@ package flashx.textLayout.edit
 				updateAllControllers();
 				return;
 			}
+			else if ( startGroupElement is ListItemElementX && (absoluteStart-startGroupElement.getAbsoluteStart()) <= (startGroupElement as ListItemElementX).seperatorLength )
+			{
+				if ( startGroupElement.getChildAt(1) && startGroupElement.getChildAt(1) is SpanElement )
+				{
+					(startGroupElement.getChildAt(1) as SpanElement).text = event.text + (startGroupElement.getChildAt(1) as SpanElement).text;
+					
+					setSelectionState( new SelectionState( textFlow, absoluteStart+1, absoluteStart+1 ) );
+					
+					textFlow.flowComposer.updateAllControllers();
+				}
+			}
 			else
 				super.textInputHandler(event);
 		}
@@ -701,7 +712,7 @@ package flashx.textLayout.edit
 							textFlow.flowComposer.updateAllControllers();
 							
 							//	Join the lists
-							if ( list && endList )
+							if ( list && endList && (endList !== list) )
 							{
 								//	Find where to add the list items
 								for ( i = list.numChildren-1; i > -1; i-- )
@@ -716,9 +727,14 @@ package flashx.textLayout.edit
 								//	Merge lists
 								for ( i = endList.numChildren-1; i > -1; i-- )
 								{
+									trace('i:', i);
 									if ( endList.getChildAt(i) is ListItemElementX )
 									{
-										list.addChildAt(j, endList.removeChildAt(i));
+										try {
+											list.addChildAt(j, endList.removeChildAt(i));
+										} catch (e:*) {
+											trace('Could not remove ' + endList.getChildAt(i) + ' from list ' + endList);
+										}
 									}
 								}
 								
@@ -729,7 +745,10 @@ package flashx.textLayout.edit
 								}
 							}
 							else
+							{
 								trace( '[KK] {' + getQualifiedClassName(this) + '} :: Could not merge resulting lists from multiple list backspacing.' );
+								tl--;
+							}
 							
 							for each ( list in lists )
 							{
