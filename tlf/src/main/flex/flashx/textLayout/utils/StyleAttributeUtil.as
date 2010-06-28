@@ -67,6 +67,7 @@ package flashx.textLayout.utils
 		 */
 		public static function camelize( value:String ):String
 		{
+//			value = value.toLowerCase();
 			var i:int;
 			var char:String;
 			while( value.indexOf( StyleAttributeUtil.DASH ) > -1 )
@@ -138,7 +139,12 @@ package flashx.textLayout.utils
 				if( styles[i].indexOf(StyleAttributeUtil.STYLE_PROPERTY_DELIMITER) != -1 )
 				{
 					keyValue = styles[i].split( ":" );
-					styleObj[StyleAttributeUtil.stripWhitespaces(StyleAttributeUtil.dasherize(keyValue[0]))] = StyleAttributeUtil.stripWhitespaces( keyValue[1] );
+					// some styles are coming in all caps. need to lower case them.
+					// this is incompatible with camel case checking via dasherize.
+					// if we run into a problem with camel case styles, will have to revisit and
+					// think up a more complex solution.
+//					styleObj[StyleAttributeUtil.stripWhitespaces(StyleAttributeUtil.dasherize(keyValue[0]))] = StyleAttributeUtil.stripWhitespaces( keyValue[1] );
+					styleObj[StyleAttributeUtil.stripWhitespaces(keyValue[0]).toLowerCase()] = StyleAttributeUtil.stripWhitespaces( keyValue[1] );
 				}
 			}
 			return styleObj;
