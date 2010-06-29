@@ -136,11 +136,13 @@ package flashx.textLayout.elements.list
 		{
 			if( _userStyles == null )
 			{
-				_userStyles = {};
-				var inline:InlineStyles = new InlineStyles( <li /> );
+				var predefinedStyles:Object = super.userStyles;
+				_userStyles = ( predefinedStyles ) ? predefinedStyles : {};
+				var hasPredefinedInlineStyle:Boolean = _userStyles.hasOwnProperty( "inline" );
+				var inline:InlineStyles = ( hasPredefinedInlineStyle ) ? _userStyles.inline : new InlineStyles();
 				inline.addEventListener( InlineStyleEvent.APPLIED_STYLE_CHANGE, handleAppliedStyleChange );
 				inline.addEventListener( InlineStyleEvent.EXPLICIT_STYLE_CHANGE, handleExplicitStyleChange );
-				_userStyles.inline = inline;
+				if( !hasPredefinedInlineStyle ) _userStyles.inline = inline;
 				super.userStyles = _userStyles;
 			}
 			return super.userStyles;
