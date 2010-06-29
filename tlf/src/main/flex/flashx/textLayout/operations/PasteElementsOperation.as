@@ -53,6 +53,20 @@ package flashx.textLayout.operations
 			var i:int;
 			var index:int = 0;
 			var length:int;
+//			var tfStart:int = textFlow.getAbsoluteStart();
+//			if( absoluteStart == tfStart )
+//			{
+//				var elem:FlowElement;
+//				for( i = 0; i < _elementsToPaste.length; i++ )
+//				{
+//					elem = _elementsToPaste[i];
+//					textFlow.addChildAt( i, elem );
+//					length += elem.textLength;
+//				}
+//				textFlow.interactionManager.notifyInsertOrDelete( 0, length );
+//				textFlow.interactionManager.setSelectionState( new SelectionState( textFlow, length, length ) );
+//				return;
+//			}
 			
 			var leaf:FlowLeafElement = textFlow.findLeaf( absoluteEnd );
 			var para:ParagraphElement = leaf.getParagraph();

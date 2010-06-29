@@ -246,9 +246,6 @@ package flashx.textLayout.operations
 					--i;
 				}
 			}
-
-//			textFlow.interactionManager.notifyInsertOrDelete( absoluteStart, absoluteEnd - absoluteStart );
-//			textFlow.flowComposer.updateAllControllers();
 		}
 		
 		/**
@@ -374,21 +371,21 @@ package flashx.textLayout.operations
 			var anchorIndex:int;
 			var activeIndex:int;
 			// If we are only operating on a single table, we will not have to manage any sandwiched autosize container controllers.
-			if( tableIndexes.length == 1 )
-			{
-				// It is determined that it would be the first in the list based on the aggregate of elements from previous loop.
-				affectedElement = elements.shift();
-				tableElement = affectedElement.element as TableElement;
-				anchor = Math.max( absoluteStart, affectedElement.position );
-				active = Math.min( absoluteEnd, affectedElement.position + tableElement.textLength );
-				anchorIndex = textFlow.flowComposer.findControllerIndexAtPosition( anchor );
-				activeIndex = textFlow.flowComposer.findControllerIndexAtPosition( active );
-				activeIndex = Math.min( activeIndex, tableElement.elementalIndex + tableElement.getTableModel().cellAmount - 1 );
-				controller = textFlow.flowComposer.getControllerAt( anchorIndex );
-				operateOnTable( controller as TableCellContainerController, anchorIndex, activeIndex );
-			}
-			else if( tableIndexes.length > 1 )
-			{
+//			if( tableIndexes.length == 1 )
+//			{
+//				// It is determined that it would be the first in the list based on the aggregate of elements from previous loop.
+//				affectedElement = elements.shift();
+//				tableElement = affectedElement.element as TableElement;
+//				anchor = Math.max( absoluteStart, affectedElement.position );
+//				active = Math.min( absoluteEnd, affectedElement.position + tableElement.textLength );
+//				anchorIndex = textFlow.flowComposer.findControllerIndexAtPosition( anchor );
+//				activeIndex = textFlow.flowComposer.findControllerIndexAtPosition( active );
+//				activeIndex = Math.min( activeIndex, tableElement.elementalIndex + tableElement.getTableModel().cellAmount - 1 );
+//				controller = textFlow.flowComposer.getControllerAt( anchorIndex );
+//				operateOnTable( controller as TableCellContainerController, anchorIndex, activeIndex );
+//			}
+//			else if( tableIndexes.length > 1 )
+//			{
 				// We need to chop out any incompassing tables and autosize container controllers.
 				var affectedElements:Vector.<FlowElementMark> = elements.slice( 0, tableIndexes.pop() + 1 );
 				var markedAutosizableController:AutosizableContainerController;
@@ -423,19 +420,19 @@ package flashx.textLayout.operations
 						operateOnTable( controller as TableCellContainerController, anchorIndex, activeIndex );
 					}
 				}
-			}
+//			}
 			// Check to see if we deleted all the text of a previous autosizabel container controller.
-			controller = textFlow.flowComposer.getControllerAt(textFlow.flowComposer.findControllerIndexAtPosition( absoluteStart ));
-			if( controller is AutosizableContainerController )
-			{
-				var autoController:AutosizableContainerController = controller as AutosizableContainerController;
-				var containerStart:int = autoController.absoluteStart;
-				var containerEnd:int = containerStart + autoController.textLength;
-				if( containerStart == absoluteStart && absoluteEnd > containerEnd )
-				{
-					markAutosizableController( autoController );
-				}
-			}	
+//			controller = textFlow.flowComposer.getControllerAt(textFlow.flowComposer.findControllerIndexAtPosition( absoluteStart ));
+//			if( controller is AutosizableContainerController )
+//			{
+//				var autoController:AutosizableContainerController = controller as AutosizableContainerController;
+//				var containerStart:int = autoController.absoluteStart;
+//				var containerEnd:int = containerStart + autoController.textLength;
+//				if( containerStart == absoluteStart && absoluteEnd > containerEnd )
+//				{
+//					markAutosizableController( autoController );
+//				}
+//			}	
 			
 			// Now go through marked controllers and remove them from the text flow.
 			var controllerMark:ContainerControllerMark;
@@ -457,6 +454,10 @@ package flashx.textLayout.operations
 			deleteSelectedText();
 			deleteGroupElements();
 			updateTableElements();
+			
+			// Notify
+//			textFlow.interactionManager.notifyInsertOrDelete( absoluteStart, absoluteEnd - absoluteStart );
+			textFlow.flowComposer.updateAllControllers();
 		}
 		
 		/**
