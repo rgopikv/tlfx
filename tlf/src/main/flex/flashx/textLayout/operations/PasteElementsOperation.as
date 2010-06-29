@@ -53,76 +53,94 @@ package flashx.textLayout.operations
 			var i:int;
 			var index:int = 0;
 			var length:int;
-//			var tfStart:int = textFlow.getAbsoluteStart();
-//			if( absoluteStart == tfStart )
-//			{
-//				var elem:FlowElement;
-//				for( i = 0; i < _elementsToPaste.length; i++ )
-//				{
-//					elem = _elementsToPaste[i];
-//					textFlow.addChildAt( i, elem );
-//					length += elem.textLength;
-//				}
-//				textFlow.interactionManager.notifyInsertOrDelete( 0, length );
-//				textFlow.interactionManager.setSelectionState( new SelectionState( textFlow, length, length ) );
-//				return;
-//			}
-			
 			var leaf:FlowLeafElement = textFlow.findLeaf( absoluteEnd );
 			var para:ParagraphElement = leaf.getParagraph();
-			var parent:ContainerFormattedElement = para.parent as ContainerFormattedElement;
-			_elementInsertIndex = textFlow.getChildIndex( ( parent is TextFlow ) ? para : parent ) + 1;
-			// If the partent of the target is a Textflow. Just pop it and begin.
-			if( parent is TextFlow )
+			var topGroup:FlowGroupElement = para.parent;
+			
+			var insertIndex:int;
+			var targetGroup:FlowGroupElement;
+			var isPastingIntoTable:Boolean = topGroup is TableDataElement;
+			// Flow up to find parent as long as not TextFlow or TableDataElement.
+			topFind: while( !isPastingIntoTable )
 			{
-				( parent as TextFlow ).removeChild( para );
-				_elementsToPaste.push( para );
-				_elementInsertIndex -= 1;
-			}
-			// Else sever the div and add the lower children as needed to be re-adsed to the flow.
-			else if( parent is DivElement )
-			{
-				var groupElement:FlowElement = hotSwapFlowGroup( ( parent as FlowGroupElement ), para );
-				// If we have split the div.
-				if( groupElement )
+				if( topGroup.parent is TextFlow ) break topFind;
+				if( topGroup.parent is TableDataElement ) 
 				{
-					_elementsToPaste.push( groupElement );
+					isPastingIntoTable = true;
+					break topFind;
 				}
-				// Else we had the cursor at the end of a div and want to add content afterword.
-				//	Remove the paragraph at cursor in order to not add an extra line on insertion.
+				topGroup = topGroup.parent;
+			}
+			
+			// Pasting content into a table takes on a different context.
+			if( !isPastingIntoTable )
+			{
+				// If Paragraph is dirct child of TextFlow, just split it.
+				if( topGroup is TextFlow )
+				{
+					insertIndex = topGroup.getChildIndex( para );
+					ParaEdit.splitParagraph( para, absoluteEnd - para.getAbsoluteStart() );
+				}
+				// Else, split flow up.
 				else
 				{
-					( parent as DivElement ).removeChild( para );
+					insertIndex = textFlow.getChildIndex( topGroup );
+					TextFlowEdit.splitElement( topGroup, absoluteEnd - topGroup.getAbsoluteStart(), true );
+				}
+				targetGroup = textFlow;
+			}
+			// Switch target to table data element for operation.
+			else
+			{
+				var cellElement:TableDataElement;
+				if( topGroup is TableDataElement ) 
+				{
+					cellElement = topGroup as TableDataElement;
+					insertIndex = cellElement.getChildIndex( para );
+					ParaEdit.splitParagraph( para, absoluteEnd - para.getAbsoluteStart() );
+				}
+				else
+				{
+					cellElement = topGroup.parent as TableDataElement;
+					insertIndex = cellElement.getChildIndex( topGroup );
+					TextFlowEdit.splitElement( topGroup, absoluteEnd - topGroup.getAbsoluteStart(), true );	
+				}
+				insertElementsIntoCell( topGroup as TableDataElement, para, _elementsToPaste );
+				targetGroup = cellElement;
+			}
+			// Add the elements to the target group.
+			var elem:FlowElement;
+			var elemInsert:int = insertIndex + 1;
+			for( i = 0; i < _elementsToPaste.length; i++ )
+			{
+				elem = _elementsToPaste[i];
+				targetGroup.addChildAt( elemInsert, elem );
+				length += elem.textLength;
+				elemInsert++;
+			}
+			
+			// Check if we emptied out where we split/started.
+			var insertElement:FlowElement = targetGroup.getChildAt( insertIndex );
+			if( insertElement.textLength == 0 )
+			{
+				targetGroup.removeChild( insertElement );
+			}
+			else if( insertElement is FlowGroupElement && insertElement.textLength == 1 )
+			{
+				// Empty spans, ones that are handed a paragraph terminator have the *awesome* design of havin textlength = 1.
+				leaf = ( insertElement as FlowGroupElement ).findLeaf( absoluteStart ) as FlowLeafElement;
+				if( leaf is SpanElement )
+				{
+					if( leaf.textLength == 1 && ( leaf as SpanElement ).hasParagraphTerminator )
+					{
+						targetGroup.removeChild( insertElement );
+					}
 				}
 			}
-			else if( parent is TableDataElement )
-			{
-				insertElementsIntoCell( parent as TableDataElement, leaf.getParagraph(), _elementsToPaste );
-				return;
-			}
-			length = _elementInsertIndex + _elementsToPaste.length;
-			index = 0;
-			var element:FlowElement;
-			var insertPosition:Number;
-			var insertLength:int;
-			// Update the text flow with required elements in past operation.
-			for( i = _elementInsertIndex; i < length; i++ )
-			{
-				element = _elementsToPaste[index++];
-				textFlow.addChildAt( i, element );
-				element.modelChanged( ModelChange.ELEMENT_ADDED, element.getAbsoluteStart(), element.textLength );
-				
-				if( isNaN( insertPosition ) ) insertPosition = element.getAbsoluteStart();
-				insertLength += element.textLength;
-			}
 			
-			if( _elementsToPaste.length == 0 ) return;
-			
-			if( textFlow.interactionManager )
-			{
-				textFlow.interactionManager.notifyInsertOrDelete( insertPosition, insertLength );
-				textFlow.interactionManager.setSelectionState( new SelectionState( textFlow, insertPosition, insertPosition ) );
-			}
+			// Notify and update selection.
+			textFlow.interactionManager.notifyInsertOrDelete( absoluteEnd, length );
+			textFlow.interactionManager.setSelectionState( new SelectionState( textFlow, length, length ) );
 		}
 		
 		protected function insertElementsIntoCell( element:TableDataElement, beforePara:ParagraphElement, elements:Array ):void
@@ -143,33 +161,6 @@ package flashx.textLayout.operations
 			{
 				element.addChild( newChildren[i] as FlowElement );
 			}
-		}
-		
-		/**
-		 * @private
-		 * 
-		 * Slices and dices content fromt FlowGroupElement to get a copy of the element with children tacked on.
-		 * @param groupElement FlowGroupElement
-		 * @param para ParagraphElement
-		 * @return FlowElement
-		 */
-		protected function hotSwapFlowGroup( groupElement:FlowGroupElement, para:ParagraphElement ):FlowElement
-		{
-			if( absoluteStart == groupElement.getAbsoluteStart() + groupElement.textLength - 1 ) return null;
-			
-			var index:int = 0;
-			var length:int;
-			index = groupElement.getChildIndex( para );
-			length = groupElement.numChildren;
-			var content:Array = groupElement.mxmlChildren;
-			groupElement.mxmlChildren = content.slice( 0, index );
-			var newGroupChildren:Array = content.slice( index, length );
-			var newGroup:FlowGroupElement = ( groupElement.shallowCopy() as FlowGroupElement );
-			for( var i:int = 0; i < newGroupChildren.length; i++ )
-			{
-				newGroup.addChild( ( newGroupChildren[i] as FlowElement ) );
-			}
-			return newGroup;
 		}
 		
 		override public function doOperation():Boolean
