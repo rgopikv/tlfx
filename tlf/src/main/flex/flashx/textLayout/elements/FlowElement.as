@@ -57,6 +57,10 @@ package flashx.textLayout.elements
  */
 	public class FlowElement implements ITextLayoutFormat
 	{
+		//	[KK]	Added to figure out if the leaf is an original from HTML or has been put in to follow the TLF hierarchy
+		protected var _original:Boolean;
+		
+		
 		/** every FlowElement has at most one parent */
 		private var _parent:FlowGroupElement;
 		
@@ -88,6 +92,8 @@ package flashx.textLayout.elements
 			// not a valid FlowElement class
 			if (abstract)
 				throw new Error(GlobalSettings.resourceStringFunction("invalidFlowElementConstruct"));
+			
+			_original = false;
 		}
 		
 		/** Called for MXML objects after the implementing object has been created and all component properties specified on the MXML tag have been initialized. 
@@ -2650,6 +2656,15 @@ package flashx.textLayout.elements
 		// **************************************** 
 		// End debug support code
 		// ****************************************	
-
+		
+		//	[KK]	Setter/getter for originality (determining whether the leaf is straight from HTML source or from the TLF hierarchy)
+		public function set original( value:Boolean ):void
+		{
+			_original = value;
+		}
+		public function get original():Boolean
+		{
+			return _original;
+		}
 	}
 }

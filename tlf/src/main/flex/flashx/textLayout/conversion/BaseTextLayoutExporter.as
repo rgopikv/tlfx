@@ -26,12 +26,16 @@ package flashx.textLayout.conversion
 	import flashx.textLayout.tlf_internal;
 	use namespace tlf_internal;
 	
-	[ExcludeClass]
+	//	[KK]	06/29/2010
+	//			Commented out [ExcludeClass] and made this class public instead of internal for use by classes outside of TLF
+	
+	//[ExcludeClass]
 	/** 
 	 * @private 
 	 * Export filter for TextLayout format. 
 	 */
-	internal class BaseTextLayoutExporter implements ITextExporter
+//	internal class BaseTextLayoutExporter implements ITextExporter
+	public class BaseTextLayoutExporter implements ITextExporter
 	{	
 		private var _config:ImportExportConfiguration;
 		private var _rootTag:XML;

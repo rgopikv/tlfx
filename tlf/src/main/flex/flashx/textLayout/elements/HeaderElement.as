@@ -4,6 +4,9 @@ package flashx.textLayout.elements
 	
 	import flashx.textLayout.formats.ITextLayoutFormat;
 	import flashx.textLayout.formats.TextLayoutFormat;
+	import flashx.textLayout.tlf_internal;
+	
+	use namespace tlf_internal;
 
 	public class HeaderElement extends ParagraphElement
 	{
@@ -16,11 +19,29 @@ package flashx.textLayout.elements
 		
 		protected var _type:String;
 		
+		protected var _span:SpanElement;
+		
 		public function HeaderElement( $type:String = H3 )
 		{
 			super();
 			
 			type = $type;
+			
+			//	[KK]	These two styles can be overridden by the user, so merely set them as the default
+			fontSize = getPointSize(type);
+			fontWeight = FontWeight.BOLD;
+		}
+		
+		
+		//	[KK]	These two overrides should prevent other text / elements from merging with header elements
+		override tlf_internal function canReleaseContentElement():Boolean
+		{
+			return false;
+		}
+		
+		override tlf_internal function mergeToPreviousIfPossible():Boolean
+		{
+			return false;
 		}
 		
 		
@@ -63,10 +84,31 @@ package flashx.textLayout.elements
 			$format.fontWeight = FontWeight.BOLD;
 			format = $format;
 		}
-		
 		public function get type():String
 		{
 			return _type;
+		}
+		
+		public function set text( value:String ):void
+		{
+			if ( !_span )
+				_span = new SpanElement();
+			
+			try {
+				removeChild( _span );
+			} catch (e:*) {
+				//	Could not remove, because it didn't contain the child
+			}
+			
+			addChild( _span );
+			
+			_span.text = value;
+		}
+		public function get text():String
+		{
+			if ( !_span )
+				return '';
+			return _span.text;
 		}
 	}
 }

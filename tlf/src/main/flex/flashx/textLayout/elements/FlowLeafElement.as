@@ -57,7 +57,7 @@ package flashx.textLayout.elements
 	* @see SpanElement
 	*/
 	public class FlowLeafElement extends FlowElement
-	{				
+	{
 		/** Holds the content of the leaf @private */
 		protected var _blockElement:ContentElement;
 		
