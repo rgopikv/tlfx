@@ -170,8 +170,8 @@ package flashx.textLayout.operations
 				node = _htmlExporter.getSimpleMarkupModelForElement( p );
 				
 				//	[FORMATING]
-//				//	[KK] Hack to fix inheriting formatting from when ParagraphElement is inside DivElement
-//				item.format = p.computedFormat ? TextLayoutFormat(p.computedFormat) : p.format ? TextLayoutFormat(p.format) : new TextLayoutFormat();
+				//	[KK] Hack to fix inheriting formatting from when ParagraphElement is inside DivElement
+				item.format = p.computedFormat ? TextLayoutFormat(p.computedFormat) : p.format ? TextLayoutFormat(p.format) : new TextLayoutFormat();
 				item.mode = _mode;
 				if ( p && !(p is ListItemElementX) )
 				{
@@ -206,14 +206,14 @@ package flashx.textLayout.operations
 					}
 				}
 				//	[FORMATING]
-//				//	[KK] Apply inline styling from ParagraphElement to ListItemElementX
-//				_htmlImporter.importStyleHelper.assignInlineStyle( node, item );
+				//	[KK] Apply inline styling from ParagraphElement to ListItemElementX
+				_htmlImporter.importStyleHelper.assignInlineStyle( node, item );
 				list.addChildAt( 0, item );
 				p.parent.removeChild(p);
 			}
 			//	[FORMATING]
-//			//	[KK] Apply all styling
-//			_htmlImporter.importStyleHelper.apply();
+			//	[KK] Apply all styling
+			_htmlImporter.importStyleHelper.apply();
 			list.update();
 		}
 		
