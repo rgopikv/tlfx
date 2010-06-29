@@ -607,7 +607,7 @@ package flashx.textLayout.operations
 					returnElementsFromSingleList( list, items );
 				}
 			}
-			textFlow.flowComposer.updateAllControllers();
+			//textFlow.flowComposer.updateAllControllers();
 			return true;	
 		}
 		
