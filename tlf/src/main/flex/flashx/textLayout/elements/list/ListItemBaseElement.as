@@ -90,7 +90,7 @@ package flashx.textLayout.elements.list
 				}
 				catch( e:Error )
 				{
-					trace( "[" + getQualifiedClassName( this ) + "] :: Style property of type '" + property + "' cannot be set on " + getQualifiedClassName( _style ) + " {Applied}." );
+					trace( "[" + getQualifiedClassName( this ) + "] :: Style property of type '" + property + "' cannot be set on " + getQualifiedClassName( _style ) + "." );
 				}
 			}
 			
@@ -119,7 +119,7 @@ package flashx.textLayout.elements.list
 				}
 				catch( e:Error )
 				{
-					trace( "[" + getQualifiedClassName( this ) + "] :: Style property of type '" + property + "' cannot be set on " + getQualifiedClassName( _style ) + " {Explicit}." );
+					trace( "[" + getQualifiedClassName( this ) + "] :: Style property of type '" + property + "' cannot be set on " + getQualifiedClassName( _style ) + "." );
 				}
 			}
 			
@@ -144,15 +144,6 @@ package flashx.textLayout.elements.list
 				super.userStyles = _userStyles;
 			}
 			return super.userStyles;
-		}
-		
-		override public function setStyle(styleProp:String, newValue:*):void
-		{
-			_style.setStyle(styleProp, newValue);
-		}
-		override public function getStyle(styleProp:String):*
-		{
-			return _style.getStyle(styleProp);
 		}
 		
 		public function set mode( value:int ):void

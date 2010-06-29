@@ -1,10 +1,8 @@
 package flashx.textLayout.model.style
 {
 	import flash.utils.describeType;
-	import flash.utils.getQualifiedClassName;
 	
 	import flashx.textLayout.elements.list.ListItemModeEnum;
-	import flashx.textLayout.formats.TextLayoutFormat;
 	import flashx.textLayout.utils.ListStyleShorthandUtil;
 	
 	public class ListStyle implements IListStyle
@@ -15,9 +13,6 @@ package flashx.textLayout.model.style
 		protected var _listStyleType:*;
 		protected var _listStyleImage:*;
 		protected var _listStylePosition:*;
-		
-		//	[KK]	Formatting for normal styling
-		protected var _format:TextLayoutFormat;
 		
 		protected var _style:IListStyle;
 		protected var _isDirty:Boolean;
@@ -38,10 +33,6 @@ package flashx.textLayout.model.style
 				_style.listStyleType = ( _listStyleType ) ? _listStyleType : getDefaultListStyleType();
 				_style.listStyleImage = ( _listStyleImage ) ? _listStyleImage : getDefaultListStyleImage();
 				_style.listStylePosition = ( _listStylePosition ) ? _listStylePosition : getDefaultListStylePosition();
-				
-				//	[KK]	Instantiate formatting
-				_format = new TextLayoutFormat();
-				
 				// Move on to merge with shorthand property.
 				if( _listStyle )
 				{
@@ -92,24 +83,6 @@ package flashx.textLayout.model.style
 		public function undefineStyleProperty( property:String ):void
 		{
 			this[property] = undefined;
-		}
-		
-		public function setStyle( style:*, value:* ):void
-		{
-			try {
-				_format[style.toString()] = value;
-			} catch (e:*) {
-				trace( '[KK] {' + getQualifiedClassName(this) + '} :: Couldn\'t set style: ' + style + ' with value ' + value + '.' );
-			}
-		}
-		public function getStyle( style:* ):*
-		{
-			try {
-				return _format[style.toString()];
-			} catch (e:*) {
-				return null;
-			}
-			return null;
 		}
 		
 		public function get listStyle():*

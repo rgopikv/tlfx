@@ -15,8 +15,6 @@ package flashx.textLayout.model.style
 		function set listStyleImage( value:* ):void;
 		function get listStylePosition():*;
 		function set listStylePosition( value:* ):void;
-		function getStyle( style:* ):*;
-		function setStyle( style:*, value:* ):void;
 		
 		function get mode():int;
 		function set mode( value:int ):void;

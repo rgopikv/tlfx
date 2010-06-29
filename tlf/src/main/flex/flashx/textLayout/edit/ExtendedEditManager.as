@@ -250,12 +250,12 @@ package flashx.textLayout.edit
 							p = new ParagraphElement();
 							
 							//	[FORMATING]
-							//	[KK]	Apply inline styling from ListElementX to ParagraphElement
-							node = _htmlExporter.getSimpleMarkupModelForElement(list);
-							if ( node )
-								_htmlImporter.importStyleHelper.assignInlineStyle( node, p );
-							else
-								trace('Error assigning inline styling #1');
+//							//	[KK]	Apply inline styling from ListElementX to ParagraphElement
+//							node = _htmlExporter.getSimpleMarkupModelForElement(list);
+//							if ( node )
+//								_htmlImporter.importStyleHelper.assignInlineStyle( node, p );
+//							else
+//								trace('Error assigning inline styling #1');
 							
 							//	[KK]	Hack to appropriate all of ListElementX's formatting
 							p.format = list.computedFormat ? TextLayoutFormat(list.computedFormat) : list.format ? TextLayoutFormat(list.format) : new TextLayoutFormat();
@@ -277,8 +277,8 @@ package flashx.textLayout.edit
 									trace('Error assigning inline styling #2');
 								
 								//	[FORMATING]
-								//	[KK]	Hack to appropriate all of ListElementX's formatting
-								endList.format = list.computedFormat ? TextLayoutFormat(list.computedFormat) : list.format ? TextLayoutFormat(list.format) : new TextLayoutFormat();
+//								//	[KK]	Hack to appropriate all of ListElementX's formatting
+//								endList.format = list.computedFormat ? TextLayoutFormat(list.computedFormat) : list.format ? TextLayoutFormat(list.format) : new TextLayoutFormat();
 								
 								list.parent.addChildAt( list.parent.getChildIndex(list)+1, p );
 								
@@ -293,8 +293,8 @@ package flashx.textLayout.edit
 							
 							list.removeChild(startItem);
 							
-							//	[KK]	¡¡¡ REMOVED because it causes an error !!! Do not put back in. The editor will not resize.
-							textFlow.flowComposer.updateAllControllers();
+//							//	[KK]	¡¡¡ REMOVED because it causes an error !!! Do not put back in. The editor will not resize.
+//							textFlow.flowComposer.updateAllControllers();
 							
 							list.update();
 							
@@ -309,8 +309,8 @@ package flashx.textLayout.edit
 							textFlow.flowComposer.updateAllControllers();
 							
 							//	[FORMATING]
-							//	[KK]	Apply styling
-							_htmlImporter.importStyleHelper.apply();
+//							//	[KK]	Apply styling
+//							_htmlImporter.importStyleHelper.apply();
 							
 							event.keyCode = Keyboard.DELETE;
 							super.keyDownHandler(event);
@@ -334,14 +334,14 @@ package flashx.textLayout.edit
 								newItem.indent = startItem.indent;
 								
 								//	[FORMATING]
-								//	[KK]	Hack to appropriate all of ListItemElementX's formatting
-								newItem.format = startItem.computedFormat ? TextLayoutFormat(startItem.computedFormat) : startItem.format ? TextLayoutFormat(startItem.format) : new TextLayoutFormat();
-								
-								node = _htmlExporter.getSimpleMarkupModelForElement( startItem );
-								if ( node )
-									_htmlImporter.importStyleHelper.assignInlineStyle( node, newItem );
-								else
-									trace('Error assigning inline styling #3');
+//								//	[KK]	Hack to appropriate all of ListItemElementX's formatting
+//								newItem.format = startItem.computedFormat ? TextLayoutFormat(startItem.computedFormat) : startItem.format ? TextLayoutFormat(startItem.format) : new TextLayoutFormat();
+//								
+//								node = _htmlExporter.getSimpleMarkupModelForElement( startItem );
+//								if ( node )
+//									_htmlImporter.importStyleHelper.assignInlineStyle( node, newItem );
+//								else
+//									trace('Error assigning inline styling #3');
 								
 								newItem.correctChildren();
 							}
@@ -357,28 +357,14 @@ package flashx.textLayout.edit
 								newItem.indent = startItem.indent;
 								
 								//	[FORMATING]
-								//	[KK]	Hack to appropriate all of ListItemElementX's formatting
-								newItem.format = startItem.computedFormat ? TextLayoutFormat(startItem.computedFormat) : startItem.format ? TextLayoutFormat(startItem.format) : new TextLayoutFormat();
-								
-								i = startItem.numChildren;
-								while (--i > 0)
-								{
-									if ( startItem.getChildAt(i) is SpanElement )
-									{
-										endElement = startItem.getChildAt(i);
-										break;
-									}
-								}
-								
-								node = _htmlExporter.getSimpleMarkupModelForElement( endElement ? endElement : startItem );
-								if ( node )
-								{
-									_htmlImporter.importStyleHelper.assignInlineStyle( node, newItem );
-									if ( newItem.numChildren > 1 && newItem.getChildAt(1) )
-										_htmlImporter.importStyleHelper.assignInlineStyle( node, newItem.getChildAt(1) );
-								}
-								else
-									trace('Error assigning inline styling #4');
+//								//	[KK]	Hack to appropriate all of ListItemElementX's formatting
+//								newItem.format = startItem.computedFormat ? TextLayoutFormat(startItem.computedFormat) : startItem.format ? TextLayoutFormat(startItem.format) : new TextLayoutFormat();
+//								
+//								node = _htmlExporter.getSimpleMarkupModelForElement( startItem );
+//								if ( node )
+//									_htmlImporter.importStyleHelper.assignInlineStyle( node, newItem );
+//								else
+//									trace('Error assigning inline styling #4');
 								
 								newItem.correctChildren();
 							}
@@ -432,14 +418,14 @@ package flashx.textLayout.edit
 							newItem.indent = startItem.indent;
 							
 							//	[FORMATING]
-							//	[KK]	Hack to appropriate all of ListItemElementX's formatting
-							newItem.format = startItem.computedFormat ? TextLayoutFormat(startItem.computedFormat) : startItem.format ? TextLayoutFormat(startItem.format) : new TextLayoutFormat();
-							
-							node = _htmlExporter.getSimpleMarkupModelForElement( startItem );
-							if ( node )
-								_htmlImporter.importStyleHelper.assignInlineStyle( node, newItem );
-							else
-								trace('Error assigning inline styling #5');
+//							//	[KK]	Hack to appropriate all of ListItemElementX's formatting
+//							newItem.format = startItem.computedFormat ? TextLayoutFormat(startItem.computedFormat) : startItem.format ? TextLayoutFormat(startItem.format) : new TextLayoutFormat();
+//							
+//							node = _htmlExporter.getSimpleMarkupModelForElement( startItem );
+//							if ( node )
+//								_htmlImporter.importStyleHelper.assignInlineStyle( node, newItem );
+//							else
+//								trace('Error assigning inline styling #5');
 							
 							children.push( newItem );
 							
@@ -1054,12 +1040,7 @@ package flashx.textLayout.edit
 							
 							deleteText( new SelectionState( textFlow, list.getAbsoluteStart() + list.textLength, endElement.getAbsoluteStart() ) );
 							
-							//	TODO: This is not working as expected and is located in BugZilla under bug #1696
-							try {
-								endElement.parent.removeChild( endElement );
-							} catch (e:*) {
-								trace('[KK] {' + getQualifiedClassName(this) + '} :: Could not remove ' + endElement + ' from ' + endElement.parent);
-							}
+							endElement.parent.removeChild( endElement );
 						}
 					}
 					else

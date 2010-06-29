@@ -222,21 +222,8 @@ package flashx.textLayout.elements.list
 								groups[uint(item.indent/24)+1].push(item);
 							else
 							{
-								if ( groups.length > (uint(item.indent/24)+1) )
-								{
-									groups.splice( uint(item.indent/24)+1, 0, groups[uint(item.indent/24)+1], new Vector.<ListItemElementX>() );
-									groups[uint(item.indent/24)+2].push(item);
-								}
-								else if ( groups.length == (uint(item.indent/24)+1) )
-								{
-									groups.push( new Vector.<ListItemElementX>() );
-									groups[groups.length-1].push(item);
-								}
-								else
-								{
-									trace( '[KK] {' + getQualifiedClassName(this) + '} :: Could not add new Vector.<ListItemElementX>() to groups in ListElementX, ' + this + '.' );
-									continue;
-								}
+								groups.splice( uint(item.indent/24)+1, 0, groups[uint(item.indent/24)+1], new Vector.<ListItemElementX>() );
+								groups[uint(item.indent/24)+2].push(item);
 							}
 						}
 						//	Same group
