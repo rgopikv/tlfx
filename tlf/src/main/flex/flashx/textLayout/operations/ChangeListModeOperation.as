@@ -286,8 +286,10 @@ package flashx.textLayout.operations
 		 * @param parent FlowGroupElement The first level parent of selection at paragraph to start splitting.
 		 * @param paragraphs Array An Array of ParagraphElement
 		 */
-		protected function splitAndAddListToTextFlow( groupParent:FlowGroupElement, paragraphs:Array /*ParagraphElement[]*/ ):void
+		protected function splitAndAddListToTextFlow( groupParent:FlowGroupElement, paragraphs:Array /*ParagraphElement[]*/ ):ListElementX
 		{
+			var list:ListElementX;
+			
 			// First find the first level parenting div.
 			while( !(groupParent is DivElement ) )
 			{
@@ -317,10 +319,12 @@ package flashx.textLayout.operations
 				var tf:TextFlow = parent as TextFlow;
 				if( tf != null )
 				{
-					var list:ListElementX = addListDirectlyToTextFlow( tf, paragraphs, index + 1 );
+					list = addListDirectlyToTextFlow( tf, paragraphs, index + 1 );
 					addElementToAutosizableContainerController( list, containerController ); 
 				}
 			}
+			
+			return list;
 		}
 		
 		/**
@@ -586,7 +590,7 @@ package flashx.textLayout.operations
 					}
 					else
 					{
-						splitAndAddListToTextFlow( prnt, paragraphs );
+						list = splitAndAddListToTextFlow( prnt, paragraphs );
 					}
 				}
 			}
@@ -610,14 +614,17 @@ package flashx.textLayout.operations
 			//textFlow.flowComposer.updateAllControllers();
 			
 			// set the selection and refresh
-			var newSS:SelectionState = new SelectionState(textFlow, list.getAbsoluteStart()+1, list.getAbsoluteStart()+list.textLength-2);
+			if(list != null) {
+				var newSS:SelectionState = new SelectionState(textFlow, list.getAbsoluteStart()+1, list.getAbsoluteStart()+list.textLength-2);
+				// refresh
+				textFlow.interactionManager.setSelectionState(newSS);
+				textFlow.interactionManager.focusInHandler(null);
+				textFlow.interactionManager.refreshSelection();
+			}
 			
 			//textFlow.flowComposer.updateAllControllers();
 			
-			// refresh
-			textFlow.interactionManager.setSelectionState(newSS);
-			textFlow.interactionManager.focusInHandler(null);
-			textFlow.interactionManager.refreshSelection();
+			
 			
 			return true;	
 		}
