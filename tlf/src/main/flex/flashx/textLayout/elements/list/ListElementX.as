@@ -5,16 +5,109 @@ package flashx.textLayout.elements.list
 	import flashx.textLayout.elements.DivElement;
 	import flashx.textLayout.elements.FlowElement;
 	import flashx.textLayout.elements.ListItemElement;
+	import flashx.textLayout.elements.TextFlow;
+	import flashx.textLayout.events.ModelChange;
+	import flashx.textLayout.events.list.ListElementEvent;
+	import flashx.textLayout.format.IExportStyleHelper;
 	import flashx.textLayout.tlf_internal;
 	
 	use namespace tlf_internal;
 	
 	public class ListElementX extends DivElement
 	{
+		protected var _pendingChildElements:Vector.<PendingNotifyingElement>;
 		public function ListElementX()
 		{
 			super();
+			_pendingChildElements = new Vector.<PendingNotifyingElement>();
 		}
+		
+		// [TA] 06-30-2010 :: Override of replace children to notify clients of change to list. ATM the most accurate way to track a change to children in list
+		//						which is needed to properly track list item elements of the text flow for external CSS styling purposes.
+		override public function replaceChildren(beginChildIndex:int, endChildIndex:int, ...rest):void
+		{
+			// Go thorough those being marked as removed and either notify clients of removal or mark for pending once the list is added to the flow.
+			var i:int;
+			var len:int = endChildIndex - beginChildIndex;
+			var child:ListItemElementX;
+			var flow:TextFlow = getTextFlow();
+			for( i = 0; i < len; i++ )
+			{
+				child = getChildAt( i ) as ListItemElementX;
+				if( child )
+				{
+					if( flow )
+					{
+						notifyOfElementChange( child, PendingNotifyingElement.ACTION_REMOVE );
+					}
+					else
+					{
+						_pendingChildElements.push( new PendingNotifyingElement( child, PendingNotifyingElement.ACTION_REMOVE ) );
+					}
+				}
+			}
+			// Go through the children being add and either notify clients of add or mark as pending once list is added to flow.
+			var obj:Object;
+			for each( obj in rest)
+			{
+				child = obj as ListItemElementX;
+				if( child ) 
+				{
+					if( flow )
+					{
+						notifyOfElementChange( child, PendingNotifyingElement.ACTION_ADD );
+					}
+					else
+					{
+						_pendingChildElements.push( new PendingNotifyingElement( child, PendingNotifyingElement.ACTION_ADD ) );
+					}
+				}
+			}
+			super.replaceChildren( beginChildIndex, endChildIndex, rest );
+		}
+		// [END TA]
+		
+		// [TA] 06-30-2010 :: Override to track this instance being added to the flow in order to notify client of children that require references for external CSS styling.
+		tlf_internal override function modelChanged(changeType:String, changeStart:int, changeLen:int, needNormalize:Boolean = true, bumpGeneration:Boolean = true):void
+		{
+			super.modelChanged( changeType, changeStart, changeLen, needNormalize, bumpGeneration );
+			switch( changeType )
+			{
+				case ModelChange.ELEMENT_ADDED:
+					notifyOfChildElementsChange( _pendingChildElements );
+					break;
+			}
+		}
+		// [END TA]
+		
+		// [TA] 06-30-2010 :: Added to notify clients of change in list items. Used to track list item elements on flow for external css styling.
+		protected function notifyOfElementChange( child:ListItemElementX, action:uint ):void
+		{
+			var flow:TextFlow = getTextFlow();
+			if( flow )
+			{
+				flow.dispatchEvent( new ListElementEvent( ( action == PendingNotifyingElement.ACTION_ADD ) ? ListElementEvent.ITEM_ADDED : ListElementEvent.ITEM_REMOVED, child, this ) );
+			}
+		}
+		protected function notifyOfChildElementsChange( elements:Vector.<PendingNotifyingElement> ):void
+		{
+			var element:PendingNotifyingElement;
+			while( elements.length > 0 )
+			{
+				element = elements.shift();
+				notifyOfElementChange( element.element, element.action );
+			}
+		}
+		// [END TA]
+		
+		// [TA] 06-30-2010 :: Added to notify clients in change of list mode in order to track proper external css styling. Mode is used to construct corrsponding node used to recognize styles.
+		public function changeListModeOnListItem( item:ListItemElementX, mode:int ):void
+		{
+			item.mode = mode;
+			notifyOfElementChange( item, PendingNotifyingElement.ACTION_REMOVE );
+			notifyOfElementChange( item, PendingNotifyingElement.ACTION_ADD );
+		}
+		// [END TA]
 		
 		public override function addChild(child:FlowElement):FlowElement
 		{
@@ -312,8 +405,10 @@ package flashx.textLayout.elements.list
 			}
 		}
 		
-		public function export():String
+		// [TA] 06-30-2010 :: Added argument for IExportStyleHelper instance. Proper implementation needed for export and strip of styles from applied and explicit formatting. 
+		public function export( styleExporter:IExportStyleHelper ):String
 		{
+		// [END TA]
 			var xmlStr:String = '';
 			
 			var items:Array = listItems;
@@ -388,7 +483,7 @@ package flashx.textLayout.elements.list
 					}
 				}
 				
-				var itemXML:XML = item.export();
+				var itemXML:XML = item.export( styleExporter );
 				xmlStr += itemXML ? itemXML.toXMLString() : '';
 				
 				prevItem = item;
@@ -477,5 +572,21 @@ package flashx.textLayout.elements.list
 			}
 			return items;
 		}
+	}
+}
+
+import flashx.textLayout.elements.list.ListItemElementX;
+class PendingNotifyingElement
+{
+	public var element:ListItemElementX;
+	public var action:uint;
+	
+	public static const ACTION_ADD:int = 0;
+	public static const ACTION_REMOVE:int = 1;
+	
+	public function PendingNotifyingElement( element:ListItemElementX, action:uint )
+	{
+		this.element = element;
+		this.action = action;
 	}
 }

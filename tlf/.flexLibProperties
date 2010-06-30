@@ -307,6 +307,7 @@
     <classEntry path="flashx.textLayout.operations.DeleteElementIntoDivOperation"/>
     <classEntry path="flashx.textLayout.model.style.BackgroundShorthand"/>
     <classEntry path="flashx.textLayout.utils.BackgroundShorthandUtil"/>
+    <classEntry path="flashx.textLayout.events.list.ListElementEvent"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests>

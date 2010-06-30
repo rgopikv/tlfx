@@ -46,7 +46,7 @@ package flashx.textLayout.format
 			}
 			catch( e:Error )
 			{
-//				trace( "[" + getQualifiedClassName( this ) + "] :: Style property of type '" + property + "' can not be set on " + getQualifiedClassName( format ) + "." );
+//				trace( "[" + getQualifiedClassName( this ) + "] :: Style property of type '" + property + "' can not be set on " + getQualifiedClassName( format ) + ". " + e.message );
 			}
 		}
 		
@@ -149,6 +149,14 @@ package flashx.textLayout.format
 			
 			// Push to queue for pending.
 			_pendingStyledElements.push( new PendingStyleElement( node, element ) );
+		}
+		
+		/**
+		 * @copy IImportStyleHelper#removeElementFromUpdate()
+		 */
+		public function removeElementFromUpdate( element:FlowElement ):void
+		{
+			// abstract.
 		}
 		
 		/**

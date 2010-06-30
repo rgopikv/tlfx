@@ -18,6 +18,13 @@ package flashx.textLayout.format
 		 * @param element FlowElement
 		 */
 		function assignInlineStyle( node:XML, element:FlowElement ):void;
+		
+		/**
+		 * Marks the element as no longer requiring changes to styles. 
+		 * @param element FlowElement
+		 */
+		function removeElementFromUpdate( element:FlowElement ):void;
+		
 		/**
 		 * Cycles through pending elements that need to styles applied and updates their formats.
 		 */

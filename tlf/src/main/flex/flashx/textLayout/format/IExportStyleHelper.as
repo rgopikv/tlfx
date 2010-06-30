@@ -9,9 +9,10 @@ package flashx.textLayout.format
 		 * Applies inline style attribute to element. Returns flag of inline styles applied to the xml node.
 		 * @param node XML
 		 * @param element FlowElement
+		 * @param format ITextLayoutFormat The format to base the element styles on.
 		 * @return Boolean
 		 */
-		function applyStyleAttributesFromElement( node:XML, element:FlowElement ):Boolean;
+		function applyStyleAttributesFromElement( node:XML, element:FlowElement, format:ITextLayoutFormat = null ):Boolean;
 		/**
 		 * Constrcuts @style attribute based on differing styles between parent and child formatting. 
 		 * @param node XML

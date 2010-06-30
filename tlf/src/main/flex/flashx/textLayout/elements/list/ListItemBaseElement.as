@@ -27,9 +27,27 @@ package flashx.textLayout.elements.list
 			return new ListStyle( defaultMode );
 		}
 		
+		protected function getInlineStyles():InlineStyles
+		{
+			if( _userStyles )
+			{
+				if( _userStyles.inline as InlineStyles )
+				{
+					return _userStyles.inline;
+				}
+			}
+			return null;
+		}
+		
 		protected function invalidateMode():void
 		{
 			_style.mode = _mode;
+			// Wipe out applied styles as they relate to mode.
+			var inlineStyles:InlineStyles = getInlineStyles();
+			if( inlineStyles )
+			{
+				inlineStyles.appliedStyle = null;
+			}
 			updateDisplayForListStyle();
 		}
 		
@@ -45,21 +63,26 @@ package flashx.textLayout.elements.list
 		 * @param previousStyle Object The ky/value pairs of applied style.
 		 * @param tableStyle IListStyle The held style to undefine applied properties from.
 		 */
-		protected function undefinePreviousAppliedStyle( previousStyle:Object, style:IListStyle ):void
+		protected function undefinePreviousAppliedStyle( previousStyle:Object, style:IListStyle ):Boolean
 		{
 			var property:String;
+			var requiresUpdate:Boolean;
 			for( property in previousStyle )
 			{
 				try
 				{
 					if( style[property] == previousStyle[property] )
+					{
 						style.undefineStyleProperty( property );
+						requiresUpdate = true;
+					}
 				}
 				catch( e:Error )
 				{
 					// unsupported style on IListStyle.
 				}
 			}
+			return requiresUpdate;
 		}
 		
 		/**
@@ -70,12 +93,11 @@ package flashx.textLayout.elements.list
 		 */
 		protected function handleAppliedStyleChange( evt:InlineStyleEvent ):void
 		{
-			undefinePreviousAppliedStyle( evt.oldStyle, _style );
+			var requiresUpdate:Boolean = undefinePreviousAppliedStyle( evt.oldStyle, _style );
 			
 			var appliedStyle:Object = evt.newStyle;
 			var property:String;	
 			var styleProperty:String;
-			var requiresUpdate:Boolean;
 			for( property in appliedStyle )
 			{
 				try 
@@ -90,7 +112,7 @@ package flashx.textLayout.elements.list
 				}
 				catch( e:Error )
 				{
-					trace( "[" + getQualifiedClassName( this ) + "] :: Style property of type '" + property + "' cannot be set on " + getQualifiedClassName( _style ) + "." );
+//					trace( "[ListItemBaseElement] :: Style property of type '" + property + "' cannot be set on " + getQualifiedClassName( _style ) + "." );
 				}
 			}
 			
@@ -119,7 +141,7 @@ package flashx.textLayout.elements.list
 				}
 				catch( e:Error )
 				{
-					trace( "[" + getQualifiedClassName( this ) + "] :: Style property of type '" + property + "' cannot be set on " + getQualifiedClassName( _style ) + "." );
+//					trace( "[ListItemBaseElement] :: Style property of type '" + property + "' cannot be set on " + getQualifiedClassName( _style ) + "." );
 				}
 			}
 			

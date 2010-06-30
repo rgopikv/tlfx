@@ -17,7 +17,9 @@ package flashx.textLayout.operations
 	import flashx.textLayout.elements.list.ListItemElementX;
 	import flashx.textLayout.elements.list.ListItemModeEnum;
 	import flashx.textLayout.format.IImportStyleHelper;
+	import flashx.textLayout.formats.ITextLayoutFormat;
 	import flashx.textLayout.formats.TextLayoutFormat;
+	import flashx.textLayout.utils.TextLayoutFormatUtils;
 	
 	public class ChangeListModeOperation extends FlowTextOperation
 	{
@@ -43,6 +45,21 @@ package flashx.textLayout.operations
 			_htmlExporter = exporter;
 		}
 		
+		// [TA] 06-30-2010 :: Replaced assigning computed format of paragraph to using smart algo to find all cascading styles. 
+		//						This was needed as styles were not update on list items because the had a filled format that couldn't be overriding with inline or external styles.
+		protected function getCascadingFormatForElement( element:FlowElement ):ITextLayoutFormat
+		{
+			var format:ITextLayoutFormat = element.format;
+			var parent:FlowElement = element.parent;
+			while( !(parent is TextFlow) )
+			{
+				format = TextLayoutFormatUtils.mergeFormats( parent.format, format );
+				parent = parent.parent;
+			}
+			return format;
+		}
+		// [END TA]
+		
 		/**
 		 * @private
 		 * 
@@ -63,12 +80,15 @@ package flashx.textLayout.operations
 			for each ( item in items )
 			{
 				_affectedListItems.push( new AffectedListItem( item ) );
-				item.mode = ( mode == ListItemModeEnum.ORDERED ) ? mode : ListItemModeEnum.UNORDERED;
+				// [TA] 06-30-2010 :: Change to invoke mode change through parenting list in order to track markup change of item for external styling.
+				var parentList:ListElementX = item.parent as ListElementX;
+				parentList.changeListModeOnListItem( item, ( mode == ListItemModeEnum.ORDERED ) ? mode : ListItemModeEnum.UNORDERED );
+				// [END TA]
 			}
 			
 			//	Update all lists selected
 			for each ( list in lists )
-			list.update();
+				list.update();
 		}
 		
 		/**
@@ -167,11 +187,14 @@ package flashx.textLayout.operations
 				p = paragraphs[i] as ParagraphElement;
 				
 				//	[KK] Get any inline styling for application to new item
-				node = _htmlExporter.getSimpleMarkupModelForElement( p );
+				// [TA] Removed style helper call. Style helper actions have been moved to intrnal working of list element to teack proper changes to items on the flow for styling.
+//				node = _htmlExporter.getSimpleMarkupModelForElement( p );
 				
 				//	[FORMATING]
 				//	[KK] Hack to fix inheriting formatting from when ParagraphElement is inside DivElement
-				item.format = p.computedFormat ? TextLayoutFormat(p.computedFormat) : p.format ? TextLayoutFormat(p.format) : new TextLayoutFormat();
+				// [TA] 06-30-2010 :: Change to smartly figure out cascading format.
+				item.format = p.format ? getCascadingFormatForElement( p ) : new TextLayoutFormat();
+				// [END TA]
 				item.mode = _mode;
 				if ( p && !(p is ListItemElementX) )
 				{
@@ -207,7 +230,8 @@ package flashx.textLayout.operations
 				}
 				//	[FORMATING]
 				//	[KK] Apply inline styling from ParagraphElement to ListItemElementX
-				_htmlImporter.importStyleHelper.assignInlineStyle( node, item );
+				// [TA] Removed style helper call. Style helper actions have been moved to intrnal working of list element to teack proper changes to items on the flow for styling.
+//				_htmlImporter.importStyleHelper.assignInlineStyle( node, item );
 				list.addChildAt( 0, item );
 				p.parent.removeChild(p);
 			}

@@ -236,16 +236,17 @@ package flashx.textLayout.format
 		 * Applies inline style attribute to element. Returns flag of inline styles applied to the xml node.
 		 * @param node XML
 		 * @param element FlowElement
+		 * @param format ITextLayoutFormat The format to base the element styles on.
 		 * @return Boolean
 		 */
-		public function applyStyleAttributesFromElement( node:XML, element:FlowElement ):Boolean
+		public function applyStyleAttributesFromElement( node:XML, element:FlowElement, format:ITextLayoutFormat = null ):Boolean
 		{
 			if ( element )
 			{
 				var inline:InlineStyles = getInlineStyleOfElement( element );
 				// serialize attributes.
 				if( inline ) inline.serialize( node );
-				var childFormat:ITextLayoutFormat = element.format;
+				var childFormat:ITextLayoutFormat = ( format ) ? format : element.format;
 				var parentFormat:ITextLayoutFormat = getComputedParentFormat( element );
 				return applyStyleAttributesFromDifferingStyles( node, parentFormat, childFormat, element );
 			}

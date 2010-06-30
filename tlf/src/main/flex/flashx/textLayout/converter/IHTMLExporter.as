@@ -2,6 +2,7 @@ package flashx.textLayout.converter
 {
 	import flashx.textLayout.elements.FlowElement;
 	import flashx.textLayout.elements.TextFlow;
+	import flashx.textLayout.elements.list.ListItemElementX;
 	import flashx.textLayout.format.ExportStyleHelper;
 	import flashx.textLayout.format.IExportStyleHelper;
 
@@ -32,6 +33,8 @@ package flashx.textLayout.converter
 		 * @return XML
 		 */
 		function getSimpleMarkupModelForElement( element:FlowElement ):XML;
+		
+		function getSimpleMarkupModelForListItemElement( element:ListItemElementX ):XML;
 		
 		/**
 		 * Returns the export style helper instanced used by the exporter. 

@@ -81,29 +81,28 @@ package flashx.textLayout.utils
 			switch( type )
 			{
 				case ListStyleEnum.ORDERED_LOWER_ROMAN:
-					convertedValue = ListStyleConversionUtil.romanize( value ).toLowerCase();
+					convertedValue = ListStyleConversionUtil.romanize( value ).toLowerCase() + ".";
 					break;
 				case ListStyleEnum.ORDERED_UPPER_ROMAN:
-					convertedValue = ListStyleConversionUtil.romanize( value ).toUpperCase();
+					convertedValue = ListStyleConversionUtil.romanize( value ).toUpperCase() + ".";
 					break;
 				case ListStyleEnum.ORDERED_LOWER_ALPHA:
-					convertedValue = ListStyleConversionUtil.alphaize( value ).toLowerCase();
+					convertedValue = ListStyleConversionUtil.alphaize( value ).toLowerCase() + ".";
 					break;
 				case ListStyleEnum.ORDERED_UPPER_ALPHA:
-					convertedValue = ListStyleConversionUtil.alphaize( value ).toUpperCase();
+					convertedValue = ListStyleConversionUtil.alphaize( value ).toUpperCase() + ".";
 					break;
 				case ListStyleEnum.ORDERED_NONE:
 				case ListStyleEnum.UNORDERED_NONE:
 					convertedValue = "";
 					break;
 				case ListStyleEnum.ORDERED_DECIMAL:
-					convertedValue = value.toString();
+					convertedValue = value.toString() + ".";
 					break;
 				default:
 					convertedValue = ListStyleConversionUtil.convertAny( type, value );
 					break;
 			}
-			convertedValue = convertedValue + ( ( convertedValue.length > 0 ) ? "." : "" );
 			return convertedValue;
 		}
 		

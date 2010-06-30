@@ -18,7 +18,9 @@ package flashx.textLayout.elements.list
 	import flashx.textLayout.events.ModelChange;
 	import flashx.textLayout.events.UpdateEvent;
 	import flashx.textLayout.format.ExportStyleHelper;
+	import flashx.textLayout.format.IExportStyleHelper;
 	import flashx.textLayout.formats.ITextLayoutFormat;
+	import flashx.textLayout.formats.TextAlign;
 	import flashx.textLayout.formats.TextDecoration;
 	import flashx.textLayout.formats.TextLayoutFormat;
 	import flashx.textLayout.model.style.IListStyle;
@@ -44,11 +46,20 @@ package flashx.textLayout.elements.list
 			paddingBottom = paddingTop = paragraphSpaceAfter = paragraphSpaceBefore = 0;
 			
 			_number = 1;
-			_bulletSpan = new SpanElement();
-			addChild( _bulletSpan );
+			createBullet();
 			
 			update();
 		}
+		
+		// [TA] 06-30-2010 :: Offloaded creating of bullet to own method, as it may be requested by multiple methods at different times. Lazy create on request.
+		protected function createBullet():void
+		{
+			if( _bulletSpan != null ) return;
+			
+			_bulletSpan = new SpanElement();
+			addChild( _bulletSpan );
+		}
+		// [END TA]
 		
 //		tlf_internal override function ensureTerminatorAfterReplace(oldLastLeaf:FlowLeafElement):void
 //		{
@@ -59,7 +70,12 @@ package flashx.textLayout.elements.list
 		{
 			_bulletFormat = new TextLayoutFormat( computedFormat ? TextLayoutFormat(computedFormat) : format ? TextLayoutFormat(format) : new TextLayoutFormat() );
 			_bulletFormat.paragraphSpaceAfter = _bulletFormat.paragraphSpaceBefore = _bulletFormat.paragraphStartIndent = 0;
-			if( _bulletSpan ) _bulletSpan.format = _bulletFormat;
+			if( _bulletSpan == null ) 
+			{
+				createBullet();
+			}
+			_bulletSpan.format = _bulletFormat;
+			update();
 		}
 		
 		public function update():void
@@ -198,10 +214,11 @@ package flashx.textLayout.elements.list
 			}
 		}
 		
-		public function export():XML
+		// [TA] 06-30-2010 :: Added argument for IExportStyleHelper instance. Proper implementation needed for export and strip of styles from applied and explicit formatting.
+		public function export( styleExporter:IExportStyleHelper ):XML
 		{
+		// [END TA]
 			var xml:XML = <li/>;
-			var styleExporter:ExportStyleHelper = new ExportStyleHelper();
 			
 			//	Remove the paragraphStartIndent for applying styles
 			var origIndent:int = indent;
