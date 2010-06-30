@@ -608,6 +608,17 @@ package flashx.textLayout.operations
 				}
 			}
 			//textFlow.flowComposer.updateAllControllers();
+			
+			// set the selection and refresh
+			var newSS:SelectionState = new SelectionState(textFlow, list.getAbsoluteStart()+1, list.getAbsoluteStart()+list.textLength-2);
+			
+			//textFlow.flowComposer.updateAllControllers();
+			
+			// refresh
+			textFlow.interactionManager.setSelectionState(newSS);
+			textFlow.interactionManager.focusInHandler(null);
+			textFlow.interactionManager.refreshSelection();
+			
 			return true;	
 		}
 		
