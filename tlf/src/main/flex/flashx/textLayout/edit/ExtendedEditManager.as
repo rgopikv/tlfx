@@ -392,7 +392,7 @@ package flashx.textLayout.edit
 							// should include the text but also move the cursor to the end.
 							// Else we need to back up one space to place the cursor at the beginning of the line
 							if(newItem.modifiedTextLength > 0) {
-								setSelectionState( new SelectionState( textFlow, newItem.actualStart+newItem.modifiedTextLength, newItem.actualStart+newItem.modifiedTextLength ) );
+								setSelectionState( new SelectionState( textFlow, newItem.actualStart, newItem.actualStart) );
 							} else {
 								setSelectionState( new SelectionState( textFlow, newItem.actualStart-1, newItem.actualStart-1 ) );
 							}
