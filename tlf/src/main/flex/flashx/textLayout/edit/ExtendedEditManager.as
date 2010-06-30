@@ -388,7 +388,14 @@ package flashx.textLayout.edit
 							
 							list.update();
 							
-							setSelectionState( new SelectionState( textFlow, newItem.actualStart+newItem.modifiedTextLength, newItem.actualStart+newItem.modifiedTextLength ) );
+							// if there is text in front of the cursor when someone clicks enter, then the new line
+							// should include the text but also move the cursor to the end.
+							// Else we need to back up one space to place the cursor at the beginning of the line
+							if(newItem.modifiedTextLength > 0) {
+								setSelectionState( new SelectionState( textFlow, newItem.actualStart+newItem.modifiedTextLength, newItem.actualStart+newItem.modifiedTextLength ) );
+							} else {
+								setSelectionState( new SelectionState( textFlow, newItem.actualStart-1, newItem.actualStart-1 ) );
+							}
 							refreshSelection();
 							textFlow.flowComposer.updateAllControllers();
 							
