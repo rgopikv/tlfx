@@ -296,7 +296,14 @@ package flashx.textLayout.edit
 //							//	[KK]	¡¡¡ REMOVED because it causes an error !!! Do not put back in. The editor will not resize.
 //							textFlow.flowComposer.updateAllControllers();
 							
+							// update the list
 							list.update();
+							
+							// add a new paragraph directly below the list.  This is 
+							// necessary, see BUG 1701
+							var newPara:ParagraphElement = new ParagraphElement();
+							var listIdx:int = textFlow.getChildIndex(list);
+							textFlow.addChildAt(++listIdx, newPara);
 							
 							//	Set selection state to beginning in order to prevent a TLF bug which caused nothing after the (now) split list(s) to be selectable
 							
