@@ -61,7 +61,7 @@ package flashx.textLayout.operations
 			var targetGroup:FlowGroupElement;
 			var isPastingIntoTable:Boolean = topGroup is TableDataElement;
 			// Flow up to find parent as long as not TextFlow or TableDataElement.
-			topFind: while( !isPastingIntoTable )
+			topFind: while( !isPastingIntoTable && !(topGroup is TextFlow) )
 			{
 				if( topGroup.parent is TextFlow ) break topFind;
 				if( topGroup.parent is TableDataElement ) 

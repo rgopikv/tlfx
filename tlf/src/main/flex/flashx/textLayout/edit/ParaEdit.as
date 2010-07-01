@@ -486,6 +486,7 @@ package flashx.textLayout.edit
 			else
 			{
 				newPar = para.splitAtPosition(paraSplitPos) as ParagraphElement;
+				
 			}
 			
 			//you can't have empty paragraphs.  Put the span back
@@ -500,6 +501,9 @@ package flashx.textLayout.edit
 				para.replaceChildren(0, 0, newFormattedSpan);
 			}
 			
+			// [TA] 07-01-2010 :: Added flag for marking paragraph as original as we are creating a new paragraph element.
+			if( newPar ) newPar.original = true;
+			// [END TA]
 			return newPar;
 		}
 		

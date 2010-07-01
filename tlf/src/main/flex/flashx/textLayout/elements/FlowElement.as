@@ -256,6 +256,8 @@ package flashx.textLayout.elements
 			retFlow.id = id;	// ???? copy me ?????
 			// [TA] :: Added setting uid on shallow copy.
 			retFlow.uid = uid;
+			// [TA] :: Passing original
+			retFlow.original = _original;
 			if (_formatValueHolder !=  null)
 				retFlow._formatValueHolder = new FlowValueHolder(_formatValueHolder);
 			return retFlow;
