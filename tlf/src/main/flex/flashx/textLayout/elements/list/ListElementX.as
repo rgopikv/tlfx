@@ -160,30 +160,32 @@ package flashx.textLayout.elements.list
 				for ( i = 0; i < items.length; i++ )
 				{
 					var item:ListItemElementX = items[i] as ListItemElementX;
+					var itemIndent:int = Math.max( 0, item.indent-24 );
 					
 					//	2nd item and beyond
 					if ( prevItem )
 					{
 						var indent:int;
+						var prevItemIndent:int = Math.max( 0, prevItem.indent-24 );
 						//	Nested
-						if ( item.indent > prevItem.indent )
+						if ( itemIndent > prevItemIndent )
 						{
-							indent = item.indent;
-							while ( indent > prevItem.indent )
+							indent = Math.max(itemIndent, 0);
+							while ( indent > prevItemIndent )
 							{
 								numbers.push(1);
-								indent = Math.max( indent-24, 0 );//-= 24;
+								indent = Math.max( indent-24, 0 );
 								if ( indent == 0 )
 									break;
 							}
 						}
-						else if ( item.indent < prevItem.indent )
+						else if ( itemIndent < prevItemIndent )
 						{
-							indent = prevItem.indent;
-							while ( indent > item.indent )
+							indent = prevItemIndent;
+							while ( indent > itemIndent )
 							{
 								numbers.pop();
-								indent = Math.max( indent-24, 0 );//-= 24;
+								indent = Math.max( indent-24, 0 );
 								if ( indent == 0 )
 									break;
 							}
@@ -230,17 +232,19 @@ package flashx.textLayout.elements.list
 				for ( var i:int = 0; i < items.length; i++ )
 				{
 					var item:ListItemElementX = items[i] as ListItemElementX;
+					var itemIndent:int = Math.max(item.indent-24, 0);
 					var ind:int;
 					
 					if ( prevItem )
 					{
+						var prevItemIndent:int = Math.max(prevItem.indent-24, 0);
 						//	Non matching indents
-						if ( uint(item.indent) != uint(prevItem.indent) )
+						if ( uint(itemIndent) != uint(prevItemIndent) )
 						{
 							//	Should hold Vector for this grouping already
-							if ( groups.length > uint(item.indent/24) )
+							if ( groups.length > uint(itemIndent/24) )
 							{
-								group = groups[uint(item.indent/24)];
+								group = groups[uint(itemIndent/24)];
 								
 								//	If group holds items to test against
 								if ( group.length > 0 )
@@ -249,14 +253,14 @@ package flashx.textLayout.elements.list
 									
 									//	Matching modes
 									if ( groupItem.mode == item.mode )
-										groups[uint(item.indent/24)].push(item);
+										groups[uint(itemIndent/24)].push(item);
 									//	Non matching modes
 									else
 									{
 										//	Holds at least one more grouping above the current, test for similarity
-										if ( groups.length > uint(item.indent/24)+1 )
+										if ( groups.length > uint(itemIndent/24)+1 )
 										{
-											group = groups[uint(item.indent/24)+1];
+											group = groups[uint(itemIndent/24)+1];
 											
 											//	If group holds items to test against
 											if ( group.length > 0 )
@@ -265,18 +269,18 @@ package flashx.textLayout.elements.list
 												
 												//	Matching modes
 												if ( groupItem.mode == item.mode )
-													groups[uint(item.indent/24)+1].push(item);
+													groups[uint(itemIndent/24)+1].push(item);
 												//	Non matching modes, must splice in new Vector
 												else
 												{
 													//	Splice in AFTER original Vector
-													groups.splice( uint(item.indent/24), 0, new Vector.<ListItemElementX>() );
-													groups[uint(item.indent/24)+1].push( item );
+													groups.splice( uint(itemIndent/24), 0, new Vector.<ListItemElementX>() );
+													groups[uint(itemIndent/24)+1].push( item );
 												}
 											}
 											//	No items to test, add item
 											else
-												groups[uint(item.indent/24)+1].push(item);
+												groups[uint(itemIndent/24)+1].push(item);
 										}
 										//	Does not hold any more groupings, add new
 										else
@@ -288,15 +292,15 @@ package flashx.textLayout.elements.list
 								}
 								//	No items to test against, add item
 								else
-									groups[uint(item.indent/24)].push(item);
+									groups[uint(itemIndent/24)].push(item);
 							}
 							//	No Vector yet exists
 							else
 							{
-								if ( uint(item.indent) > uint(prevItem.indent) )
-									ind = uint(item.indent-prevItem.indent)/24;
+								if ( uint(itemIndent) > uint(prevItemIndent) )
+									ind = uint(itemIndent-prevItemIndent)/24;
 								else
-									ind = uint(item.indent/24)-(groups.length-1);
+									ind = uint(itemIndent/24)-(groups.length-1);
 								
 								while ( ind > 0 )
 								{
@@ -304,25 +308,25 @@ package flashx.textLayout.elements.list
 									ind--;
 								}
 								
-								groups[uint(item.indent/24)].push(item);
+								groups[uint(itemIndent/24)].push(item);
 							}
 						}
 						//	Non matching modes
 						else if ( item.mode != prevItem.mode )
 						{
 							//	+1 becase we want to insert it in the next group
-							if ( groups.length > uint(item.indent/24)+1 )
-								groups[uint(item.indent/24)+1].push(item);
+							if ( groups.length > uint(itemIndent/24)+1 )
+								groups[uint(itemIndent/24)+1].push(item);
 							else
 							{
-								groups.splice( uint(item.indent/24)+1, 0, groups[uint(item.indent/24)+1], new Vector.<ListItemElementX>() );
-								groups[uint(item.indent/24)+2].push(item);
+								groups.splice( uint(itemIndent/24)+1, 0, groups[uint(itemIndent/24)+1], new Vector.<ListItemElementX>() );
+								groups[uint(itemIndent/24)+2].push(item);
 							}
 						}
 						//	Same group
 						else
 						{
-							group = groups[uint(item.indent/24)];
+							group = groups[uint(itemIndent/24)];
 							
 							//	If group holds items to test against
 							if ( group.length > 0 )
@@ -331,14 +335,14 @@ package flashx.textLayout.elements.list
 								
 								//	Matching modes
 								if ( groupItem.mode == item.mode )
-									groups[uint(item.indent/24)].push(item);
+									groups[uint(itemIndent/24)].push(item);
 								//	Non matching modes
 								else
 								{
 									//	Holds at least one more grouping above the current, test for similarity
-									if ( groups.length > uint(item.indent/24)+1 )
+									if ( groups.length > uint(itemIndent/24)+1 )
 									{
-										group = groups[uint(item.indent/24)+1];
+										group = groups[uint(itemIndent/24)+1];
 										
 										//	If group holds items to test against
 										if ( group.length > 0 )
@@ -347,23 +351,23 @@ package flashx.textLayout.elements.list
 											
 											//	Matching modes
 											if ( groupItem.mode == item.mode )
-												groups[uint(item.indent/24)+1].push(item);
+												groups[uint(itemIndent/24)+1].push(item);
 											//	Non matching modes, must splice in new Vector
 											else
 											{
 												//	Splice in AFTER original Vector
-												if ( groups.length > uint(item.indent/24)+2 )
-													groups[uint(item.indent/24)+2].push( item );
+												if ( groups.length > uint(itemIndent/24)+2 )
+													groups[uint(itemIndent/24)+2].push( item );
 												else
 												{
-													groups.splice( uint(item.indent/24)+1, 0, groups[uint(item.indent/24)+1], new Vector.<ListItemElementX>() );
-													groups[uint(item.indent/24)+2].push(item);
+													groups.splice( uint(itemIndent/24)+1, 0, groups[uint(itemIndent/24)+1], new Vector.<ListItemElementX>() );
+													groups[uint(itemIndent/24)+2].push(item);
 												}
 											}
 										}
 										//	No items to test, add item
 										else
-											groups[uint(item.indent/24)+1].push(item);
+											groups[uint(itemIndent/24)+1].push(item);
 									}
 									//	Does not hold any more groupings, add new
 									else
@@ -375,13 +379,13 @@ package flashx.textLayout.elements.list
 							}
 							//	No items to test against, add item
 							else
-								groups[uint(item.indent/24)].push(item);
+								groups[uint(itemIndent/24)].push(item);
 						}
 					}
 					else
 					{
 						//	First item. Create Vector to hold it and push it into that Vector.
-						ind = uint( item.indent / 24 );
+						ind = uint( itemIndent / 24 );
 						while ( ind > -1 )
 						{
 							groups.push( new Vector.<ListItemElementX>() );
@@ -399,7 +403,7 @@ package flashx.textLayout.elements.list
 					for ( var j:int = 0; j < group.length; j++ )
 					{
 						item = group[j];
-						item.indent = Math.min( 240, Math.max( item.indent, i*24 ) );
+						item.indent = Math.min( 240, Math.max( item.indent, i*24+24 ) );
 					}
 				}
 			}
@@ -423,26 +427,28 @@ package flashx.textLayout.elements.list
 			for ( var i:int = 0; i < items.length; i++ )
 			{
 				var item:ListItemElementX = items[i] as ListItemElementX;
+				var itemIndent:int = Math.max( 0, item.indent-24 );
 				
 				if ( prevItem )
 				{
 					var ind:int;
-					if ( item.indent > prevItem.indent )
+					var prevItemIndent:int = Math.max( 0, prevItem.indent-24 );
+					if ( itemIndent > prevItemIndent )
 					{
-						ind = item.indent;
-						while ( ind > prevItem.indent )
+						ind = itemIndent;
+						while ( ind > prevItemIndent )
 						{
 							xmlStr += item.mode == ListItemModeEnum.UNORDERED ? '<ul>' : '<ol>';
 							ind -= 24;
 						}
 					}
-					else if ( item.indent < prevItem.indent )
+					else if ( itemIndent < prevItemIndent )
 					{
-						ind = prevItem.indent;
+						ind = prevItemIndent;
 						
 						var lastList:String = prevItem.mode == ListItemModeEnum.UNORDERED ? '<ul>' : '<ol>';
 						var lastListIndex:int = xmlStr.lastIndexOf(lastList);
-						while ( ind > item.indent )
+						while ( ind > itemIndent )
 						{
 							xmlStr += lastList == '<ul>' ? '</ul>' : '</ol>';
 							ind -= 24;
@@ -475,7 +481,7 @@ package flashx.textLayout.elements.list
 				else
 				{
 					xmlStr += item.mode == ListItemModeEnum.UNORDERED ? '<ul>' : '<ol>';
-					ind = item.indent;
+					ind = itemIndent;
 					while (ind > 0)
 					{
 						xmlStr = new String(item.mode == ListItemModeEnum.UNORDERED ? '<ul>' : '<ol>') + xmlStr;

@@ -85,6 +85,8 @@ package flashx.textLayout.elements
 					}									
 				}
 			}
+			
+			retFlow.original = true;
 			return retFlow;
 		}
 		

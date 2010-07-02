@@ -120,6 +120,9 @@ package flashx.textLayout.edit
 			var start:int;
 			var end:int;
 			
+			var deleteFrom:int;
+			var deleteTo:int;
+			
 			var i:int;
 			var j:int;
 			
@@ -715,7 +718,15 @@ package flashx.textLayout.edit
 							
 							textFlow.flowComposer.updateAllControllers();
 							
-							deleteText( new SelectionState( textFlow, absoluteStart, i ) );
+							deleteFrom = Math.max(0, absoluteStart);
+							deleteTo = Math.min(i, textFlow.textLength-1);
+							
+							try {
+								deleteText( new SelectionState( textFlow, deleteFrom, deleteTo ) );//absoluteStart, i ) );
+							} catch ( e:* ) {
+								trace( '[KK] {' + getQualifiedClassName(this) + '} :: Could not delete from position ' + deleteFrom + ' to position ' + deleteTo + ' on ' + textFlow + ' because:\n\t' + e);
+								textFlow.flowComposer.updateAllControllers();
+							}
 							
 							if ( item && list )
 								//	Trim list item's text
@@ -758,13 +769,12 @@ package flashx.textLayout.edit
 								//	Merge lists
 								for ( i = endList.numChildren-1; i > -1; i-- )
 								{
-									trace('i:', i);
 									if ( endList.getChildAt(i) is ListItemElementX )
 									{
 										try {
 											list.addChildAt(j, endList.removeChildAt(i));
 										} catch (e:*) {
-											trace('Could not remove ' + endList.getChildAt(i) + ' from list ' + endList);
+											trace('[KK] {' + getQualifiedClassName(this) + '} :: Could not remove ' + endList.getChildAt(i) + ' from list ' + endList);
 										}
 									}
 								}
@@ -772,7 +782,7 @@ package flashx.textLayout.edit
 								try {
 									endList.parent.removeChild(endList);
 								} catch ( e:* ) {
-									trace('Could not remove endlist, {' + (endList ? endList : 'null') + '}, from it\'s parent, {' + (endList ? (endList.parent ? endList.parent : 'null') : 'endList is null' ) + '}');
+									trace('[KK] {' + getQualifiedClassName(this) + '} :: Could not remove endlist, {' + (endList ? endList : 'null') + '}, from it\'s parent, {' + (endList ? (endList.parent ? endList.parent : 'null') : 'endList is null' ) + '}');
 								}
 							}
 							else
@@ -1069,9 +1079,15 @@ package flashx.textLayout.edit
 							
 							extractChildrenToListItemElement( endElement as ParagraphElement, startItem );
 							
-							deleteText( new SelectionState( textFlow, list.getAbsoluteStart() + list.textLength, endElement.getAbsoluteStart() ) );
+							deleteFrom = Math.max( 0, list.getAbsoluteStart() + list.textLength );
+							deleteTo = Math.min( endElement.getAbsoluteStart(), textFlow.textLength-1 );
+							deleteText( new SelectionState( textFlow, deleteFrom, deleteTo ) );//list.getAbsoluteStart() + list.textLength, endElement.getAbsoluteStart() ) );
 							
-							endElement.parent.removeChild( endElement );
+							try {
+								endElement.parent.removeChild( endElement );
+							} catch (e:*) {
+								trace( '[KK] {' + getQualifiedClassName(this) + '} :: Could not delete ' + endElement + ' from ' + endElement.parent );
+							}
 						}
 					}
 					else

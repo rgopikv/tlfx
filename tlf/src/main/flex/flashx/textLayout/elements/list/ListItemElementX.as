@@ -95,11 +95,11 @@ package flashx.textLayout.elements.list
 				try {
 					removeChild( _bulletSpan );
 				} catch ( e:* ) {
-					trace(e);
+					//	Fail silently
 				}
 				iaddChildAt(0, _bulletSpan);
 			} catch ( e:* ) {
-				trace(e);
+				//	Fail silently
 			}
 		}
 		
@@ -219,6 +219,18 @@ package flashx.textLayout.elements.list
 		{
 		// [END TA]
 			var xml:XML = <li/>;
+			var i:int;
+			
+			for ( i = numChildren-1; i > -1; i-- )
+			{
+				if ( getChildAt(i) is SpanElement )
+				{
+					if ( SpanElement( getChildAt(i) ).text.indexOf( getSeparator() ) > -1 )
+						removeChildAt(i);
+				}
+			}
+			
+			correctChildren();
 			
 			//	Remove the paragraphStartIndent for applying styles
 			var origIndent:int = indent;
@@ -229,7 +241,7 @@ package flashx.textLayout.elements.list
 			//	Apply the indent once more
 			indent = origIndent;
 			
-			for ( var i:int = 1; i < numChildren; i++ )
+			for ( i = 1; i < numChildren; i++ )
 			{
 				var child:FlowElement = getChildAt(i);
 				var childXML:XML;

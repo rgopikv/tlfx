@@ -203,8 +203,11 @@ package flashx.textLayout.operations
 				{
 					textFlow.replaceChildren( 0, 1, firstElement );
 					if( !node ) node = _htmlExporter.getSimpleMarkupModelForElement( firstElement );
-					_htmlImporter.importStyleHelper.assignInlineStyle( node, firstElement );
-					_htmlImporter.importStyleHelper.apply();
+					if ( node )
+					{
+						_htmlImporter.importStyleHelper.assignInlineStyle( node, firstElement );
+						_htmlImporter.importStyleHelper.apply();
+					}
 				}
 			}
 		}

@@ -254,6 +254,8 @@ package flashx.textLayout.elements
 			var retFlow:FlowElement = new (getDefinitionByName(getQualifiedClassName(this)) as Class);
 			retFlow.styleName = styleName;
 			retFlow.id = id;	// ???? copy me ?????
+			//	[KK]	Mark as an original
+			retFlow.original = true;
 			// [TA] :: Added setting uid on shallow copy.
 			retFlow.uid = uid;
 			// [TA] :: Passing original

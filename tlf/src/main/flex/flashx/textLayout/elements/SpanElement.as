@@ -533,6 +533,9 @@ package flashx.textLayout.elements
 				}
 			}
 			
+			//	[KK]	Mark new SpanElement as an original
+			newSpan.original = true;
+			
 			return newSpan;
 		}
 		
