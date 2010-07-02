@@ -69,28 +69,34 @@ package flashx.textLayout.edit
 		{
 			var startGroupElement:FlowGroupElement = textFlow.findLeaf(absoluteStart).parent;
 			
-			if ( startGroupElement is ListItemElementX && (startGroupElement as ListItemElementX).modifiedTextLength == 0 && event.text != '\n' && event.text != '\r' )
+			if ( startGroupElement is ListItemElementX )
 			{
-				var s:SpanElement = new SpanElement();
-				s.text = event.text;
-				(startGroupElement as ListItemElementX).addChildAt(0,s);
-				(startGroupElement as ListItemElementX).correctChildren();
-				performDummyOperation(getSelectionState());
-				
-				setSelectionState( new SelectionState( textFlow, s.getAbsoluteStart()+1, s.getAbsoluteStart()+1 ) );
-				updateAllControllers();
-				return;
-			}
-			else if ( startGroupElement is ListItemElementX && (absoluteStart-startGroupElement.getAbsoluteStart()) <= (startGroupElement as ListItemElementX).seperatorLength )
-			{
-				if ( startGroupElement.getChildAt(1) && startGroupElement.getChildAt(1) is SpanElement )
+				var item:ListItemElementX = startGroupElement as ListItemElementX;
+				if ( item.modifiedTextLength == 0 && event.text != '\n' && event.text != '\r' )
 				{
-					(startGroupElement.getChildAt(1) as SpanElement).text = event.text + (startGroupElement.getChildAt(1) as SpanElement).text;
+					var s:SpanElement = new SpanElement();
+					s.text = event.text;
+					item.addChildAt(0,s);
+					item.correctChildren();
+					performDummyOperation(getSelectionState());
 					
-					setSelectionState( new SelectionState( textFlow, absoluteStart+1, absoluteStart+1 ) );
-					
-					textFlow.flowComposer.updateAllControllers();
+					setSelectionState( new SelectionState( textFlow, s.getAbsoluteStart()+1, s.getAbsoluteStart()+1 ) );
+					updateAllControllers();
+					return;
 				}
+				else if ( (absoluteStart-item.getAbsoluteStart()) <= item.seperatorLength )
+				{
+					if ( item.getChildAt(1) && item.getChildAt(1) is SpanElement && event.text != '\n' && event.text != '\r' )
+					{
+						(item.getChildAt(1) as SpanElement).text = event.text + (item.getChildAt(1) as SpanElement).text;
+						
+						setSelectionState( new SelectionState( textFlow, absoluteStart+1, absoluteStart+1 ) );
+						
+						textFlow.flowComposer.updateAllControllers();
+					}
+				}
+				else
+					super.textInputHandler(event);
 			}
 			else
 				super.textInputHandler(event);
@@ -229,7 +235,6 @@ package flashx.textLayout.edit
 						
 						var origSelectionState:SelectionState = getSelectionState();
 						
-						//	Sometimes this appears as 0 when it isn't
 						if ( startItem.modifiedTextLength == 0 )
 						{
 							for ( i = 0; i < list.numChildren; i++ )
@@ -318,6 +323,8 @@ package flashx.textLayout.edit
 							
 							textFlow.flowComposer.updateAllControllers();
 							
+							performDummyOperation(getSelectionState());
+							
 							//	[FORMATING]
 							//	[KK]	Apply styling
 							_htmlImporter.importStyleHelper.apply();
@@ -332,43 +339,28 @@ package flashx.textLayout.edit
 						//	Single list
 						if ( list == endList )
 						{
+							deleteText( new SelectionState( textFlow, absoluteStart, absoluteEnd ) );
+							
+							textFlow.flowComposer.updateAllControllers();
+							
+							//	AbsoluteStart is cursor position, subtract from that the startItem's actual start (start of text)
+							//	Then add on the length of the seperator span (usually 3 or 4, depending on mode)
+							newItem = startItem.splitAtPosition( absoluteStart-startItem.actualStart+startItem.seperatorLength ) as ListItemElementX;
+							newItem.mode = startItem.mode;
+							newItem.indent = startItem.indent;
+							
 							//	Multiline
 							if ( startItem != endItem )
 							{
-								deleteText( new SelectionState( textFlow, absoluteStart, absoluteEnd ) );
-								
-								//	AbsoluteStart is cursor position, subtract from that the startItem's actual start (start of text)
-								//	Then add on the length of the seperator span (usually 3 or 4, depending on mode)
-								newItem = startItem.splitAtPosition( absoluteStart-startItem.actualStart+startItem.seperatorLength ) as ListItemElementX;
-								newItem.mode = startItem.mode;
-								newItem.indent = startItem.indent;
-								
 								//	[FORMATING]
 								//	[KK]	Hack to appropriate all of ListItemElementX's formatting
 								newItem.format = startItem.computedFormat ? TextLayoutFormat(startItem.computedFormat) : startItem.format ? TextLayoutFormat(startItem.format) : new TextLayoutFormat();
 								
 								node = _htmlExporter.getSimpleMarkupModelForElement( startItem );
-								if ( node )
-									_htmlImporter.importStyleHelper.assignInlineStyle( node, newItem );
-								else
-									trace('Error assigning inline styling #3');
-								
-								newItem.correctChildren();
 							}
 								//	Single line
 							else
 							{
-								deleteText( new SelectionState( textFlow, absoluteStart, absoluteEnd ) );
-								
-								//	AbsoluteStart is cursor position, subtract from that the startItem's actual start (start of text)
-								//	Then add on the length of the seperator span (usually 3 or 4, depending on mode)
-								newItem = startItem.splitAtPosition( absoluteStart-startItem.actualStart+startItem.seperatorLength ) as ListItemElementX;
-								newItem.mode = startItem.mode;
-								newItem.indent = startItem.indent;
-								
-								//	[KK]	Update for the next call to get last span of startItem
-								textFlow.flowComposer.updateAllControllers();
-								
 								endElement = null;
 								i = startItem.numChildren;
 								while (--i > -1)
@@ -388,13 +380,16 @@ package flashx.textLayout.edit
 									newItem.format = startItem.computedFormat ? TextLayoutFormat(startItem.computedFormat) : startItem.format ? TextLayoutFormat(startItem.format) : new TextLayoutFormat();
 								
 								node = _htmlExporter.getSimpleMarkupModelForElement( endElement ? endElement : startItem );
-								if ( node )
-									_htmlImporter.importStyleHelper.assignInlineStyle( node, newItem );
-								else
-									trace('Error assigning inline styling #4');
-								
-								newItem.correctChildren();
 							}
+							
+							if ( node )
+								_htmlImporter.importStyleHelper.assignInlineStyle( node, newItem );
+							else
+								trace('Error assigning inline styling #3');
+							
+							newItem.correctChildren();
+							
+							textFlow.flowComposer.updateAllControllers();
 							
 							list.update();
 							
@@ -406,11 +401,8 @@ package flashx.textLayout.edit
 							} else {
 								setSelectionState( new SelectionState( textFlow, newItem.actualStart-1, newItem.actualStart-1 ) );
 							}
-							refreshSelection();
+//							refreshSelection();
 							textFlow.flowComposer.updateAllControllers();
-							
-							performDummyOperation( getSelectionState() );
-							event.preventDefault();
 						}
 							//	Multiple lists
 						else
@@ -440,6 +432,8 @@ package flashx.textLayout.edit
 								}
 							}
 							
+							textFlow.flowComposer.updateAllControllers();
+							
 							//	Children to shift from endList to list
 							var children:Vector.<ListItemElementX> = new Vector.<ListItemElementX>();
 							
@@ -459,7 +453,7 @@ package flashx.textLayout.edit
 							if ( node )
 								_htmlImporter.importStyleHelper.assignInlineStyle( node, newItem );
 							else
-								trace('Error assigning inline styling #5');
+								trace('Error assigning inline styling #4');
 							
 							children.push( newItem );
 							
@@ -479,16 +473,17 @@ package flashx.textLayout.edit
 							
 							list.update();
 							
-							notifyInsertOrDelete( list.getAbsoluteStart(), list.textLength );
+//							notifyInsertOrDelete( list.getAbsoluteStart(), list.textLength );
 							
 							var selPoint:uint = Math.min( newItem.actualStart+newItem.text.length-1, textFlow.textLength-1 );
 							setSelectionState( new SelectionState( textFlow, selPoint, selPoint ) );
-							
-							textFlow.flowComposer.updateAllControllers();
-							
-							performDummyOperation( getSelectionState() );
-							event.preventDefault();
 						}
+						
+						textFlow.flowComposer.updateAllControllers();
+						
+						performDummyOperation( getSelectionState() );
+						event.preventDefault();
+						return;
 					}
 					else
 					{
