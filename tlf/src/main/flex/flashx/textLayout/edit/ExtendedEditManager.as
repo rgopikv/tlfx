@@ -67,7 +67,9 @@ package flashx.textLayout.edit
 		
 		override public function textInputHandler(event:TextEvent):void
 		{
-			var startGroupElement:FlowGroupElement = textFlow.findLeaf(absoluteStart).parent;
+			var prevElement:FlowLeafElement = textFlow.findLeaf(absoluteStart-1);
+			var startElement:FlowLeafElement = textFlow.findLeaf(absoluteStart);
+			var startGroupElement:FlowGroupElement = startElement.parent;
 			
 			if ( startGroupElement is ListItemElementX )
 			{
@@ -97,6 +99,19 @@ package flashx.textLayout.edit
 				}
 				else
 					super.textInputHandler(event);
+			}
+			else if ( prevElement is SpanElement && (prevElement as SpanElement).text == "¡™£¢∞§¶•ªº" )
+			{
+				(prevElement as SpanElement).text = "";
+				textFlow.flowComposer.updateAllControllers();
+				
+				setSelectionState( new SelectionState( textFlow, prevElement.getAbsoluteStart(), prevElement.getAbsoluteStart() ) );
+				refreshSelection();
+				
+				var evt:KeyboardEvent = new KeyboardEvent( KeyboardEvent.KEY_DOWN );
+				evt.keyCode = Keyboard.DELETE;
+				super.keyDownHandler( evt );
+				return;
 			}
 			else
 				super.textInputHandler(event);
@@ -310,6 +325,9 @@ package flashx.textLayout.edit
 							// add a new paragraph directly below the list.  This is 
 							// necessary, see BUG 1701
 							var newPara:ParagraphElement = new ParagraphElement();
+							var newSpan:SpanElement = new SpanElement();
+							newSpan.text = "¡™£¢∞§¶•ªº";
+							newPara.addChild(newSpan);
 							var listIdx:int = textFlow.getChildIndex(list);
 							textFlow.addChildAt(++listIdx, newPara);
 							
@@ -331,6 +349,9 @@ package flashx.textLayout.edit
 							
 							event.keyCode = Keyboard.DELETE;
 							super.keyDownHandler(event);
+							
+							event.preventDefault();
+							event.stopImmediatePropagation();
 							
 							return;
 						}
