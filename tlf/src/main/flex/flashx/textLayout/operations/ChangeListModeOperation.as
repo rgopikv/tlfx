@@ -68,7 +68,7 @@ package flashx.textLayout.operations
 		 * @param lists Array Array of ListElementX
 		 * @param mode int
 		 */
-		protected function changeListModeOnAlreadyCreatedList( items:Array, lists:Array, mode:int ):void
+		protected function changeListModeOnAlreadyCreatedList( items:Array, lists:Array, mode:int ):ListElementX
 		{
 			var item:ListItemElementX;
 			var list:ListElementX;
@@ -89,6 +89,8 @@ package flashx.textLayout.operations
 			//	Update all lists selected
 			for each ( list in lists )
 				list.update();
+				
+			return list;
 		}
 		
 		/**
@@ -293,6 +295,7 @@ package flashx.textLayout.operations
 				listItemChildren = listItem.nonListRelatedContent;
 				p = new ParagraphElement();
 				p.format = listItem.format;
+				p.paragraphStartIndent = Math.max(0, listItem.indent - 24);
 				while( listItemChildren.length > 0 )
 				{
 					p.addChild( listItemChildren.shift() );
@@ -357,7 +360,7 @@ package flashx.textLayout.operations
 		 * Converts elements from a list to non-list items and adds them to the flow. 
 		 * @param list ListElementX
 		 */
-		protected function returnElementsFromSingleList( list:ListElementX, items:Array /*ListItemEleementX[]*/ ):void
+		protected function returnElementsFromSingleList( list:ListElementX, items:Array /*ListItemEleementX[]*/ ):Array
 		{
 			var listItems:Array = []; /*ListItemElementX[]*/
 			var returnedElements:Array = []; /*FlowElement[]*/
@@ -398,14 +401,16 @@ package flashx.textLayout.operations
 			// Apply style and assign managing container controller to returned elements.
 			var node:XML;
 			var element:FlowElement;
-			while( returnedElements.length > 0 )
+			for( var j:int=0; j<returnedElements.length-1; j++)
 			{
-				element = returnedElements.shift();
+				element = returnedElements[j];
 				node = _htmlExporter.getSimpleMarkupModelForElement( element );
 				_htmlImporter.importStyleHelper.assignInlineStyle( node, element );
 				addElementToAutosizableContainerController( element, containerController );
 			}
 			_htmlImporter.importStyleHelper.apply();
+			
+			return returnedElements;			
 		}
 		
 		/**
@@ -502,7 +507,7 @@ package flashx.textLayout.operations
 			var i:int;
 			for( i = startIndex; i < endIndex; i++ )
 			{
-				items.push( list.removeChildAt( startIndex ) );
+				items.push( list.removeChild(list.listItems[startIndex]));
 			}
 			return items;
 		}
@@ -597,7 +602,7 @@ package flashx.textLayout.operations
 				//	Change
 				if ( items.length > 0 )
 				{
-					changeListModeOnAlreadyCreatedList( items, lists, _mode );
+					list = changeListModeOnAlreadyCreatedList( items, lists, _mode );
 				}
 				//	Create
 				else
@@ -631,11 +636,28 @@ package flashx.textLayout.operations
 				{
 					item = items[0] as ListItemElementX;
 					list = item.parent as ListElementX;
+					this.textFlow.flowComposer.updateAllControllers();
+					paragraphs = returnElementsFromSingleList( list, items );
 					
-					returnElementsFromSingleList( list, items );
+					if(paragraphs) {
+						this.textFlow.flowComposer.updateAllControllers();
+						
+						var firstPara:ParagraphElement = paragraphs[0];
+						var lastPara:ParagraphElement = paragraphs[paragraphs.length-1];
+						var absStart:int = firstPara.getAbsoluteStart();
+						var absEnd:int = lastPara.getAbsoluteStart() + lastPara.textLength;
+						
+						var newSS:SelectionState = new SelectionState(textFlow, absStart, absEnd);
+						// refresh
+						textFlow.interactionManager.setSelectionState(newSS);
+						textFlow.interactionManager.focusInHandler(null);
+						textFlow.interactionManager.refreshSelection();
+						
+						this.textFlow.flowComposer.updateAllControllers();
+						list = null;
+					}
 				}
 			}
-			//textFlow.flowComposer.updateAllControllers();
 			
 			// set the selection and refresh
 			if(list != null) {
@@ -645,11 +667,7 @@ package flashx.textLayout.operations
 				textFlow.interactionManager.focusInHandler(null);
 				textFlow.interactionManager.refreshSelection();
 			}
-			
-			//textFlow.flowComposer.updateAllControllers();
-			
-			
-			
+		
 			return true;	
 		}
 		
