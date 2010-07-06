@@ -1,9 +1,17 @@
 package flashx.textLayout.operations
 {
+	import flash.events.Event;
+	import flash.events.KeyboardEvent;
+	import flash.ui.Keyboard;
+	
+	import flashx.textLayout.compose.FlowDamageType;
+	import flashx.textLayout.compose.TextFlowLine;
 	import flashx.textLayout.container.AutosizableContainerController;
 	import flashx.textLayout.container.ContainerController;
 	import flashx.textLayout.converter.IHTMLExporter;
 	import flashx.textLayout.converter.IHTMLImporter;
+	import flashx.textLayout.edit.EditManager;
+	import flashx.textLayout.edit.ExtendedEditManager;
 	import flashx.textLayout.edit.SelectionState;
 	import flashx.textLayout.edit.helpers.SelectionHelper;
 	import flashx.textLayout.elements.DivElement;
@@ -16,6 +24,8 @@ package flashx.textLayout.operations
 	import flashx.textLayout.elements.list.ListElementX;
 	import flashx.textLayout.elements.list.ListItemElementX;
 	import flashx.textLayout.elements.list.ListItemModeEnum;
+	import flashx.textLayout.events.DamageEvent;
+	import flashx.textLayout.events.variable.VariableEditEvent;
 	import flashx.textLayout.format.IImportStyleHelper;
 	import flashx.textLayout.formats.ITextLayoutFormat;
 	import flashx.textLayout.formats.TextLayoutFormat;
@@ -290,7 +300,7 @@ package flashx.textLayout.operations
 			
 			while( listItems.length > 0 )
 			{
-				listItem = listItems.shift() as ListItemElementX;
+				listItem = ListItemElementX(listItems.shift()); // as ListItemElementX;
 				if( !listItem ) continue;
 				listItemChildren = listItem.nonListRelatedContent;
 				p = new ParagraphElement();
@@ -301,7 +311,7 @@ package flashx.textLayout.operations
 					p.addChild( listItemChildren.shift() );
 				}
 				returnedElements.push( p );
-				group.addChildAt( index++, p );
+				/*group.addChildAt( index++, p );*/
 			}
 			return returnedElements;
 		}
@@ -393,8 +403,20 @@ package flashx.textLayout.operations
 				// Else we are turning the whole list into paragraphs
 			else
 			{
+				textFlow.flowComposer.updateAllControllers();
 				listItems = removeItemsFromList( list, 0, length );
+				textFlow.flowComposer.updateAllControllers();
+
+				var tmpIdx:int = list.parent.getChildIndex(list);
+				// get the returned paragraphs
 				returnedElements = returnListItemsAsParagraphElements( list.parent, listItems, list.parent.getChildIndex( list ) );
+				
+				// loop through each paragraph and add to the autosizable container.
+				for(var w:int=0; w<returnedElements.length; w++) {
+					list.parent.addChildAt(tmpIdx++, returnedElements[w]);
+					addElementToAutosizableContainerController(returnedElements[w], containerController);
+				}
+
 				list.parent.removeChild( list );
 			}
 			
@@ -407,6 +429,7 @@ package flashx.textLayout.operations
 				node = _htmlExporter.getSimpleMarkupModelForElement( element );
 				_htmlImporter.importStyleHelper.assignInlineStyle( node, element );
 				addElementToAutosizableContainerController( element, containerController );
+				containerController.flowComposer.updateAllControllers();
 			}
 			_htmlImporter.importStyleHelper.apply();
 			
@@ -507,7 +530,8 @@ package flashx.textLayout.operations
 			var i:int;
 			for( i = startIndex; i < endIndex; i++ )
 			{
-				items.push( list.removeChild(list.listItems[startIndex]));
+				//items.push( list.removeChild(list.listItems[startIndex]));
+				items.push( list.getChildAt(list.getChildIndex(list.listItems[startIndex+i])));
 			}
 			return items;
 		}
@@ -636,9 +660,18 @@ package flashx.textLayout.operations
 				{
 					item = items[0] as ListItemElementX;
 					list = item.parent as ListElementX;
-					this.textFlow.flowComposer.updateAllControllers();
+					//this.textFlow.flowComposer.updateAllControllers();
+					
+					// this is the offending line
+					
+				//	list.parent.removeChild(list);
+					
+					//list.listItems
+
+					//this.textFlow.flowComposer.updateAllControllers();
 					paragraphs = returnElementsFromSingleList( list, items );
 					
+					// below just sets the correct seleciton.  This is not the problem.
 					if(paragraphs) {
 						this.textFlow.flowComposer.updateAllControllers();
 						
