@@ -140,7 +140,7 @@ package flashx.textLayout.operations
 			
 			// Notify and update selection.
 			textFlow.interactionManager.notifyInsertOrDelete( absoluteEnd, length );
-			textFlow.interactionManager.setSelectionState( new SelectionState( textFlow, length, length ) );
+			textFlow.interactionManager.setSelectionState( new SelectionState( textFlow, absoluteStart + length, absoluteStart + length ) );
 		}
 		
 		protected function insertElementsIntoCell( element:TableDataElement, beforePara:ParagraphElement, elements:Array ):void
