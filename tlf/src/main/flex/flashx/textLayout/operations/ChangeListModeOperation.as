@@ -3,6 +3,7 @@ package flashx.textLayout.operations
 	import flash.events.Event;
 	import flash.events.KeyboardEvent;
 	import flash.ui.Keyboard;
+	import flash.utils.getQualifiedClassName;
 	
 	import flashx.textLayout.compose.FlowDamageType;
 	import flashx.textLayout.compose.TextFlowLine;
@@ -240,6 +241,9 @@ package flashx.textLayout.operations
 							item.addChildAt(0, p.removeChildAt(j));
 					}
 				}
+				
+				if (item.numChildren < 1)
+					continue;
 				//	[FORMATING]
 				//	[KK] Apply inline styling from ParagraphElement to ListItemElementX
 				// [TA] Removed style helper call. Style helper actions have been moved to intrnal working of list element to teack proper changes to items on the flow for styling.
@@ -357,6 +361,34 @@ package flashx.textLayout.operations
 				if( tf != null )
 				{
 					list = addListDirectlyToTextFlow( tf, paragraphs, index + 1 );
+					
+					//	[KK]	Attempt to remove last (empty) paragraph added through the creation process
+					var lastItem:ListItemElementX;
+					var idx:int = list.numChildren;
+					while ( !lastItem || !(lastItem is ListItemElementX) )
+					{
+						idx--;
+						if ( idx < 0 )
+							break;
+						lastItem = list.getChildAt(idx) as ListItemElementX;
+					}
+					
+					if ( lastItem )
+					{
+						idx = lastItem.numChildren;
+						while (--idx > -1)
+						{
+							var child:FlowElement = lastItem.getChildAt(idx);
+							
+							if ( child is SpanElement )
+							{
+								//	[KK]	Remove the last character as it is an unnecessary line break added from who knows where
+								(child as SpanElement).text = (child as SpanElement).text.substring(0, (child as SpanElement).text.length-1);
+								break;
+							}
+						}
+					}
+					
 					addElementToAutosizableContainerController( list, containerController ); 
 				}
 			}
@@ -620,6 +652,8 @@ package flashx.textLayout.operations
 			var list:ListElementX;
 			var containerController:AutosizableContainerController;
 			
+			var newSS:SelectionState;
+			
 			//	Change / Create
 			if ( _mode != ListItemModeEnum.UNDEFINED )
 			{
@@ -639,6 +673,34 @@ package flashx.textLayout.operations
 					{
 						containerController = findContainerControllerForElement( p );
 						list = addListDirectlyToTextFlow( prnt as TextFlow, paragraphs, prnt.getChildIndex( p ) );
+						
+						//	[KK]	Attempt to remove last (empty) paragraph added through the creation process
+						var lastItem:ListItemElementX;
+						var idx:int = list.numChildren;
+						while ( !lastItem || !(lastItem is ListItemElementX) )
+						{
+							idx--;
+							if ( idx < 0 )
+								break;
+							lastItem = list.getChildAt(idx) as ListItemElementX;
+						}
+						
+						if ( lastItem )
+						{
+							idx = lastItem.numChildren;
+							while (--idx > -1)
+							{
+								var child:FlowElement = lastItem.getChildAt(idx);
+								
+								if ( child is SpanElement )
+								{
+									//	[KK]	Remove the last character as it is an unnecessary line break added from who knows where
+									(child as SpanElement).text = (child as SpanElement).text.substring(0, (child as SpanElement).text.length-1);
+									break;
+								}
+							}
+						}
+						
 						addElementToAutosizableContainerController( list, containerController );
 					}
 					else
@@ -680,7 +742,7 @@ package flashx.textLayout.operations
 						var absStart:int = firstPara.getAbsoluteStart();
 						var absEnd:int = lastPara.getAbsoluteStart() + lastPara.textLength;
 						
-						var newSS:SelectionState = new SelectionState(textFlow, absStart, absEnd);
+						newSS = new SelectionState(textFlow, absStart, absEnd);
 						// refresh
 						textFlow.interactionManager.setSelectionState(newSS);
 						textFlow.interactionManager.focusInHandler(null);
@@ -694,7 +756,7 @@ package flashx.textLayout.operations
 			
 			// set the selection and refresh
 			if(list != null) {
-				var newSS:SelectionState = new SelectionState(textFlow, list.getAbsoluteStart()+1, list.getAbsoluteStart()+list.textLength-2);
+				newSS = new SelectionState(textFlow, list.getAbsoluteStart()+1, list.getAbsoluteStart()+list.textLength-2);
 				// refresh
 				textFlow.interactionManager.setSelectionState(newSS);
 				textFlow.interactionManager.focusInHandler(null);

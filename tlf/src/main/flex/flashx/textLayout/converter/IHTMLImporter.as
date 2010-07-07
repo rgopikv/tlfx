@@ -25,6 +25,13 @@ package flashx.textLayout.converter
 		function parseFragment( fragment:String ):FlowElement;
 		
 		/**
+		 * Creates an Array of FlowElements based on fragment. 
+		 * @param fragment String
+		 * @return Array
+		 */
+		function parseFragmentToArray( fragment:String ):Array;
+		
+		/**
 		 * Returns the instance of the import style helper used to apply styles to elements parsed. 
 		 * @return ImportStyleHelper
 		 */

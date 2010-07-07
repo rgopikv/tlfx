@@ -16,10 +16,16 @@ package flashx.textLayout.elements.list
 	public class ListElementX extends DivElement
 	{
 		protected var _pendingChildElements:Vector.<PendingNotifyingElement>;
+		
+		private var _paddingItems:Vector.<ListPaddingElement>;
+		
 		public function ListElementX()
 		{
 			super();
 			_pendingChildElements = new Vector.<PendingNotifyingElement>();
+			
+			_paddingItems = new Vector.<ListPaddingElement>();
+			_paddingItems.push( new ListPaddingElement(), new ListPaddingElement() );
 		}
 		
 		// [TA] 06-30-2010 :: Override of replace children to notify clients of change to list. ATM the most accurate way to track a change to children in list
@@ -100,6 +106,32 @@ package flashx.textLayout.elements.list
 		}
 		// [END TA]
 		
+		public function removePadding():void
+		{
+			attemptRemoveChild( _paddingItems[0] );
+			attemptRemoveChild( _paddingItems[1] );
+		}
+		
+		public function correctPadding():void
+		{
+			removePadding();
+			
+			super.addChildAt( 0, _paddingItems[0] );
+			super.addChild( _paddingItems[1] );
+		}
+		
+		protected function attemptRemoveChild( child:FlowElement ):Boolean
+		{
+			try {
+				removeChild( child );
+				return true;
+			} catch ( e:* ) {
+				//	Fail silently
+				return false;
+			}
+			return false;
+		}
+		
 		// [TA] 06-30-2010 :: Added to notify clients in change of list mode in order to track proper external css styling. Mode is used to construct corrsponding node used to recognize styles.
 		public function changeListModeOnListItem( item:ListItemElementX, mode:int ):void
 		{
@@ -145,11 +177,7 @@ package flashx.textLayout.elements.list
 		{
 			if ( numChildren > 0 )
 			{
-				for ( var i:int = numChildren-1; i > -1; i-- )
-				{
-					if ( getChildAt(i) is ListPaddingElement )
-						removeChildAt(i);
-				}
+				removePadding();
 				
 				var items:Array = listItems;
 				
@@ -157,7 +185,7 @@ package flashx.textLayout.elements.list
 				var prevItem:ListItemElementX;
 				var numbers:Vector.<int> = new Vector.<int>();
 				
-				for ( i = 0; i < items.length; i++ )
+				for ( var i:int = 0; i < items.length; i++ )
 				{
 					var item:ListItemElementX = items[i] as ListItemElementX;
 					var itemIndent:int = Math.max( 0, item.indent-24 );
@@ -212,8 +240,7 @@ package flashx.textLayout.elements.list
 				
 				ensureIndentation();
 				
-				addChildAt(0, new ListPaddingElement());
-				super.addChild(new ListPaddingElement());
+				correctPadding();
 				
 //				if ( getTextFlow() )
 //					getTextFlow().flowComposer.updateAllControllers();
@@ -319,8 +346,23 @@ package flashx.textLayout.elements.list
 								groups[uint(itemIndent/24)+1].push(item);
 							else
 							{
-								groups.splice( uint(itemIndent/24)+1, 0, groups[uint(itemIndent/24)+1], new Vector.<ListItemElementX>() );
-								groups[uint(itemIndent/24)+2].push(item);
+								if (groups.length > uint(itemIndent/24)+1 )
+								{
+									groups.splice( uint(itemIndent/24)+1, 0, groups[uint(itemIndent/24)+1], new Vector.<ListItemElementX>() );
+									groups[uint(itemIndent/24)+2].push(item);
+								}
+								else
+								{
+									ind = (uint(itemIndent/24)+1)-(groups.length-1);
+									
+									while ( ind > 0 )
+									{
+										groups.push( new Vector.<ListItemElementX>() );
+										ind--;
+									}
+									
+									groups[uint(itemIndent/24)+1].push(item);
+								}
 							}
 						}
 						//	Same group

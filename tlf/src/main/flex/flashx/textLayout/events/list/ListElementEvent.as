@@ -12,6 +12,7 @@ package flashx.textLayout.events.list
 		
 		public static const ITEM_ADDED:String = "itemAdded";
 		public static const ITEM_REMOVED:String = "itemRemoved";
+		public static const UPDATE:String = "update";
 		
 		public function ListElementEvent( type:String, listItem:ListItemElementX, list:ListElementX )
 		{

@@ -44,7 +44,7 @@ package flashx.textLayout.converter
 			
 			var rowMap:Array = [];
 			// Cycle through data and register column and rows for each data.
-			for( i; i < rows.length; i++ )
+			for( i = 0; i < rows.length; i++ )
 			{
 				rowData = rows[i].children();
 				if( rowData == null ) continue;

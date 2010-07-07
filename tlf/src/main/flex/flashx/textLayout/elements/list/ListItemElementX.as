@@ -17,6 +17,7 @@ package flashx.textLayout.elements.list
 	import flashx.textLayout.elements.VarElement;
 	import flashx.textLayout.events.ModelChange;
 	import flashx.textLayout.events.UpdateEvent;
+	import flashx.textLayout.events.list.ListElementEvent;
 	import flashx.textLayout.format.ExportStyleHelper;
 	import flashx.textLayout.format.IExportStyleHelper;
 	import flashx.textLayout.formats.ITextLayoutFormat;
@@ -82,6 +83,10 @@ package flashx.textLayout.elements.list
 		{
 			_computedStyle = _style.getComputedStyle();
 			_bulletSpan.text = getSeparator();
+			
+			correctChildren();
+			//	[KK]	May be unnecessary
+//			ensureLegitimateChildren();
 		}
 		
 		override protected function updateDisplayForListStyle():void
@@ -100,6 +105,53 @@ package flashx.textLayout.elements.list
 				iaddChildAt(0, _bulletSpan);
 			} catch ( e:* ) {
 				//	Fail silently
+			}
+		}
+		
+		protected function ensureLegitimateChildren():void
+		{
+			var span:SpanElement;
+			var link:LinkElement;
+			
+			for ( var i:int = numChildren-1; i > -1; i-- )
+			{
+				var child:FlowElement = getChildAt(i);
+				
+				if ( child is SpanElement )
+				{
+					span = child as SpanElement;
+					if ( span.text.match( /[\n\r\u2028\u2029]/g ).length > 0 )
+					{
+						if ( span.text.match( /\w/g ).length > 0 )
+							span.text.replace( /[\n\r\u2028\u2029]/g, '' );
+						else
+						{
+							//	Break element?
+							trace( '[KK] {' + getQualifiedClassName(this) + '} :: Found a break element? Child #' + i + '. Removing.' );
+							removeChildAt(i);
+						}
+					}
+				}
+				else if ( child is LinkElement || child is ExtendedLinkElement )
+				{
+					link = child as LinkElement;
+					for ( var j:int = link.numChildren-1; j > -1; j-- )
+					{
+						child = link.getChildAt(j);
+						
+						if ( child is SpanElement )
+						{
+							span = child as SpanElement;
+							if ( span.text.match( /[\n\r\u2028\u2029]/g ).length > 0 )
+							{
+								if ( span.text.match( /\w/g ).length > 0 )
+									span.text.replace( /[\n\r\u2028\u2029]/g, '' );
+								else
+									link.removeChildAt(j);
+							}
+						}
+					}
+				}
 			}
 		}
 		
@@ -326,8 +378,12 @@ package flashx.textLayout.elements.list
 		
 		public override function set paragraphStartIndent(paragraphStartIndentValue:*):void
 		{
+			var origIndent:uint = paragraphStartIndent;
 			super.paragraphStartIndent = paragraphStartIndentValue;
 			update();
+			
+			if ( getTextFlow() && parent && origIndent != paragraphStartIndent )	//	Do not remove the end of this conditional, as it causes the entire build to fail and a restart is required to fix
+				getTextFlow().dispatchEvent( new ListElementEvent( ListElementEvent.UPDATE, this, parent as ListElementX ) );
 		}
 		
 		public function set number( value:uint ):void

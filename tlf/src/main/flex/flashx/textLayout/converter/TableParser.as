@@ -73,7 +73,8 @@ package flashx.textLayout.converter
 		 * @param list XMLList
 		 * @return TextFlow
 		 */
-		protected function parseToFlow( list:XMLList ):TextFlow
+//		protected function parseToFlow( list:XMLList ):Array//TextFlow	//	[KK]
+		protected function parseToFlow( list:XMLList ):TextFlow	//	[KK]
 		{
 			var source:XML = <html />;
 			var body:XML = <body />;
@@ -83,6 +84,8 @@ package flashx.textLayout.converter
 				body.appendChild( list[i] as XML );
 			}
 			source.appendChild( body );
+			//	[KK]	Changed to return an array of FlowElements instead of a textflow
+//			return _htmlImporter.parseFragmentToArray( source.toXMLString() );// .importToFlow( source.toXMLString(), false );
 			return _htmlImporter.importToFlow( source.toXMLString(), false );
 		}
 		
@@ -99,7 +102,8 @@ package flashx.textLayout.converter
 			var cell:TableDataElement = new TableDataElement();
 			cell.tableDataModel = new TableData( table );
 			
-			var content:Array = parseToFlow( td.children() ).mxmlChildren;
+//			var content:Array = parseToFlow( td.children() );//.mxmlChildren;	//	[KK]
+			var content:Array = parseToFlow( td.children() ).mxmlChildren;	//	[KK]
 			// If no parse of children, it is a closed out empty node.
 			// As such, fill with default conent for editing in TLFX.
 			if( content == null )
@@ -129,7 +133,8 @@ package flashx.textLayout.converter
 			var cell:TableDataElement = new TableHeadingElement();
 			cell.tableDataModel = new TableHeading( table );
 			
-			var content:Array = parseToFlow( th.children() ).mxmlChildren;
+//			var content:Array = parseToFlow( th.children() );//.mxmlChildren;	//	[KK]
+			var content:Array = parseToFlow( th.children() ).mxmlChildren;	//	[KK]
 			// If no parse of children, it is a closed out empty node.
 			// As such, fill with default conent for editing in TLFX.
 			if( content == null )
