@@ -1965,7 +1965,12 @@ package flashx.textLayout.elements
 		tlf_internal function attributesChanged(notifyModelChanged:Boolean = true):void
 		{
 			// TODO: REMOVE ME???
-			formatChanged(notifyModelChanged);
+			//	[KK]	Wrapped in a try/catch to avoid throwing an "undefined" error
+			try {
+				formatChanged(notifyModelChanged);
+			} catch (e:*) {
+				trace( '[KK] {' + getQualifiedClassName(this) + '} :: Error changing format, error was: ' + e );
+			}
 		}
 		
 		/** Returns the value of the style specified by the <code>styleProp</code> parameter, which specifies

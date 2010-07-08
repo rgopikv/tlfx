@@ -8,6 +8,7 @@ package flashx.textLayout.elements.table
 	import flashx.textLayout.container.table.ICellContainer;
 	import flashx.textLayout.container.table.TableCellContainer;
 	import flashx.textLayout.container.table.TableDisplayContainer;
+	import flashx.textLayout.converter.IHtmlCleaner;
 	import flashx.textLayout.converter.ITagAssembler;
 	import flashx.textLayout.converter.ITagParser;
 	import flashx.textLayout.converter.TableMapper;
@@ -51,6 +52,8 @@ package flashx.textLayout.elements.table
 		
 		protected var _textFlow:TextFlow;
 		protected var _isInitialized:Boolean;
+		
+		protected var _cleaner:IHtmlCleaner;
 		
 		public static const LINE_BREAK_IDENTIFIER:String = "|tlf_table_paste_break|";
 		
@@ -198,7 +201,21 @@ package flashx.textLayout.elements.table
 			}
 			// Parse html string into a Table object using the importer.
 			// Table serves as a model for rows and columns and holds attribues and styles.
-			_table = _importer.parse( evt.xml.toString(), this ) as Table;
+			
+			var parseString:String = evt.xml.toString();
+			parseString = parseString.replace( /<span(\b[^>]*)?>((.|\n)*)<\/span><span/ig, '<span$1>$2</span> <span' );
+			parseString = parseString.replace( /<span(\b[^>]*)?>((.|\n)*)<\/span><a/ig, '<span$1>$2</span> <a' );
+			parseString = parseString.replace( /<span(\b[^>]*)?>((.|\n)*)<\/span><img/ig, '<span$1>$2</span> <img' );
+			
+			parseString = parseString.replace( /<a(\b[^>]*)?>((.|\n)*)<\/a><span(\b[^>]*)?>/ig, '<a$1>$2</a> <span$4>' );
+			parseString = parseString.replace( /<a(\b[^>]*)?>((.|\n)*)<\/a><a/ig, '<a$1>$2</a> <a' );
+			parseString = parseString.replace( /<a(\b[^>]*)?>((.|\n)*)<\/a><img/ig, '<a$1>$2</a> <img' );
+			
+			parseString = parseString.replace( /<img(\b[^>]*)?\/><span(\b[^>]*)?>/ig, '<img$1/> <span$2>' );
+			parseString = parseString.replace( /<img(\b[^>]*)?\/><a/ig, '<img$1/> <a' );
+			parseString = parseString.replace( /<img(\b[^>]*)?\/><img/ig, '<img$1/> <img' );
+			
+			_table = _importer.parse( parseString, this ) as Table;
 			_context = _table.getContextImplementation();
 			_context.mergeStyle( _pendingInitializationStyle );
 			_pendingInitializationStyle = null;
@@ -255,7 +272,7 @@ package flashx.textLayout.elements.table
 			
 			_importer.addEventListener( TagParserCleanCompleteEvent.CLEAN_COMPLETE, handleParseCleanComplete );
 			_importer.addEventListener( TagParserCleanProgressEvent.CLEAN_PROGRESS, handleParseCleanProgress );
-			_importer.clean( _fragment );
+			_importer.clean( _fragment );	//	[KK]	Can be exchanged with IHtmlCleaner
 		}
 		
 		/**
@@ -328,6 +345,7 @@ package flashx.textLayout.elements.table
 			_tableMapper = null;
 			_table = null;
 			_fragment = null;
+			_cleaner = null;
 			
 			_targetContainer.dispose();
 			_targetContainer = null;
@@ -442,6 +460,15 @@ package flashx.textLayout.elements.table
 		public function set elementalIndex( value:int ):void
 		{
 			_elementalIndex = value;
+		}
+		
+		public function set cleaner( obj:IHtmlCleaner ):void
+		{
+			_cleaner = obj;
+		}
+		public function get cleaner():IHtmlCleaner
+		{
+			return _cleaner;
 		}
 	}
 }
