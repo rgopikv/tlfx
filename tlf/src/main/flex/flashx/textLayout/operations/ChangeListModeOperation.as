@@ -3,7 +3,6 @@ package flashx.textLayout.operations
 	import flash.events.Event;
 	import flash.events.KeyboardEvent;
 	import flash.ui.Keyboard;
-	import flash.utils.getQualifiedClassName;
 	
 	import flashx.textLayout.compose.FlowDamageType;
 	import flashx.textLayout.compose.TextFlowLine;
@@ -475,7 +474,7 @@ package flashx.textLayout.operations
 		 * @param lists Array An Array of ListElementX
 		 * @param items Array An Array of ListItemElementX
 		 */
-		protected function returnElementsFromMultipleLists( lists:Array /* ListElementX[] */, items:Array /* ListEleemntItemX[] */ ):void
+		protected function returnElementsFromMultipleLists( lists:Array /* ListElementX[] */, items:Array /* ListEleemntItemX[] */ ):Array
 		{
 			var start:int;
 			var end:int;
@@ -545,6 +544,8 @@ package flashx.textLayout.operations
 				addElementToAutosizableContainerController( element, containerController );
 			}
 			_htmlImporter.importStyleHelper.apply();
+			
+			return returnedElements;
 		}
 		
 		/**
@@ -643,7 +644,7 @@ package flashx.textLayout.operations
 		/** @private */
 		public override function doOperation():Boolean
 		{
-			var items:Array = SelectionHelper.getSelectedListItems( textFlow );
+			var selectedListItems:Array = SelectionHelper.getSelectedListItems( textFlow );
 			var lists:Array = SelectionHelper.getSelectedLists( textFlow );
 			var paragraphs:Array = SelectionHelper.getSelectedParagraphs( textFlow );
 			
@@ -652,17 +653,30 @@ package flashx.textLayout.operations
 			var list:ListElementX;
 			var containerController:AutosizableContainerController;
 			
-			var newSS:SelectionState;
+			// selection related 
+			var absoluteStart:int = 0;
+			var absoluteEnd:int = 0;
+			var fe1:FlowElement;
+			var fe2:FlowElement;
 			
-			//	Change / Create
-			if ( _mode != ListItemModeEnum.UNDEFINED )
+			// If the mode is being changed to order or unordered, we can 
+			// assume that we are creating or changing an existing list
+			// else we are destroying a list.
+			if ( _mode == ListItemModeEnum.ORDERED || _mode == ListItemModeEnum.UNORDERED )
 			{
-				//	Change
-				if ( items.length > 0 )
+				// If there are currently selected list items then we can assume
+				// that we are changing an existing list.
+				// else we are creating a new list
+				if ( selectedListItems.length > 0 )
 				{
-					list = changeListModeOnAlreadyCreatedList( items, lists, _mode );
+					list = changeListModeOnAlreadyCreatedList( selectedListItems, lists, _mode );
+					
+					fe1 = selectedListItems[0];
+					fe2 = selectedListItems[selectedListItems.length-1];
+					
+					absoluteStart = fe1.getAbsoluteStart();
+					absoluteEnd   = fe2.getAbsoluteStart() + fe2.textLength;
 				}
-				//	Create
 				else
 				{
 					//	Add ListElementX at position of first element
@@ -707,61 +721,45 @@ package flashx.textLayout.operations
 					{
 						list = splitAndAddListToTextFlow( prnt, paragraphs );
 					}
+					
+					// we should select the entire list
+					absoluteStart = list.getAbsoluteStart()+1;
+					absoluteEnd   = list.getAbsoluteStart() + list.textLength-2;
 				}
 			}
-			//	Destruction
 			else
 			{
-				//	Multiple lists
+				// if there are multiple lists
+				// else we are dealing with one list
 				if ( lists.length > 1 )
 				{
-					returnElementsFromMultipleLists( lists, items );
+					paragraphs = returnElementsFromMultipleLists( lists, selectedListItems );
 				}
-					//	Single list
 				else
 				{
-					item = items[0] as ListItemElementX;
+					item = selectedListItems[0] as ListItemElementX;
 					list = item.parent as ListElementX;
-					//this.textFlow.flowComposer.updateAllControllers();
+					paragraphs = returnElementsFromSingleList(list , selectedListItems );
+				}
+				
+				if(paragraphs) {
+					this.textFlow.flowComposer.updateAllControllers();
 					
-					// this is the offending line
+					// get the first and last flow leaf elements
+					fe1 = paragraphs[0];
+					fe2 = paragraphs[paragraphs.length-1];
 					
-				//	list.parent.removeChild(list);
-					
-					//list.listItems
-
-					//this.textFlow.flowComposer.updateAllControllers();
-					paragraphs = returnElementsFromSingleList( list, items );
-					
-					// below just sets the correct seleciton.  This is not the problem.
-					if(paragraphs) {
-						this.textFlow.flowComposer.updateAllControllers();
-						
-						var firstPara:ParagraphElement = paragraphs[0];
-						var lastPara:ParagraphElement = paragraphs[paragraphs.length-1];
-						var absStart:int = firstPara.getAbsoluteStart();
-						var absEnd:int = lastPara.getAbsoluteStart() + lastPara.textLength;
-						
-						newSS = new SelectionState(textFlow, absStart, absEnd);
-						// refresh
-						textFlow.interactionManager.setSelectionState(newSS);
-						textFlow.interactionManager.focusInHandler(null);
-						textFlow.interactionManager.refreshSelection();
-						
-						this.textFlow.flowComposer.updateAllControllers();
-						list = null;
-					}
+					// get the start and end
+					absoluteStart = fe1.getAbsoluteStart();
+					absoluteEnd   = fe2.getAbsoluteStart() + fe2.textLength;
 				}
 			}
 			
-			// set the selection and refresh
-			if(list != null) {
-				newSS = new SelectionState(textFlow, list.getAbsoluteStart()+1, list.getAbsoluteStart()+list.textLength-2);
-				// refresh
-				textFlow.interactionManager.setSelectionState(newSS);
-				textFlow.interactionManager.focusInHandler(null);
-				textFlow.interactionManager.refreshSelection();
-			}
+			// set the new selection
+			var newSS:SelectionState = new SelectionState(textFlow, absoluteStart, absoluteEnd);
+			textFlow.interactionManager.setSelectionState(newSS);
+		//	textFlow.interactionManager.focusInHandler(null);
+			textFlow.interactionManager.refreshSelection();
 		
 			return true;	
 		}
