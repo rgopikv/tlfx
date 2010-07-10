@@ -30,6 +30,7 @@ package flashx.textLayout.edit
 	import flashx.textLayout.elements.FlowLeafElement;
 	import flashx.textLayout.elements.GlobalSettings;
 	import flashx.textLayout.elements.ParagraphElement;
+	import flashx.textLayout.elements.SpanElement;
 	import flashx.textLayout.events.FlowOperationEvent;
 	import flashx.textLayout.formats.ITextLayoutFormat;
 	import flashx.textLayout.formats.TextLayoutFormat;
@@ -531,6 +532,18 @@ package flashx.textLayout.edit
 					textFlow.dispatchEvent(opEvent);
 				}
 			}	
+			
+			//	[KK]	Attempt to update in case other updates have failed.
+			textFlow.flowComposer.updateAllControllers();
+			
+			if ( textFlow.numChildren < 1 )
+			{
+				var dummyP:ParagraphElement = new ParagraphElement();
+				dummyP.addChild( new SpanElement() );
+				textFlow.addChild( dummyP );
+				
+				textFlow.flowComposer.updateAllControllers();
+			}
 		}
 		
 		private var captureOperations:Array = [];
@@ -585,7 +598,11 @@ package flashx.textLayout.edit
 				success = op.doOperation();
 				if (success)		// operation succeeded
 				{
-					textFlow.normalize();   //force normalization at this point. Don't compose unless the captureLevel is 0
+					try {
+						textFlow.normalize();   //force normalization at this point. Don't compose unless the captureLevel is 0
+					} catch (e:*) {
+						trace('[KK] {' + getQualifiedClassName(this) + '} :: Could not normalize textFlow because: ' + e);
+					}
 					
 					// This has to be done after the normalize, because normalize increments the generation number
 					op.setGenerations(beforeGeneration,textFlow.generation);					

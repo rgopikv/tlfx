@@ -69,7 +69,30 @@ package flashx.textLayout.elements.list
 					}
 				}
 			}
-			super.replaceChildren( beginChildIndex, endChildIndex, rest );
+			
+			//	[KK]	Was throwing an error on select all + delete because normalizeRange attempts to fill this with a paragraph element
+			var canOwnAll:Boolean = true;
+			for each ( var o:* in rest )
+			{
+				if (o is FlowElement)
+				{
+					if ( !canOwnFlowElement(o as FlowElement) )
+					{
+						canOwnAll = false;
+						break;
+					}
+				}
+				else
+				{
+					canOwnAll = false;
+					break;
+				}
+			}
+			
+			if ( canOwnAll )
+				super.replaceChildren( beginChildIndex, endChildIndex, rest );
+			else
+				super.replaceChildren( beginChildIndex, endChildIndex, [] );
 		}
 		// [END TA]
 		

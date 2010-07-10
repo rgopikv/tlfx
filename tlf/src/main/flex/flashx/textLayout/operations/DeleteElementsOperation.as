@@ -1,6 +1,7 @@
 package flashx.textLayout.operations
 {
 	import flash.ui.Keyboard;
+	import flash.utils.getQualifiedClassName;
 	
 	import flashx.textLayout.container.AutosizableContainerController;
 	import flashx.textLayout.container.ContainerController;
@@ -460,7 +461,11 @@ package flashx.textLayout.operations
 			
 			// Notify
 //			textFlow.interactionManager.notifyInsertOrDelete( absoluteStart, absoluteEnd - absoluteStart );
-			textFlow.flowComposer.updateAllControllers();
+			try {
+				textFlow.flowComposer.updateAllControllers();
+			} catch (e:*) {
+				trace('[KK] {' + getQualifiedClassName(this) + '} :: Could not update the controllers because: ' + e);
+			}
 		}
 		
 		/**

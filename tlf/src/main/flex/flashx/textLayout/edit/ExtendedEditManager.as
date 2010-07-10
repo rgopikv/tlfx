@@ -1,8 +1,10 @@
 package flashx.textLayout.edit
 {
 	import flash.desktop.ClipboardFormats;
+	import flash.events.Event;
 	import flash.events.KeyboardEvent;
 	import flash.events.TextEvent;
+	import flash.net.getClassByAlias;
 	import flash.ui.Keyboard;
 	import flash.utils.getQualifiedClassName;
 	import flash.utils.setTimeout;
@@ -125,6 +127,7 @@ package flashx.textLayout.edit
 			var startItem:ListItemElementX;
 			var endItem:ListItemElementX;
 			
+			var startElement:FlowElement;
 			var endElement:FlowElement;
 			
 			var p:ParagraphElement;
@@ -963,6 +966,39 @@ package flashx.textLayout.edit
 						startItem = items[0] as ListItemElementX;
 						list = startItem.parent as ListElementX;
 						
+						//	Get end item for special case
+						for ( i = list.numChildren-1; i > -1; i-- )
+						{
+							if ( list.getChildAt(i) is ListItemElementX )
+							{
+								endItem = list.getChildAt(i) as ListItemElementX;
+								break;
+							}
+						}
+						
+						var itemStart:uint = startItem.actualStart;
+						var listStart:uint = list.getAbsoluteStart();
+						var itemEnd:uint = endItem.getAbsoluteStart() + endItem.textLength - 1;
+						var listEnd:uint = listStart + list.textLength;
+						
+						//	[KK]	Special case, deleting one whole list (and only that list)
+						if ( absoluteStart <= itemStart && absoluteStart >= listStart &&
+							absoluteEnd >= itemEnd && absoluteEnd <= listEnd)
+						{
+							list.parent.removeChild(list);
+							
+							//	[KK]	Repeated code (for this one special case)
+							cleanEmptyLists( textFlow );
+							
+							for each ( list in lists )
+							{
+								if ( list )
+									list.update();
+							}
+							
+							break;
+						}
+						
 						start = list.getChildIndex(startItem);
 						
 						//	Single point of contact
@@ -1081,28 +1117,218 @@ package flashx.textLayout.edit
 							//	Selection
 						else
 						{
-							endElement = textFlow.findLeaf( absoluteEnd ).getParagraph();
-							start = (endElement as ParagraphElement).getChildIndex( textFlow.findLeaf( absoluteEnd ) );
-							end = endElement.getAbsoluteStart();
+							startItem = textFlow.findLeaf( absoluteStart ).parent as ListItemElementX;
+							endItem = textFlow.findLeaf( absoluteEnd ).parent as ListItemElementX;
 							
-							nextElement = textFlow.findLeaf( absoluteStart );
+							start = absoluteStart;
+							end = absoluteEnd;
 							
-							if ( nextElement is SpanElement )
-								(nextElement as SpanElement).text = (nextElement as SpanElement).text.substring(0, absoluteStart-nextElement.getAbsoluteStart());
-							
-							if ( textFlow.findLeaf( absoluteEnd ) is SpanElement )
-								(textFlow.findLeaf( absoluteEnd ) as SpanElement).text = (textFlow.findLeaf( absoluteEnd ) as SpanElement).text.substring(absoluteEnd-end); 
-							
-							extractChildrenToListItemElement( endElement as ParagraphElement, startItem );
-							
-							deleteFrom = Math.max( 0, list.getAbsoluteStart() + list.textLength );
-							deleteTo = Math.min( endElement.getAbsoluteStart(), textFlow.textLength-1 );
-							deleteText( new SelectionState( textFlow, deleteFrom, deleteTo ) );//list.getAbsoluteStart() + list.textLength, endElement.getAbsoluteStart() ) );
-							
-							try {
-								endElement.parent.removeChild( endElement );
-							} catch (e:*) {
-								trace( '[KK] {' + getQualifiedClassName(this) + '} :: Could not delete ' + endElement + ' from ' + endElement.parent );
+							//	From list item to whatever
+							if ( startItem )
+							{
+								list = startItem.parent as ListElementX;
+								
+								//	Trim start item
+								deleteFrom = Math.min( startItem.numChildren-1, Math.max(1, startItem.findChildIndexAtPosition( start-startItem.getAbsoluteStart() ) ) );
+								
+								for ( i = startItem.numChildren-1; i >= deleteFrom; i-- )
+								{
+									if ( i != deleteFrom )
+										startItem.removeChildAt(i);
+									else
+									{
+										if ( startItem.getChildAt(i) is SpanElement )
+										{
+											j = absoluteStart-startItem.getChildAt(i).getAbsoluteStart();
+											
+											if ( j <= 0 )
+												startItem.removeChildAt(i);
+											else
+											{
+												end -= (startItem.getChildAt(i) as SpanElement).text.length - j;
+												(startItem.getChildAt(i) as SpanElement).text = (startItem.getChildAt(i) as SpanElement).text.substring(0, j);
+											}
+										}
+										else
+											startItem.removeChildAt(i);	//	TODO: Fix, does not account for LinkElement
+									}
+								}
+								
+								//	To list item
+								if ( endItem )
+								{
+									j = endItem.getChildIndex( textFlow.findLeaf(end) );
+									i = endItem.numChildren-1;
+									
+									//	Cannot be more than # of children in list, cannot be less than position 1
+									deleteFrom = Math.min( i, Math.max(1, j ) );
+									
+									//	Merge items
+									for ( i = deleteFrom; i < endItem.numChildren; i++ )
+									{
+										//	Clone item
+										endElement = endItem.getChildAt(i).deepCopy();
+										
+										//	Special case for first item
+										//		if span, trim text to match selection state
+										if ( i == deleteFrom )
+										{
+											//	TODO: Fix, does not account for LinkElement
+											if ( endElement is SpanElement )
+											{
+												//	Relative start of selection (must be > -1)
+												//								Get from original item's absoluteStart as the clone isn't on the textFlow
+												j = Math.max(0, end - endItem.getChildAt(i).getAbsoluteStart()-1);	//	-1 because the calculation is going forward one too many
+												
+												(endElement as SpanElement).text = (endElement as SpanElement).text.substring(j);
+											}
+										}
+										
+										startItem.addChild( endElement );
+									}
+									
+									//	[KK]	Without merge, a space will show between the two joined items upon save/export
+									//	Merge all applicable children
+									for ( i = startItem.numChildren-1; i > 1  ; i-- )
+									{
+										j = i-1;
+										
+										startElement = startItem.getChildAt(i);
+										endElement = startItem.getChildAt(j);
+										
+										//	Must be same class
+										if ( getQualifiedClassName(startElement) == getQualifiedClassName(endElement) )
+										{
+											//	Must have same formatting
+											if ( TextLayoutFormat.isEqual( startElement.format, endElement.format ) )
+											{
+												//	Must be able to merge... e.g. cannot be two images
+												if ( endElement is SpanElement )
+												{
+													(endElement as SpanElement).text = (endElement as SpanElement).text + (startElement as SpanElement).text; 
+													startItem.removeChildAt(i);
+												}
+												else if ( endElement is LinkElement )
+												{
+													var startLink:LinkElement = startElement as LinkElement;
+													var endLink:LinkElement = endElement as LinkElement;
+													while ( startLink.numChildren > 0 )
+													{
+														endLink.addChild( startLink.removeChildAt(0) );
+													}
+													startItem.removeChildAt(i);
+												}
+											}
+										}
+									}
+									
+									deleteFrom = startItem.parent.getChildIndex( startItem );
+									deleteTo = endItem.parent.getChildIndex( endItem );
+									
+									endList = endItem.parent as ListElementX;
+									
+									//	Single list
+									if ( list == endList )
+									{
+										for ( i = deleteTo; i > deleteFrom; i-- )
+										{
+											list.removeChildAt(i);
+										}
+									}
+									//	Multiple lists
+									else
+									{
+										//	Delete between lists
+										deleteText( new SelectionState( textFlow, list.getAbsoluteStart() + list.textLength, endList.getAbsoluteStart()-1 ) );
+										
+										//	Delete selected items from starting list (except for starting item)
+										for ( i = list.numChildren-1; i > deleteFrom; i-- )
+										{
+											list.removeChildAt(i);
+										}
+										
+										//	Delete selected items from ending list (including ending item)
+										for ( i = deleteTo; i > -1; i-- )
+										{
+											endList.removeChildAt(i);
+										}
+										
+										//	Merge lists
+										for ( i = 0; i < endList.numChildren; i++ )
+										{
+											if ( endList.getChildAt(i) is ListItemElementX )
+											{
+												list.addChild( endList.removeChildAt(i) );
+												i--;
+											}
+										}
+										
+										//	Delete end list
+										endList.parent.removeChild( endList );
+									}
+								}
+								//	To whatever
+								else
+								{
+									//	Delete from end of list to end point
+									deleteText( new SelectionState(textFlow, list.getAbsoluteStart()+list.textLength, end) );
+									
+									//	Remove items from list that are above / equal to start item position +1
+									for ( i = list.numChildren-1; i > list.getChildIndex(startItem); i-- )
+									{
+										if ( list.getChildAt(i) is ListItemElementX )
+											list.removeChildAt(i);
+									}
+								}
+							}
+							//	From whatever to list item, special case (must remove list item and manually join)
+							else if ( endItem )
+							{
+								list = endItem.parent as ListElementX;
+								
+								end -= list.getAbsoluteStart()-start;
+								//	Delete from start to start of list
+								deleteText( new SelectionState(textFlow, start, list.getAbsoluteStart()) );
+								
+								//	Delete items from list
+								//	If ending item, concatenate it
+								for ( i = list.getChildIndex(endItem); i > -1; i-- )
+								{
+									if ( i == list.getChildIndex(endItem) )
+									{
+										deleteFrom = Math.max( 0, endItem.getChildIndex( textFlow.findLeaf(end) ) );
+										
+										//	Trim end item
+										for ( j = deleteFrom; j > 0; j-- )
+										{
+											endElement = endItem.getChildAt(j);
+											
+											//	Special case for first item
+											//		if span, trim text to match selection state
+											if ( j == deleteFrom )
+											{
+												//	TODO: Fix, does not account for LinkElement
+												if ( endElement is SpanElement )
+												{
+													//	Relative start of selection (must be > -1)
+													//								Get from original item's absoluteStart as the clone isn't on the textFlow
+													deleteTo = Math.max(0, end - endElement.getAbsoluteStart());
+													
+													(endElement as SpanElement).text = (endElement as SpanElement).text.substring(deleteTo+1);	//	+1 because the calculation is off by one for some reason
+												}
+											}
+											else
+												endItem.removeChildAt(j);
+										}
+									}
+									else if ( list.getChildAt(i) is ListItemElementX )
+										list.removeChildAt(i);
+								}
+							}
+							else
+							{
+								super.keyDownHandler(event);
+								return;
 							}
 						}
 					}
@@ -1115,10 +1341,10 @@ package flashx.textLayout.edit
 					cleanEmptyLists( textFlow );
 					
 					for each ( list in lists )
-				{
-					if ( list )
-						list.update();
-				}
+					{
+						if ( list )
+							list.update();
+					}
 					break;
 				default:
 					super.keyDownHandler( event );
@@ -1128,6 +1354,70 @@ package flashx.textLayout.edit
 			
 			setSelectionState( new SelectionState( textFlow, absoluteStart, absoluteStart, textFlow.format ) );
 			textFlow.flowComposer.updateAllControllers();
+		}
+		
+		override public function editHandler(event:Event):void
+		{
+			var items:Array = SelectionHelper.getSelectedListItems( textFlow, true );
+			var lists:Array = SelectionHelper.getSelectedLists( textFlow );
+			
+			switch (event.type)
+			{
+				case Event.CLEAR:
+					//	[KK]	Special case for list clear
+					if ( items.length > 0 )
+					{
+						var startItem:ListItemElementX = items[0] as ListItemElementX;
+						var startList:ListElementX = startItem.parent as ListElementX;
+						
+						var endItem:ListItemElementX;
+						
+						//	Get end item for special case
+						for ( var i:int = startList.numChildren-1; i > -1; i-- )
+						{
+							if ( startList.getChildAt(i) is ListItemElementX )
+							{
+								endItem = startList.getChildAt(i) as ListItemElementX;
+								break;
+							}
+						}
+						
+						var itemStart:uint = startItem.actualStart;
+						var listStart:uint = startList.getAbsoluteStart();
+						var itemEnd:uint = endItem.getAbsoluteStart() + endItem.textLength - 1;
+						var listEnd:uint = listStart + startList.textLength;
+						
+						//	[KK]	Special case, deleting one whole list (and only that list)
+						if ( absoluteStart <= itemStart && absoluteStart >= listStart &&
+							absoluteEnd >= itemEnd && absoluteEnd <= listEnd)
+						{
+							startList.parent.removeChild(startList);
+							
+							//	[KK]	Repeated code (for this one special case)
+							cleanEmptyLists( textFlow );
+							
+							for each ( startList in lists )
+							{
+								if ( startList )
+									startList.update();
+							}
+						}
+						else
+						{
+							super.editHandler(event);
+							break;
+						}
+						
+						setSelectionState( new SelectionState( textFlow, absoluteStart, absoluteStart ) );
+						textFlow.flowComposer.updateAllControllers();
+					}
+					else
+						super.editHandler(event);
+					break;
+				default:
+					super.editHandler(event);
+					break;
+			}
 		}
 		
 		/**

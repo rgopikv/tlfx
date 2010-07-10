@@ -349,6 +349,13 @@ package flashx.textLayout.elements.list
 					xml.appendChild( childXML );
 			}
 			
+			var cleanMargin:RegExp = /margin-left:\d+;/i;
+			if ( cleanMargin.test( xml.@style.toString() ) )
+				xml.@style = xml.@style.toString().replace( cleanMargin, '' );
+			
+			if ( xml.@style.toString().length < 1 )
+				delete xml.@style;
+			
 			return xml.toXMLString() != '<li/>' ? xml : null;
 		}
 		
