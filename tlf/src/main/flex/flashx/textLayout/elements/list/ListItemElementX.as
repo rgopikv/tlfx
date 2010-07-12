@@ -6,6 +6,7 @@ package flashx.textLayout.elements.list
 	import flash.utils.getDefinitionByName;
 	import flash.utils.getQualifiedClassName;
 	
+	import flashx.textLayout.converter.IHTMLExporter;
 	import flashx.textLayout.elements.ExtendedLinkElement;
 	import flashx.textLayout.elements.FlowElement;
 	import flashx.textLayout.elements.FlowLeafElement;
@@ -267,7 +268,8 @@ package flashx.textLayout.elements.list
 		}
 		
 		// [TA] 06-30-2010 :: Added argument for IExportStyleHelper instance. Proper implementation needed for export and strip of styles from applied and explicit formatting.
-		public function export( styleExporter:IExportStyleHelper ):XML
+		// [TA] 07-12-2010 :: ADDED IHTMLExport argument to properly export child elements from list item element.
+		public function export( exporter:IHTMLExporter, styleExporter:IExportStyleHelper ):XML
 		{
 		// [END TA]
 			var xml:XML = <li/>;
@@ -296,55 +298,57 @@ package flashx.textLayout.elements.list
 			for ( i = 1; i < numChildren; i++ )
 			{
 				var child:FlowElement = getChildAt(i);
-				var childXML:XML;
-				
-				switch ( Class( getDefinitionByName( getQualifiedClassName( child ) ) ) )
-				{
-					case VarElement:	//	Must come before SpanElement as VarElement extends SpanElement
-						var vEl:VarElement = child as VarElement;
-						childXML = <span class="cc-var" title="whatever">{vEl.textContent}</span>;
-						styleExporter.applyStyleAttributesFromElement( childXML, vEl );
-						if ( vEl.id && vEl.id.length > 0 )
-							childXML.@id = vEl.id;
-						break;
-					case SpanElement:
-						var span:SpanElement = child as SpanElement;
-						childXML = <span>{span.text}</span>;
-						var hasStyles:Boolean = styleExporter.applyStyleAttributesFromElement( childXML, span );
-						if ( span.id && span.id.length > 0 )
-							childXML.@id = span.id;
-						
-						if ( !hasStyles && (!span.id || !(span.id && span.id.length > 0)) )
-							childXML = new XML(span.text);
-						break;
-					case InlineGraphicElement:
-						var img:InlineGraphicElement = child as InlineGraphicElement;
-						if ( img.source && img.source.hasOwnProperty( 'export' ) )	//	EditableImageElement or VariableElement
-							childXML = img.source.export();	//	May not be an <img/> tag
-						else
-						{
-							childXML = <img/>;
-							childXML.@src = img.source.toString();
-							if ( img.id && img.id.length > 0 )
-								childXML.@id = childXML.@alt = img.id;
-						}
-						styleExporter.applyStyleAttributesFromElement( childXML, img );
-						break;
-					case ExtendedLinkElement:
-					case LinkElement:
-						var link:LinkElement = child as LinkElement;
-						childXML = <a/>;
-						childXML.@href = link.href;
-						childXML.@target = link.target;
-						if ( link.id && link.id.length > 0 )
-							childXML.@id = link.id;
-						styleExporter.applyStyleAttributesFromElement( childXML, link );
-						break;
-					default:
-						trace('Could not export:', child, 'from:', this);
-						break;
-				}
-				
+				var childXML:XML = exporter.exportElementToFragment( child );
+				// [TA] 07-12-2010 :: REMOVED and used IHTMLExporter imeplementation to properly export child elements.
+//				switch ( Class( getDefinitionByName( getQualifiedClassName( child ) ) ) )
+//				{
+//					case VarElement:	//	Must come before SpanElement as VarElement extends SpanElement
+//						var vEl:VarElement = child as VarElement;
+//						childXML = <span class="cc-var" title="whatever">{vEl.textContent}</span>;
+//						styleExporter.applyStyleAttributesFromElement( childXML, vEl );
+//						if ( vEl.id && vEl.id.length > 0 )
+//							childXML.@id = vEl.id;
+//						break;
+//					case SpanElement:
+//						var span:SpanElement = child as SpanElement;
+//						childXML = <span>{span.text}</span>;
+//						var hasStyles:Boolean = styleExporter.applyStyleAttributesFromElement( childXML, span );
+//						if ( span.id && span.id.length > 0 )
+//							childXML.@id = span.id;
+//						
+//						if ( !hasStyles && (!span.id || !(span.id && span.id.length > 0)) )
+//							childXML = new XML(span.text);
+//						break;
+//					case InlineGraphicElement:
+//						var img:InlineGraphicElement = child as InlineGraphicElement;
+//						if ( img.source && img.source.hasOwnProperty( 'export' ) )	//	EditableImageElement or VariableElement
+//							childXML = img.source.export();	//	May not be an <img/> tag
+//						else
+//						{
+//							childXML = <img/>;
+//							childXML.@src = img.source.toString();
+//							if ( img.id && img.id.length > 0 )
+//								childXML.@id = childXML.@alt = img.id;
+//						}
+//						styleExporter.applyStyleAttributesFromElement( childXML, img );
+//						break;
+//					case ExtendedLinkElement:
+//					case LinkElement:
+//						var link:LinkElement = child as LinkElement;
+//						childXML = <a/>;
+//						childXML.@href = link.href;
+//						childXML.@target = link.target;
+//						if ( link.id && link.id.length > 0 )
+//							childXML.@id = link.id;
+//						childXML.appendChild( link.getText() );
+//						
+//						styleExporter.applyStyleAttributesFromElement( childXML, link );
+//						break;
+//					default:
+//						trace('Could not export:', child, 'from:', this);
+//						break;
+//				}
+				// [END TA]
 				if ( childXML )
 					xml.appendChild( childXML );
 			}

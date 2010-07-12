@@ -27,6 +27,8 @@ package flashx.textLayout.converter
 		 */
 		function exportElementsToFragment( node:XML, elements:Array /* FlowElement[] */ ):void;	
 		
+		function exportElementToFragment( element:FlowElement ):XML;
+		
 		/**
 		 * Returns a markup model in XML of elements relationship in TextFlow. 
 		 * @param element FlowElement

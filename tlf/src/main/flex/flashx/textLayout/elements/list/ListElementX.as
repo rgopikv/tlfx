@@ -2,6 +2,7 @@ package flashx.textLayout.elements.list
 {
 	import flash.utils.getQualifiedClassName;
 	
+	import flashx.textLayout.converter.IHTMLExporter;
 	import flashx.textLayout.elements.DivElement;
 	import flashx.textLayout.elements.FlowElement;
 	import flashx.textLayout.elements.ListItemElement;
@@ -491,8 +492,9 @@ package flashx.textLayout.elements.list
 			}
 		}
 		
-		// [TA] 06-30-2010 :: Added argument for IExportStyleHelper instance. Proper implementation needed for export and strip of styles from applied and explicit formatting. 
-		public function export( styleExporter:IExportStyleHelper ):String
+		// [TA] 06-30-2010 :: Added argument for IExportStyleHelper instance. Proper implementation needed for export and strip of styles from applied and explicit formatting.
+		// [TA] 07-12-2010 :: ADDED IHTMLExport argument to properly export child elements from list item element.
+		public function export( exporter:IHTMLExporter, styleExporter:IExportStyleHelper ):String
 		{
 		// [END TA]
 			var xmlStr:String = '';
@@ -571,7 +573,7 @@ package flashx.textLayout.elements.list
 					}
 				}
 				
-				var itemXML:XML = item.export( styleExporter );
+				var itemXML:XML = item.export( exporter, styleExporter );
 				xmlStr += itemXML ? itemXML.toXMLString() : '';
 				
 				prevItem = item;
