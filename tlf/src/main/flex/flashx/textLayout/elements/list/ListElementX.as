@@ -16,6 +16,7 @@ package flashx.textLayout.elements.list
 	public class ListElementX extends DivElement
 	{
 		protected var _pendingChildElements:Vector.<PendingNotifyingElement>;
+		protected var _pendingUpdate:Boolean;
 		
 		private var _paddingItems:Vector.<ListPaddingElement>;
 		
@@ -23,6 +24,7 @@ package flashx.textLayout.elements.list
 		{
 			super();
 			_pendingChildElements = new Vector.<PendingNotifyingElement>();
+			_pendingUpdate = false;
 			
 			_paddingItems = new Vector.<ListPaddingElement>();
 			_paddingItems.push( new ListPaddingElement(), new ListPaddingElement() );
@@ -198,7 +200,7 @@ package flashx.textLayout.elements.list
 		
 		public function update():void
 		{
-			if ( numChildren > 0 )
+			if ( numChildren > 0 && !pendingUpdate )
 			{
 				removePadding();
 				
@@ -324,7 +326,11 @@ package flashx.textLayout.elements.list
 												else
 												{
 													//	Splice in AFTER original Vector
-													groups.splice( uint(itemIndent/24), 0, new Vector.<ListItemElementX>() );
+													//	[KK]
+													//	-	Start at index you want to inject into
+													//	-	Delete whatever is at that pointer
+													//	-	Inject new Vector and then the clone of what was at that pointer
+													groups.splice( uint(itemIndent/24)+1, 1, new Vector.<ListItemElementX>(), group );
 													groups[uint(itemIndent/24)+1].push( item );
 												}
 											}
@@ -371,7 +377,11 @@ package flashx.textLayout.elements.list
 							{
 								if (groups.length > uint(itemIndent/24)+1 )
 								{
-									groups.splice( uint(itemIndent/24)+1, 0, groups[uint(itemIndent/24)+1], new Vector.<ListItemElementX>() );
+									//	[KK]
+									//	-	Start at index you want to inject into
+									//	-	Delete whatever is at that pointer
+									//	-	Inject new Vector and then the clone of what was at that pointer
+									groups.splice( uint(itemIndent/24)+1, 1, new Vector.<ListItemElementX>(), group );
 									groups[uint(itemIndent/24)+2].push(item);
 								}
 								else
@@ -425,7 +435,11 @@ package flashx.textLayout.elements.list
 													groups[uint(itemIndent/24)+2].push( item );
 												else
 												{
-													groups.splice( uint(itemIndent/24)+1, 0, groups[uint(itemIndent/24)+1], new Vector.<ListItemElementX>() );
+													//	[KK]
+													//	-	Start at index you want to inject into
+													//	-	Delete whatever is at that pointer
+													//	-	Inject new Vector and then the clone of what was at that pointer
+													groups.splice( uint(itemIndent/24)+1, 1, new Vector.<ListItemElementX>(), group );
 													groups[uint(itemIndent/24)+2].push(item);
 												}
 											}
@@ -462,6 +476,8 @@ package flashx.textLayout.elements.list
 					prevItem = item;
 				}
 				
+				//	[KK]	This pending flag is important, without it lists will recursively update giving bad results
+				pendingUpdate = true;
 				for ( i = 0; i < groups.length; i++ )
 				{
 					group = groups[i];
@@ -471,6 +487,7 @@ package flashx.textLayout.elements.list
 						item.indent = Math.min( 240, Math.max( item.indent, i*24+24 ) );
 					}
 				}
+				pendingUpdate = false;
 			}
 		}
 		
@@ -642,6 +659,15 @@ package flashx.textLayout.elements.list
 					items.push( getChildAt(i) );
 			}
 			return items;
+		}
+		
+		public function set pendingUpdate( value:Boolean ):void
+		{
+			_pendingUpdate = value;
+		}
+		public function get pendingUpdate():Boolean
+		{
+			return _pendingUpdate;
 		}
 	}
 }

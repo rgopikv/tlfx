@@ -92,13 +92,21 @@ package flashx.textLayout.operations
 				_affectedListItems.push( new AffectedListItem( item ) );
 				// [TA] 06-30-2010 :: Change to invoke mode change through parenting list in order to track markup change of item for external styling.
 				var parentList:ListElementX = item.parent as ListElementX;
+				
+				//	[KK]	Stop list from being updated every time an item is added/removed
+				parentList.pendingUpdate = true;
+				//	[END KK]
+				
 				parentList.changeListModeOnListItem( item, ( mode == ListItemModeEnum.ORDERED ) ? mode : ListItemModeEnum.UNORDERED );
 				// [END TA]
 			}
 			
 			//	Update all lists selected
 			for each ( list in lists )
+			{
+				list.pendingUpdate = false;
 				list.update();
+			}
 				
 			return list;
 		}
@@ -139,6 +147,11 @@ package flashx.textLayout.operations
 			var firstParagraph:ParagraphElement = paragraphs[0];
 			
 			var list:ListElementX = new ListElementX();
+			
+			//	[KK]	Mark lists as pending update so they don't update too many times
+			list.pendingUpdate = true;
+			//	[END KK]
+			
 			addParagraphElementsAsItemsToList( paragraphs, list );
 			
 			_listModeCreateOnTextFlow = true;
@@ -158,6 +171,10 @@ package flashx.textLayout.operations
 						list.removeChildAt(i);
 				}
 			}
+			
+			//	[KK]	Mark list as not pending update, so that it will actually update
+			list.pendingUpdate = false;
+			//	[END KK]
 			
 			//	Update in case any items were removed
 			list.update();
@@ -187,6 +204,10 @@ package flashx.textLayout.operations
 		 */
 		protected function addParagraphElementsAsItemsToList( paragraphs:Array /*ParagraphElement[] */, list:ListElementX ):void
 		{
+			//	[KK]	Mark list as pending update
+			list.pendingUpdate = true;
+			//	[END KK]
+			
 			var i:int;
 			var j:int;
 			var p:ParagraphElement;
@@ -253,6 +274,11 @@ package flashx.textLayout.operations
 			//	[FORMATING]
 			//	[KK] Apply all styling
 			_htmlImporter.importStyleHelper.apply();
+			
+			//	[KK]	Mark list as not pending update
+			list.pendingUpdate = false;
+			//	[END KK]
+			
 			list.update();
 		}
 		
@@ -361,32 +387,32 @@ package flashx.textLayout.operations
 				{
 					list = addListDirectlyToTextFlow( tf, paragraphs, index + 1 );
 					
-					//	[KK]	Attempt to remove last (empty) paragraph added through the creation process
-					var lastItem:ListItemElementX;
-					var idx:int = list.numChildren;
-					while ( !lastItem || !(lastItem is ListItemElementX) )
-					{
-						idx--;
-						if ( idx < 0 )
-							break;
-						lastItem = list.getChildAt(idx) as ListItemElementX;
-					}
-					
-					if ( lastItem )
-					{
-						idx = lastItem.numChildren;
-						while (--idx > -1)
-						{
-							var child:FlowElement = lastItem.getChildAt(idx);
-							
-							if ( child is SpanElement )
-							{
-								//	[KK]	Remove the last character as it is an unnecessary line break added from who knows where
-								(child as SpanElement).text = (child as SpanElement).text.substring(0, (child as SpanElement).text.length-1);
-								break;
-							}
-						}
-					}
+//					//	[KK]	Attempt to remove last (empty) paragraph added through the creation process
+//					var lastItem:ListItemElementX;
+//					var idx:int = list.numChildren;
+//					while ( !lastItem || !(lastItem is ListItemElementX) )
+//					{
+//						idx--;
+//						if ( idx < 0 )
+//							break;
+//						lastItem = list.getChildAt(idx) as ListItemElementX;
+//					}
+//					
+//					if ( lastItem )
+//					{
+//						idx = lastItem.numChildren;
+//						while (--idx > -1)
+//						{
+//							var child:FlowElement = lastItem.getChildAt(idx);
+//							
+//							if ( child is SpanElement )
+//							{
+//								//	[KK]	Remove the last character as it is an unnecessary line break added from who knows where
+//								(child as SpanElement).text = (child as SpanElement).text.substring(0, (child as SpanElement).text.length-1);
+//								break;
+//							}
+//						}
+//					}
 					
 					addElementToAutosizableContainerController( list, containerController ); 
 				}
