@@ -30,9 +30,11 @@ package flashx.textLayout.edit
 	import flashx.textLayout.elements.list.ListPaddingElement;
 	import flashx.textLayout.elements.table.TableElement;
 	import flashx.textLayout.formats.TextLayoutFormat;
+	import flashx.textLayout.operations.BackspaceOperation;
 	import flashx.textLayout.operations.DummyOperation;
 	import flashx.textLayout.operations.PasteOperation;
 	import flashx.textLayout.tlf_internal;
+	import flashx.textLayout.utils.ListUtil;
 	import flashx.undo.IUndoManager;
 	
 	use namespace tlf_internal;
@@ -521,445 +523,17 @@ package flashx.textLayout.edit
 					}
 					break;
 				case Keyboard.BACKSPACE:
-					if ( items.length > 0 )
-					{
-						startItem = items[0] as ListItemElementX;
-						list = startItem.parent as ListElementX;
-						
-						var copiedChildren:Array = list.mxmlChildren.slice();
-						
-						start = list.getChildIndex( startItem );
-						
-						//	Single point of contact
-						if ( absoluteStart == absoluteEnd )
-						{
-							//	At start
-							if ( absoluteStart <= startItem.actualStart )
-							{
-								//	If element before starting list is a ListElementX, join
-								var prevElement:FlowElement = list.parent.getChildAt( list.parent.getChildIndex(list)-1 );
-								if ( prevElement )
-								{
-									if ( prevElement is ListElementX )
-									{
-										endList = prevElement as ListElementX;
-										
-										var addAt:int;
-										
-										//	Get index to add items from bottom list to top list
-										for ( i = endList.numChildren-1; i > -1; i-- )
-										{
-											if ( endList.getChildAt(i) is ListItemElementX )
-											{
-												addAt = i+1;
-												break;
-											}
-										}
-										
-										//	Merge lists
-										for ( i = list.numChildren-1; i > -1; i-- )
-										{
-											if ( list.getChildAt(i) is ListItemElementX )
-												endList.addChildAt( addAt ? addAt : endList.numChildren, list.removeChildAt(i) as ListItemElementX );
-										}
-										
-										list.parent.removeChild( list );
-										
-										item = endList.getChildAt(addAt-1) as ListItemElementX;
-										setSelectionState( new SelectionState( textFlow, item.actualStart + item.modifiedTextLength, item.actualStart + item.modifiedTextLength ) );0
-										textFlow.flowComposer.updateAllControllers();
-										return;
-									}
-								}
-								
-								//	Add new list after current list
-								var newList:ListElementX = new ListElementX();
-								list.parent.addChildAt( list.parent.getChildIndex(list)+1, newList );
-								
-								//	Switch all children AFTER the start child to the new list
-								for ( i = list.numChildren-1; i > start; i-- )
-								{
-									if ( list.getChildAt(i) is ListItemElementX )
-										newList.addChildAt(0, list.removeChildAt(i));
-								}
-								
-								newList.update();
-								
-								//	Add new paragraph right after current list
-								p = new ParagraphElement();
-								list.parent.addChildAt( list.parent.getChildIndex(list)+1, p );
-								
-								//	Transfer children
-								extractChildrenToParagraphElement( startItem, p );
-								
-								//	Remove original child
-								startItem.parent.removeChild(startItem);
-								
-								cleanEmptyLists( textFlow );
-							}
-								//	No text
-							else if ( startItem.text.length == 0 )
-							{
-								if ( start-1 < 0 )
-								{
-									i = 0;
-									while ( i++ < list.numChildren )
-									{
-										if ( list.getChildAt(i) is ListItemElementX )
-										{
-											prevItem = list.getChildAt(i) as ListItemElementX;
-											break;
-										}
-									}
-									setSelectionState( new SelectionState( textFlow, prevItem.actualStart, prevItem.actualStart ));
-								}
-								else
-								{
-									//	Convoluted logic to get the item that the selection should jump to.
-									//	Let me explain...
-									//	Attempt to get the item at the NEW start position (start of original selection child index -1)
-									prevItem = list.getChildAt(start-1) as ListItemElementX;
-									
-									//	If null (or not a ListItemElementX)
-									if ( !prevItem )
-									{
-										//	Set i to be the NEW start position
-										i = start-1;
-										
-										//	i is 0
-										if ( i == 0 )
-										{
-											//	Check to see if item at index 0 is ListItemElementX
-											if ( list.getChildAt(0) is ListItemElementX )
-												prevItem = list.getChildAt(0) as ListItemElementX;
-											else
-											{
-												//	Go through all children to get the FIRST instance of a ListItemElementX
-												while ( i++ < list.numChildren )
-												{
-													if ( list.getChildAt(i) is ListItemElementX )
-													{
-														prevItem = list.getChildAt(i) as ListItemElementX;
-														break;
-													}
-												}
-											}
-										}
-											//	i is NOT 0
-										else
-										{
-											var iclone:int = i;
-											
-											//	Starting at i, peruse backwards through all children looking for the first (if any) ListItemElementX it can find
-											while ( i-- > -1)
-											{
-												if ( list.getChildAt(i) is ListItemElementX )
-												{
-													prevItem = list.getChildAt(i) as ListItemElementX;
-													break;
-												}
-											}
-											
-											//	In case it didn't find any
-											//	e.g. start at 1 go down to 0 and still no list item remains
-											//	This shouldn't happen, but it has been put here as error prevention
-											if ( !prevItem )
-											{
-												//	Start at original position of i (original selection child index -1) and progress to find the fist instance of ListItemElementX
-												while ( iclone++ < list.numChildren )
-												{
-													if ( list.getChildAt(iclone) is ListItemElementX )
-													{
-														prevItem = list.getChildAt(iclone) as ListItemElementX;
-														break;
-													}
-												}
-											}
-										}
-									}
-									
-									var cameBefore:Boolean = (list.getChildIndex(prevItem) < start);
-									
-									list.removeChildAt(start);
-									list.update();
-									textFlow.flowComposer.updateAllControllers();
-									
-									//												 -1 because it's returning start of list denoter + it's text length
-									tl = cameBefore ? prevItem.text.length : -1;
-									
-									setSelectionState( new SelectionState( textFlow, prevItem.actualStart + tl, prevItem.actualStart + tl ) );
-								}
-							}
-							else
-							{
-								super.keyDownHandler(event);
-								return;
-							}
-						}
-						//	Selection
-						else
-						{
-							//	Get the offset of the start of the item from the start of the selection
-							start = startItem.actualStart - absoluteStart;
-							
-							//	End flow element
-							endElement = textFlow.findLeaf(absoluteEnd);
-							
-							//	Get it's parent (ListItemElementX)
-							var fge:FlowGroupElement = endElement.parent;
-							
-							
-							if ( fge is ListItemElementX )
-							{
-								item = fge as ListItemElementX;
-								list = item.parent as ListElementX;
-								
-								//	Find where the major delete operation should end
-								if ( list.getChildIndex(item) > 0 )
-								{
-									for ( j = list.getChildIndex(item)-1; j > -1; j-- )
-									{
-										if ( list.getChildAt(j) is ListPaddingElement )
-											j = list.parent.getChildIndex(list)-1;	//	Get element BEFORE list
-										i = list.getChildAt(j).getAbsoluteStart() + list.getChildAt(j).textLength;
-										break;
-									}
-								}
-								else
-								{
-									//	Get element before list and set i to be the end of that
-									j = list.parent.getChildIndex(list)-1;
-									i = list.parent.getChildAt(j).getAbsoluteStart() + list.parent.getChildAt(j).textLength;
-								}
-							}
-							else
-								i = absoluteEnd;
-							
-							textFlow.flowComposer.updateAllControllers();
-							
-							deleteFrom = Math.max(0, absoluteStart);
-							deleteTo = Math.min(i, textFlow.textLength-1);
-							
-							try {
-								deleteText( new SelectionState( textFlow, deleteFrom, deleteTo ) );//absoluteStart, i ) );
-							} catch ( e:* ) {
-								trace( '[KK] {' + getQualifiedClassName(this) + '} :: Could not delete from position ' + deleteFrom + ' to position ' + deleteTo + ' on ' + textFlow + ' because:\n\t' + e);
-								textFlow.flowComposer.updateAllControllers();
-							}
-							
-							if ( item && list )
-								//	Trim list item's text
-								deleteText( new SelectionState( textFlow, item.actualStart, absoluteEnd+1 ) );
-							
-							tl = 1;
-							
-							//	If >= 0 it means they've selected all the way to the beginning OR are selecting inside the list denoter
-							if ( start >= 0 )
-							{
-								//	Make sure it still exists
-								if ( startItem && startItem.parent == list )
-								{
-									tl += startItem.seperatorLength;
-									list.removeChild( startItem );
-								}
-							}
-							
-							list = lists[0] as ListElementX;
-							endList = lists[ lists.length-1 ] as ListElementX;
-							
-							cleanEmptyLists( textFlow );
-							
-							//	Update to show changes to textFlow
-							textFlow.flowComposer.updateAllControllers();
-							
-							//	Join the lists
-							if ( list && endList && (endList !== list) )
-							{
-								//	Find where to add the list items
-								for ( i = list.numChildren-1; i > -1; i-- )
-								{
-									if ( list.getChildAt(i) is ListItemElementX )
-									{
-										j = i+1;
-										break;
-									}
-								}
-								
-								//	Merge lists
-								for ( i = endList.numChildren-1; i > -1; i-- )
-								{
-									if ( endList.getChildAt(i) is ListItemElementX )
-									{
-										try {
-											list.addChildAt(j, endList.removeChildAt(i));
-										} catch (e:*) {
-											trace('[KK] {' + getQualifiedClassName(this) + '} :: Could not remove ' + endList.getChildAt(i) + ' from list ' + endList);
-										}
-									}
-								}
-								
-								try {
-									endList.parent.removeChild(endList);
-								} catch ( e:* ) {
-									trace('[KK] {' + getQualifiedClassName(this) + '} :: Could not remove endlist, {' + (endList ? endList : 'null') + '}, from it\'s parent, {' + (endList ? (endList.parent ? endList.parent : 'null') : 'endList is null' ) + '}');
-								}
-							}
-							else
-							{
-								trace( '[KK] {' + getQualifiedClassName(this) + '} :: Could not merge resulting lists from multiple list backspacing.' );
-								tl--;
-							}
-							
-							for each ( list in lists )
-							{
-								if ( list )
-									list.update();
-							}
-							
-							setSelectionState( new SelectionState( textFlow, absoluteStart-tl, absoluteStart-tl ) );
-							
-							performDummyOperation( getSelectionState() );
-							event.preventDefault();
-							return;
-						}
-					}
-					else
-					{
-						var fg1:FlowGroupElement = textFlow.findLeaf( absoluteStart ).parent;
-						var fg2:FlowGroupElement = textFlow.findLeaf( Math.max( 0, absoluteStart - 1 ) ).parent;
-						var ss:SelectionState;
-						
-						try {
-							if ( fg1 is ListPaddingElement )
-							{
-								endList = fg1.parent as ListElementX;
-								
-								if ( fg2 is ListItemElementX  || fg2 is ListPaddingElement )
-								{
-									if ( fg2.parent != fg1.parent )
-									{
-										//	Different lists, join
-										list = fg2.parent as ListElementX;
-										
-										//	Get index to add list items to
-										addAt = list.numChildren;
-										for ( i = list.numChildren-1; i > -1; i-- )
-										{
-											if ( list.getChildAt(i) is ListItemElementX )
-											{
-												addAt = i+1;
-												break;
-											}
-										}
-										
-										//	Transfer children
-										for ( i = endList.numChildren-1; i > -1; i-- )
-										{
-											if ( endList.getChildAt(i) is ListItemElementX )
-											{
-												list.addChildAt( addAt, endList.removeChildAt(i) );
-											}
-											else
-												endList.removeChildAt(i);
-										}
-										
-										//	Remove endList
-										endList.parent.removeChild( endList );
-										
-										//	Update list
-										list.update();
-										
-										item = list.getChildAt(addAt-1) as ListItemElementX;
-										
-										ss = new SelectionState( textFlow, item.actualStart + item.modifiedTextLength, item.actualStart + item.modifiedTextLength );
-										
-										textFlow.flowComposer.updateAllControllers();
-									}
-									else
-										ss = new SelectionState( textFlow, fg2.getAbsoluteStart() + fg2.textLength-1, fg2.getAbsoluteStart() + fg2.textLength-1 );
-									
-									setSelectionState( ss );
-									return;
-								}
-								else	//	Padding at top of list, delete from element above it
-									ss = new SelectionState( textFlow, fg2.getAbsoluteStart() + fg2.textLength-1, fg2.getAbsoluteStart() + fg2.textLength-1 );
-								
-								setSelectionState( ss );
-							}
-							else if ( fg1 is ListItemElementX )
-							{
-								return;
-							}
-							
-							super.keyDownHandler(event);
-						} catch ( e:* ) {
-							//	ParagraphElements won't backspace into Lists
-							//	Left fix open for the chance that other things may do the same
-							
-							if ( fg1 is ParagraphElement )
-							{
-								p = fg1 as ParagraphElement;
-								if ( fg2 && fg2 is ListPaddingElement )
-								{
-									list = fg2.parent as ListElementX;
-									
-									var pTextLength:int = 0;
-									
-									for ( i = p.numChildren-1; i > -1; i-- )
-									{
-										nextElement = p.getChildAt(i);
-										if ( nextElement is SpanElement )
-											pTextLength += Math.max( 0, (nextElement as SpanElement).text.match( /[^\n\s\t\u2028\u2029]/ig ).length );
-										else if ( nextElement is LinkElement )	//	Suffices for ExtendedLinkElement as well
-										{
-											for ( j = (nextElement as LinkElement).numChildren-1; j > -1; j-- )
-											{
-												var el:FlowElement = (nextElement as LinkElement).getChildAt(j);
-												if ( el is SpanElement )
-													pTextLength += Math.max( 0, (el as SpanElement).text.match( /[^\n\s\t\u2028\u2029]/ig ).length );
-												else if ( el is InlineGraphicElement )
-													pTextLength++;
-											}
-										}
-										else if ( nextElement is InlineGraphicElement )
-											pTextLength++;
-										else if ( nextElement )
-											pTextLength++;
-									}
-									
-									for ( i = list.numChildren-1; i > -1; i-- )
-									{
-										if ( list.getChildAt(i) is ListItemElementX )
-										{
-											item = list.getChildAt(i) as ListItemElementX;
-											break;
-										}
-									}
-									
-									if ( item )
-										ss = new SelectionState( textFlow, item.actualStart + item.modifiedTextLength + 1, item.actualStart + item.modifiedTextLength + 1 );
-									
-									if ( pTextLength != 0 )
-									{
-										j = item.numChildren-1;
-										
-										for ( i = p.numChildren-1; i > -1; i-- )
-											item.addChildAt( j, p.removeChildAt(i) );
-									}
-									
-									p.parent.removeChild(p);
-									
-									if ( ss )
-										setSelectionState( ss );
-									
-									textFlow.flowComposer.updateAllControllers();
-									return;
-								}
-							}
-						}
-						return;
-					}
+					
+					// Retreive the default operation state. This is TLF specific
+					// and is needed for specific operations.
+					var operationState:SelectionState = defaultOperationState();
+					if( !operationState ) return;
+					
+					// do the specific operation passing in the listMode argument
+					doOperation( new BackspaceOperation( operationState, this, _htmlImporter, _htmlExporter ) );
+					
 					break;
+				
 				case Keyboard.DELETE:
 					if ( items.length > 0 )
 					{
@@ -1338,7 +912,7 @@ package flashx.textLayout.edit
 						return;
 					}
 					
-					cleanEmptyLists( textFlow );
+					ListUtil.cleanEmptyLists( textFlow );
 					
 					for each ( list in lists )
 					{
@@ -1347,6 +921,7 @@ package flashx.textLayout.edit
 					}
 					break;
 				default:
+					//trace(textFlow.findLeaf(textFlow.getAbsoluteStart()));
 					super.keyDownHandler( event );
 					return;
 					break;
@@ -1438,27 +1013,7 @@ package flashx.textLayout.edit
 			doOperation(op);
 		}
 		
-		private function extractChildrenToParagraphElement( from:FlowGroupElement, to:ParagraphElement ):void
-		{
-			var end:int = from is ListItemElementX ? 0 : -1;
-			var addAt:int = Math.max(to.numChildren-1, 0);
-			for ( var i:int = from.numChildren-1; i > end; i-- )
-			{
-				var child:FlowElement = from.removeChildAt(i);
-				
-				//	TODO: Fix the transfer of styles.
-				//				//	Make sure that the child retains it's inherited styling
-				//				var format:TextLayoutFormat = new TextLayoutFormat( from.computedFormat );
-				//				format.apply( child.format );
-				//				child.format = format;
-				
-				try {
-					to.addChildAt( addAt, child );
-				} catch ( e:* ) {
-					trace(e, "child:", child, "target:", to);
-				}
-			}
-		}
+		
 		
 		private function extractChildrenToListItemElement( from:FlowGroupElement, to:ListItemElementX ):void
 		{

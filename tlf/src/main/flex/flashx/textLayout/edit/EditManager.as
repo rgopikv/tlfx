@@ -942,7 +942,7 @@ package flashx.textLayout.edit
 			if (!operationState)
 				return;
 
-			doOperation(new DeleteTextOperation(operationState, operationState, false /* don't allow merge when deleting by range */));				
+			doOperation(new DeleteTextOperation(operationState, operationState, true /* don't allow merge when deleting by range */));				
 		}		
 		
 		/**
