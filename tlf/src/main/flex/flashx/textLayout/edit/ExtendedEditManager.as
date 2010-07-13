@@ -9,6 +9,7 @@ package flashx.textLayout.edit
 	import flash.utils.getQualifiedClassName;
 	import flash.utils.setTimeout;
 	
+	import flashx.textLayout.container.AutosizableContainerController;
 	import flashx.textLayout.container.table.ICellContainer;
 	import flashx.textLayout.conversion.ConversionType;
 	import flashx.textLayout.conversion.TextConverter;
@@ -31,8 +32,12 @@ package flashx.textLayout.edit
 	import flashx.textLayout.elements.table.TableElement;
 	import flashx.textLayout.formats.TextLayoutFormat;
 	import flashx.textLayout.operations.BackspaceOperation;
+	import flashx.textLayout.operations.ClearOperation;
+	import flashx.textLayout.operations.DownArrowOperation;
 	import flashx.textLayout.operations.DummyOperation;
+	import flashx.textLayout.operations.EnterOperation;
 	import flashx.textLayout.operations.PasteOperation;
+	import flashx.textLayout.operations.TabOperation;
 	import flashx.textLayout.tlf_internal;
 	import flashx.textLayout.utils.ListUtil;
 	import flashx.undo.IUndoManager;
@@ -162,375 +167,30 @@ package flashx.textLayout.edit
 			switch ( event.keyCode )
 			{
 				case Keyboard.TAB:
-					if ( items.length > 0 )
-					{
-						for each ( item in items )
-						{
-							list = item.parent as ListElementX;
-							
-							//	Get the item with the previous indent (if possible)
-							prevItem = getLastIndentedListItem(item);
-							
-							if ( event.shiftKey )
-							{
-								//	Update children with > indent
-								for ( i = list.getChildIndex(item)+1; i < list.numChildren; i++ )
-								{
-									startItem = list.getChildAt(i) as ListItemElementX;
-									if ( startItem )
-									{
-										if ( startItem.indent > item.indent )
-										{
-											endItem = getLastIndentedListItem(startItem, item);
-											if ( endItem && endItem.mode != startItem.mode && Math.max(0, startItem.indent-24) <= endItem.indent )
-												startItem.mode = endItem.mode;
-											startItem.indent = Math.max(0, startItem.indent-24);
-										}
-										else
-											break;
-									}
-									else
-										break;
-								}
-								
-								if ( prevItem )
-								{
-									//	Only change mode if prevItem.mode differs and if the change will make it the same (or less [SHOULD NEVER HAPPEN]) indent as prevItem
-									if ( prevItem.mode != item.mode && Math.max(0, item.indent-24) <= prevItem.indent )
-										item.mode = prevItem.mode;
-									item.indent = Math.max(0, item.indent-24);
-								}
-								else
-									item.indent = Math.max(0, item.indent-24);
-							}
-							else
-							{
-								//	Update children with > indent
-								for ( i = list.getChildIndex(item)+1; i < list.numChildren; i++ )
-								{
-									startItem = list.getChildAt(i) as ListItemElementX;
-									if ( startItem )
-									{
-										if ( startItem.indent > item.indent )
-											startItem.indent = Math.min(240, startItem.indent+24);
-										else
-											break;
-									}
-									else
-										break;
-								}
-								
-								item.indent = Math.min(240, item.indent+24);
-							}
-						}
-						
-						for each ( list in lists )
-						list.update();
-						
-						textFlow.flowComposer.updateAllControllers();
-						return;
-					}
-					else
-					{
-						super.keyDownHandler(event);
-						return;
-					}
-					break;
-				case Keyboard.ENTER:
-					if ( items.length > 0 )
-					{
-						startItem = items[0] as ListItemElementX;
-						endItem = items[items.length-1] as ListItemElementX;
-						
-						list = startItem.parent as ListElementX;
-						endList = endItem.parent as ListElementX;
-						
-						start = list.getChildIndex(startItem)+1;
-						end = endList.getChildIndex(endItem);
-						
-						var newItem:ListItemElementX;
-						
-						var first:ListItemElementX;
-						var last:ListItemElementX;
-						
-						var origSelectionState:SelectionState = getSelectionState();
-						
-						if ( startItem.modifiedTextLength == 0 )
-						{
-							for ( i = 0; i < list.numChildren; i++ )
-							{
-								if ( list.getChildAt(i) is ListItemElementX )
-								{
-									first = list.getChildAt(i) as ListItemElementX;
-									break;
-								}
-							}
-							
-							for ( i = list.numChildren-1; i > -1; i-- )
-							{
-								if ( list.getChildAt(i) is ListItemElementX )
-								{
-									last = list.getChildAt(i) as ListItemElementX;
-									break;
-								}
-							}
-							
-							p = new ParagraphElement();
-							
-							//	[FORMATING]
-							//	[KK]	Apply inline styling from ListElementX to ParagraphElement
-							node = _htmlExporter.getSimpleMarkupModelForElement(list);
-							if ( node )
-								_htmlImporter.importStyleHelper.assignInlineStyle( node, p );
-							else
-								trace('Error assigning inline styling #1');
-							
-							//	[KK]	Hack to appropriate all of ListElementX's formatting
-							p.format = list.computedFormat ? TextLayoutFormat(list.computedFormat) : list.format ? TextLayoutFormat(list.format) : new TextLayoutFormat();
-							if ( startItem == first )
-								list.parent.addChildAt( list.parent.getChildIndex(list), p );
-							else if ( startItem == last )
-								list.parent.addChildAt( list.parent.getChildIndex(list)+1, p );
-							else
-							{
-								start = list.getChildIndex(startItem);
-								
-								endList = new ListElementX();
-								list.parent.addChildAt( list.parent.getChildIndex(list)+1, endList );
-								
-								//	[KK]	Still set from export above
-								if ( node )
-									_htmlImporter.importStyleHelper.assignInlineStyle( node, endList );
-								else
-									trace('Error assigning inline styling #2');
-								
-								//	[FORMATING]
-								//	[KK]	Hack to appropriate all of ListElementX's formatting
-								endList.format = list.computedFormat ? TextLayoutFormat(list.computedFormat) : list.format ? TextLayoutFormat(list.format) : new TextLayoutFormat();
-								
-								list.parent.addChildAt( list.parent.getChildIndex(list)+1, p );
-								
-								for ( i = list.numChildren-1; i > start; i-- )
-								{
-									if ( list.getChildAt(i) is ListItemElementX )
-										endList.addChildAt( 0, list.removeChildAt(i) );
-								}
-								
-								endList.update();
-							}
-							
-							list.removeChild(startItem);
-							
-//							//	[KK]	¡¡¡ REMOVED because it causes an error !!! Do not put back in. The editor will not resize.
-//							textFlow.flowComposer.updateAllControllers();
-							
-							// update the list
-							list.update();
-							
-							// add a new paragraph directly below the list.  This is 
-							// necessary, see BUG 1701
-							var newPara:ParagraphElement = new ParagraphElement();
-							var newSpan:SpanElement = new SpanElement();
-							newSpan.text = "¡™£¢∞§¶•ªº";
-							newPara.addChild(newSpan);
-							var listIdx:int = textFlow.getChildIndex(list);
-							textFlow.addChildAt(++listIdx, newPara);
-							
-							//	Set selection state to beginning in order to prevent a TLF bug which caused nothing after the (now) split list(s) to be selectable
-							
-							setSelectionState( new SelectionState( textFlow, 0, 0 ) );
-							
-							//	update after every set selection in order to force a refresh for the same TLF bug
-							
-							setSelectionState( new SelectionState( textFlow, p.getAbsoluteStart(), p.getAbsoluteStart() ) );
-							
-							textFlow.flowComposer.updateAllControllers();
-							
-							performDummyOperation(getSelectionState());
-							
-							//	[FORMATING]
-							//	[KK]	Apply styling
-							_htmlImporter.importStyleHelper.apply();
-							
-							event.keyCode = Keyboard.DELETE;
-							super.keyDownHandler(event);
-							
-							event.preventDefault();
-							event.stopImmediatePropagation();
-							
-							return;
-						}
-						
-						
-						//	Single list
-						if ( list == endList )
-						{
-							deleteText( new SelectionState( textFlow, absoluteStart, absoluteEnd ) );
-							
-							textFlow.flowComposer.updateAllControllers();
-							
-							//	AbsoluteStart is cursor position, subtract from that the startItem's actual start (start of text)
-							//	Then add on the length of the seperator span (usually 3 or 4, depending on mode)
-							newItem = startItem.splitAtPosition( absoluteStart-startItem.actualStart+startItem.seperatorLength ) as ListItemElementX;
-							newItem.mode = startItem.mode;
-							newItem.indent = startItem.indent;
-							
-							//	Multiline
-							if ( startItem != endItem )
-							{
-								//	[FORMATING]
-								//	[KK]	Hack to appropriate all of ListItemElementX's formatting
-								newItem.format = startItem.computedFormat ? TextLayoutFormat(startItem.computedFormat) : startItem.format ? TextLayoutFormat(startItem.format) : new TextLayoutFormat();
-								
-								node = _htmlExporter.getSimpleMarkupModelForElement( startItem );
-							}
-								//	Single line
-							else
-							{
-								endElement = null;
-								i = startItem.numChildren;
-								while (--i > -1)
-								{
-									if ( startItem.getChildAt(i) is SpanElement )
-									{
-										endElement = startItem.getChildAt(i);
-										break;
-									}
-								}
-								
-								//	[FORMATING]
-								//	[KK]	Hack to appropriate all of ListItemElementX's formatting
-								if ( endElement )
-									newItem.format = endElement.computedFormat ? TextLayoutFormat(endElement.computedFormat) : endElement.format ? TextLayoutFormat(endElement.format) : new TextLayoutFormat();
-								else
-									newItem.format = startItem.computedFormat ? TextLayoutFormat(startItem.computedFormat) : startItem.format ? TextLayoutFormat(startItem.format) : new TextLayoutFormat();
-								
-								node = _htmlExporter.getSimpleMarkupModelForElement( endElement ? endElement : startItem );
-							}
-							
-							if ( node )
-								_htmlImporter.importStyleHelper.assignInlineStyle( node, newItem );
-							else
-								trace('Error assigning inline styling #3');
-							
-							newItem.correctChildren();
-							
-							textFlow.flowComposer.updateAllControllers();
-							
-							list.update();
-							
-							// if there is text in front of the cursor when someone clicks enter, then the new line
-							// should include the text but also move the cursor to the end.
-							// Else we need to back up one space to place the cursor at the beginning of the line
-							if(newItem.modifiedTextLength > 0) {
-								setSelectionState( new SelectionState( textFlow, newItem.actualStart, newItem.actualStart) );
-							} else {
-								setSelectionState( new SelectionState( textFlow, newItem.actualStart-1, newItem.actualStart-1 ) );
-							}
-//							refreshSelection();
-							textFlow.flowComposer.updateAllControllers();
-						}
-							//	Multiple lists
-						else
-						{
-							//	Delete text between lists
-							deleteText( new SelectionState( textFlow, list.getAbsoluteStart() + list.textLength, endList.getAbsoluteStart() ) );
-							
-							//	Handle removing / reseting items
-							for ( i = items.length-1; i > -1; i-- )
-							{
-								item = items[i];
-								
-								//	Reset text (start)
-								if ( i == 0 )
-								{
-									deleteText( new SelectionState( textFlow, absoluteStart, item.actualStart + item.text.length ) );
-								}
-									//	Reset text (end)
-								else if ( i == items.length-1 )
-								{
-									deleteText( new SelectionState( textFlow, item.actualStart, absoluteEnd ) );
-								}
-									//	Delete
-								else
-								{
-									item.parent.removeChild(item);
-								}
-							}
-							
-							textFlow.flowComposer.updateAllControllers();
-							
-							//	Children to shift from endList to list
-							var children:Vector.<ListItemElementX> = new Vector.<ListItemElementX>();
-							
-							for ( i = endList.numChildren-2; i > 0; i-- )
-								children.push( endList.removeChildAt(i) as ListItemElementX );
-							
-							//	New child from hitting enter
-							newItem = new ListItemElementX();
-							newItem.mode = startItem.mode;
-							newItem.indent = startItem.indent;
-							
-							//	[FORMATING]
-							//	[KK]	Hack to appropriate all of ListItemElementX's formatting
-							newItem.format = startItem.computedFormat ? TextLayoutFormat(startItem.computedFormat) : startItem.format ? TextLayoutFormat(startItem.format) : new TextLayoutFormat();
-							
-							node = _htmlExporter.getSimpleMarkupModelForElement( startItem );
-							if ( node )
-								_htmlImporter.importStyleHelper.assignInlineStyle( node, newItem );
-							else
-								trace('Error assigning inline styling #4');
-							
-							children.push( newItem );
-							
-							children.reverse();
-							
-							var lastItem:ListItemElementX = list.getChildAt(list.numChildren-2) as ListItemElementX;
-							var firstItem:ListItemElementX = children[0];
-							
-							var increaseIndent:Boolean = lastItem.mode != firstItem.mode;
-							
-							for ( i = 0; i < children.length; i++ )
-							{
-								if ( increaseIndent )
-									children[i].indent += 24;
-								list.addChild( children[i] );
-							}
-							
-							list.update();
-							
-//							notifyInsertOrDelete( list.getAbsoluteStart(), list.textLength );
-							
-							var selPoint:uint = Math.min( newItem.actualStart+newItem.text.length-1, textFlow.textLength-1 );
-							setSelectionState( new SelectionState( textFlow, selPoint, selPoint ) );
-						}
-						
-						textFlow.flowComposer.updateAllControllers();
-						
-						performDummyOperation( getSelectionState() );
-						event.preventDefault();
-						return;
-					}
-					else
-					{
-						super.keyDownHandler(event);
-						
-						performDummyOperation( getSelectionState() );
-						
-						textFlow.flowComposer.updateAllControllers();
-						
-						return;
-					}
-					break;
-				case Keyboard.BACKSPACE:
-					
 					// Retreive the default operation state. This is TLF specific
 					// and is needed for specific operations.
 					var operationState:SelectionState = defaultOperationState();
 					if( !operationState ) return;
 					
 					// do the specific operation passing in the listMode argument
-					doOperation( new BackspaceOperation( operationState, this, _htmlImporter, _htmlExporter ) );
+					doOperation( new TabOperation( operationState, this, event, _htmlImporter, _htmlExporter ) );
+					
+					break;
+				
+				case Keyboard.ENTER:
+					var operationState:SelectionState = defaultOperationState();
+					if( !operationState ) return;
+					
+					// do the specific operation passing in the listMode argument
+					doOperation( new EnterOperation( operationState, this, _htmlImporter, _htmlExporter ) );
+					
+					break;
+				case Keyboard.BACKSPACE:
+					var operationState:SelectionState = defaultOperationState();
+					if( !operationState ) return;
+					
+					// do the specific operation passing in the listMode argument
+					doOperation( new BackspaceOperation( operationState, this ) );
 					
 					break;
 				
@@ -922,12 +582,22 @@ package flashx.textLayout.edit
 					break;
 				default:
 					//trace(textFlow.findLeaf(textFlow.getAbsoluteStart()));
+					
+					var operationState:SelectionState = defaultOperationState();
+					if( !operationState ) return;
+					
+					/*// do the specific operation passing in the listMode argument
+					if (doOperation( new DownArrowOperation( operationState, this ) )) {
+						return;
+					} else {
+					}*/
 					super.keyDownHandler( event );
+					
 					return;
 					break;
 			}
 			
-			setSelectionState( new SelectionState( textFlow, absoluteStart, absoluteStart, textFlow.format ) );
+			//setSelectionState( new SelectionState( textFlow, absoluteStart, absoluteStart, textFlow.format ) );
 			textFlow.flowComposer.updateAllControllers();
 		}
 		
@@ -939,55 +609,16 @@ package flashx.textLayout.edit
 			switch (event.type)
 			{
 				case Event.CLEAR:
-					//	[KK]	Special case for list clear
-					if ( items.length > 0 )
-					{
-						var startItem:ListItemElementX = items[0] as ListItemElementX;
-						var startList:ListElementX = startItem.parent as ListElementX;
-						
-						var endItem:ListItemElementX;
-						
-						//	Get end item for special case
-						for ( var i:int = startList.numChildren-1; i > -1; i-- )
-						{
-							if ( startList.getChildAt(i) is ListItemElementX )
-							{
-								endItem = startList.getChildAt(i) as ListItemElementX;
-								break;
-							}
-						}
-						
-						var itemStart:uint = startItem.actualStart;
-						var listStart:uint = startList.getAbsoluteStart();
-						var itemEnd:uint = endItem.getAbsoluteStart() + endItem.textLength - 1;
-						var listEnd:uint = listStart + startList.textLength;
-						
-						//	[KK]	Special case, deleting one whole list (and only that list)
-						if ( absoluteStart <= itemStart && absoluteStart >= listStart &&
-							absoluteEnd >= itemEnd && absoluteEnd <= listEnd)
-						{
-							startList.parent.removeChild(startList);
-							
-							//	[KK]	Repeated code (for this one special case)
-							cleanEmptyLists( textFlow );
-							
-							for each ( startList in lists )
-							{
-								if ( startList )
-									startList.update();
-							}
-						}
-						else
-						{
-							super.editHandler(event);
-							break;
-						}
-						
-						setSelectionState( new SelectionState( textFlow, absoluteStart, absoluteStart ) );
-						textFlow.flowComposer.updateAllControllers();
-					}
-					else
-						super.editHandler(event);
+					
+					var operationState:SelectionState = defaultOperationState();
+					
+					if (!operationState)
+						return;
+					
+					var op:ClearOperation;
+					op = new ClearOperation( operationState, this );
+					doOperation(op);
+					
 					break;
 				default:
 					super.editHandler(event);

@@ -10,6 +10,7 @@ package flashx.textLayout.operations
 	import flashx.textLayout.edit.ParaEdit;
 	import flashx.textLayout.edit.SelectionState;
 	import flashx.textLayout.edit.helpers.SelectionHelper;
+	import flashx.textLayout.elements.DivElement;
 	import flashx.textLayout.elements.FlowElement;
 	import flashx.textLayout.elements.FlowGroupElement;
 	import flashx.textLayout.elements.FlowLeafElement;
@@ -44,7 +45,7 @@ package flashx.textLayout.operations
 		 * @param exporter
 		 * 
 		 */
-		public function BackspaceOperation( operationState:SelectionState, interactionManager:ExtendedEditManager, importer:IHTMLImporter, exporter:IHTMLExporter )
+		public function BackspaceOperation( operationState:SelectionState, interactionManager:ExtendedEditManager )
 		{
 			super( operationState );
 			
@@ -158,19 +159,28 @@ package flashx.textLayout.operations
 			// selected text.
 			//correctSelection();
 			var ss:SelectionState = interactionManager.getSelectionState();
-			var tmpItem:ListItemElementX = flowGroupStart as ListItemElementX;
-			
-			var originalActualStart:int = tmpItem.actualStart;
-			if(ss.absoluteStart < tmpItem.actualStart) {
-				deleteRange();
-				interactionManager.setSelectionState(new SelectionState(textFlow, originalActualStart, originalActualStart));
-				interactionManager.refreshSelection();
-			} else {
+			var tmpItem:ListItemElementX;
+			var originalActualStart:int = ss.absoluteStart;
+			if(flowGroupStart is ListItemElementX) {
+				tmpItem = flowGroupStart as ListItemElementX;
+				originalActualStart = tmpItem.actualStart;
+				
+				if(ss.absoluteStart < tmpItem.actualStart) {
+					deleteRange();
+					interactionManager.setSelectionState(new SelectionState(textFlow, originalActualStart, originalActualStart));
+					interactionManager.refreshSelection();
+				} else {
+					deleteRange();
+				}
+			}
+			else 
+			{
 				deleteRange();
 			}
 			
 			if(flowLeafStart.text == "") {
 				ListUtil.cleanEmptyLists( textFlow );
+				textFlow.flowComposer.updateAllControllers();
 				return true;
 			} 
 			
@@ -241,45 +251,64 @@ package flashx.textLayout.operations
 								interactionManager.refreshSelection();
 							}
 							ListUtil.cleanEmptyLists( textFlow );
+														
+							// need to create one item
+							if(textFlow.numChildren < 1) {
+								//var div:DivElement = new DivElement();
+								//ParaEdit.createElement(new ParagraphElement(), 0, "ParagraphElement", interactionManager.
+								var para:ParagraphElement = new ParagraphElement();
+								var span:SpanElement = new SpanElement();
+								span.text = "";
+								para.addChild(span);
+								
+								//div.addChild(para);
+								textFlow.addChild(para);
+								textFlow.flowComposer.updateAllControllers();
+								interactionManager.setSelectionState(new SelectionState(textFlow, absoluteStart, absoluteStart));
+								interactionManager.refreshSelection();
+								
+								var container:AutosizableContainerController = ListUtil.findDefaultContainerController(para);
+								container.addMonitoredElement(para);
+							}
+							
+							//textFlow.flowComposer.updateAllControllers();
 							return true;
 						}
 						
-						/*var fe:ListItemElementX;
+						/*
+						if(listStart.getChildIndex(flowGroupStart) == -1) {
+						var tmpFlowGroupEnd:ParagraphElement = flowGroupEnd as ParagraphElement;
+						if(tmpFlowGroupEnd.textLength == 0) {
+						listStart.removeChild(tmpFlowGroupEnd);
+						interactionManager.setSelectionState(new SelectionState(textFlow, this.absoluteStart-1, this.absoluteStart-1));
+						interactionManager.refreshSelection();
+						}
+						ListUtil.cleanEmptyLists( textFlow );
+						textFlow.flowComposer.updateAllControllers();
+						return true;
+						}
+						*/
+						
+						var fe:ListItemElementX;
 						for(var i:int=0; i<initialChildrenLen; i++) {
 							fe = listItemEnd.addChild(flowGroupEnd.getChildAt(0)) as ListItemElementX;
 						}
-						
-						
-						// set the selection to actual start
-						if((flowGroupEnd as ListItemElementX).text == "") {
-							var tmpFlowGroupEnd:ListItemElementX = flowGroupEnd as ListItemElementX;
-							interactionManager.setSelectionState(new SelectionState(textFlow, fe.actualStart, fe.actualStart));
-							interactionManager.refreshSelection();
-						//	return true;
-						}*/
-					}
-			
-				
+
+					}				
 				} 
 				
+				textFlow.flowComposer.updateAllControllers();
+				
 				ListUtil.cleanEmptyLists( textFlow );
+				
+				/*if(textFlow.numChildren < */
+				
 				listStart.update();
 			}
 			
-			//textFlow.flowComposer.updateAllControllers();
 			return true;
 		}
-		
-		//private function isDeletingIntoParagraph(flowGroup:
-		
-		private function addEndPadding(list:ListElementX) : void {
-			var padding:ListPaddingElement = new ListPaddingElement();
-			list.addChild(padding);
-			//list.add
-			var container:AutosizableContainerController = findContainerControllerForElement(list);
-			container.addMonitoredElement(padding);
-		}
-		
+					
 		protected function findContainerControllerForElement( element:FlowElement ):AutosizableContainerController
 		{
 			var tf:TextFlow = element.getTextFlow();

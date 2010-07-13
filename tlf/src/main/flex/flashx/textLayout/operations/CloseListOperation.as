@@ -12,6 +12,7 @@ package flashx.textLayout.operations
 {
 	import flash.utils.getQualifiedClassName;
 	
+	import flashx.textLayout.container.AutosizableContainerController;
 	import flashx.textLayout.edit.ParaEdit;
 	import flashx.textLayout.edit.SelectionState;
 	import flashx.textLayout.elements.FlowLeafElement;
@@ -22,6 +23,7 @@ package flashx.textLayout.operations
 	import flashx.textLayout.formats.ITextLayoutFormat;
 	import flashx.textLayout.formats.TextLayoutFormat;
 	import flashx.textLayout.tlf_internal;
+	import flashx.textLayout.utils.ListUtil;
 
 
 	use namespace tlf_internal;
@@ -94,6 +96,11 @@ package flashx.textLayout.operations
 			var paraSelBegIdx:int = absoluteStart-para.getAbsoluteStart();
 			
 			var nextPara:ParagraphElement = ParaEdit.splitParagraphCloseList(para, paraSelBegIdx, _characterFormat);
+			
+			var cc:AutosizableContainerController = ListUtil.findContainerControllerForElement(para);
+			cc.addMonitoredElement(nextPara);
+			
+			
 			//getQualifiedClassName( SpanElement )
 			//para.addChild(new ListPaddingElement());
 			//para.replaceChildren(0, 0, new ListPaddingElement());
@@ -114,6 +121,8 @@ package flashx.textLayout.operations
 					if (prevSpan != null) lastParaLeaf = prevSpan;
 				}
 			}
+			
+			setSelectionState( new SelectionState( textFlow, nextPara.getAbsoluteStart(), nextPara.getAbsoluteStart() ) );
 			
 			//var firstNextParaLeaf:FlowLeafElement = nextPara.getFirstLeaf();
 			
@@ -147,6 +156,8 @@ package flashx.textLayout.operations
 				}
 			}		*/
 
+		//	textFlow.flowComposer.updateAllControllers();
+			
 			return true;
 		}
 	

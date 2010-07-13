@@ -735,17 +735,31 @@ package flashx.textLayout.operations
 								if ( child is SpanElement )
 								{
 									//	[KK]	Remove the last character as it is an unnecessary line break added from who knows where
-									(child as SpanElement).text = (child as SpanElement).text.substring(0, (child as SpanElement).text.length-1);
+									(child as SpanElement).text = (child as SpanElement).text.substring(0, (child as SpanElement).text.length);
 									break;
 								}
 							}
 						}
 						
+						var newPara:ParagraphElement = new ParagraphElement();
+						var newSpan:SpanElement = new SpanElement();
+						newSpan.text = "";
+						newPara.addChild(newSpan);
+						textFlow.addChildAt(textFlow.getChildIndex(list)+1, newPara);
+						
 						addElementToAutosizableContainerController( list, containerController );
 					}
 					else
 					{
+						containerController = findContainerControllerForElement( p );
 						list = splitAndAddListToTextFlow( prnt, paragraphs );
+						var newPara:ParagraphElement = new ParagraphElement();
+						newPara.format = (paragraphs[0] as ParagraphElement).computedFormat;
+						var newSpan:SpanElement = new SpanElement();
+						newSpan.text = "";
+						newPara.addChild(newSpan);
+						textFlow.addChildAt(textFlow.getChildIndex(list)+1, newPara);
+						addElementToAutosizableContainerController( newPara, containerController );
 					}
 					
 					// we should select the entire list
