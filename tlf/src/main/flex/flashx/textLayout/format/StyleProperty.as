@@ -79,6 +79,12 @@ package flashx.textLayout.format
 					property = "trackingRight";
 					value = DimensionTokenUtil.normalize( value );
 					break;
+				case "lineHeight":
+					//	[KK]	Return null, as lineHeight causes lines to wrap in on themselves
+					return null;
+					//	[KK]	This shouldn't be reached until we've had more time to work on implementing a more successful way of dealing with lineHeight
+					value = DimensionTokenUtil.normalize( value );
+					break;
 			}
 			return new StyleProperty( property, value );
 		}

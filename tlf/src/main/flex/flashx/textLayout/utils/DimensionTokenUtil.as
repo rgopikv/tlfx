@@ -9,6 +9,7 @@ package flashx.textLayout.utils
 		public static const TOKEN_MM:String = "mm";
 		public static const TOKEN_PC:String = "pc";
 		public static const TOKEN_PERCENT:String = "%";
+		public static const TOKEN_EM:String = "em";
 		
 		static public function convertPixelToPoint( value:* ):Number
 		{
@@ -58,6 +59,24 @@ package flashx.textLayout.utils
 			return number * 1 / 0.28;
 		}
 		
+		static public function convertEmToPixel( value:* ):Number
+		{
+			var number:Number = Number( value );
+			if ( isNaN( number ) )
+				return Number.NaN;
+			
+			return number < 1 ? 16 : number * 16;
+		}
+		
+		static public function convertPercentToPixel( value:* ):Number
+		{
+			var number:Number = Number( value );
+			if ( isNaN( number ) )
+				return Number.NaN;
+			
+			return number < 1 ? 16 : number / 100 * 16;
+		}
+		
 		static public function normalize( token:String ):Number
 		{
 			// Find token.
@@ -71,7 +90,11 @@ package flashx.textLayout.utils
 					return DimensionTokenUtil.convertPointToPixel( Number( token ) );
 					break;
 				case DimensionTokenUtil.TOKEN_PERCENT:
-					return Number.NaN;
+//					return Number.NaN;
+					return DimensionTokenUtil.convertPercentToPixel( Number( token ) );
+					break;
+				case DimensionTokenUtil.TOKEN_EM:
+					return DimensionTokenUtil.convertEmToPixel( Number( token ) );
 					break;
 				case DimensionTokenUtil.TOKEN_IN:
 					return DimensionTokenUtil.convertInToPixel( Number( token ) );
