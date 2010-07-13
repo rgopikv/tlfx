@@ -742,12 +742,13 @@ package flashx.textLayout.operations
 						}
 						
 						var newPara:ParagraphElement = new ParagraphElement();
+						newPara.format = (paragraphs[0] as ParagraphElement).computedFormat;
 						var newSpan:SpanElement = new SpanElement();
 						newSpan.text = "";
 						newPara.addChild(newSpan);
-						textFlow.addChildAt(textFlow.getChildIndex(list)+1, newPara);
-						
+						textFlow.addChildAt(textFlow.getChildIndex(list)+1, newPara);						
 						addElementToAutosizableContainerController( list, containerController );
+						addElementToAutosizableContainerController( newPara, containerController );
 					}
 					else
 					{
