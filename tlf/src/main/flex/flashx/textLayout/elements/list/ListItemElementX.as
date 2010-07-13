@@ -70,14 +70,20 @@ package flashx.textLayout.elements.list
 		
 		public function updateBulletFormat():void
 		{
-			_bulletFormat = new TextLayoutFormat( computedFormat ? TextLayoutFormat(computedFormat) : format ? TextLayoutFormat(format) : new TextLayoutFormat() );
-			_bulletFormat.paragraphSpaceAfter = _bulletFormat.paragraphSpaceBefore = _bulletFormat.paragraphStartIndent = 0;
-			if( _bulletSpan == null ) 
+			// [TA] 07-13-2010 :: Removed appropriating computed format for the bullet. Should cascade down to element since it resides on the flow.
+			var bFormat:TextLayoutFormat = new TextLayoutFormat();
+			// [END TA]
+			bFormat.paragraphSpaceAfter = bFormat.paragraphSpaceBefore = bFormat.paragraphStartIndent = 0;
+			if( !TextLayoutFormat.isEqual( bFormat, _bulletFormat ) )
 			{
-				createBullet();
+				_bulletFormat = bFormat;
+				if( _bulletSpan == null ) 
+				{
+					createBullet();
+				}
+				_bulletSpan.format = _bulletFormat;
+				update();
 			}
-			_bulletSpan.format = _bulletFormat;
-			update();
 		}
 		
 		public function update():void
