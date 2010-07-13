@@ -14,6 +14,7 @@ package flashx.textLayout.operations
 	import flashx.textLayout.elements.SpanElement;
 	import flashx.textLayout.elements.TCYElement;
 	import flashx.textLayout.elements.VarElement;
+	import flashx.textLayout.elements.list.ListItemElementX;
 	import flashx.textLayout.formats.ITextLayoutFormat;
 	import flashx.textLayout.formats.TextLayoutFormat;
 	import flashx.textLayout.model.style.InlineStyles;
@@ -158,7 +159,7 @@ package flashx.textLayout.operations
 			if (textFlow.interactionManager)
 				textFlow.interactionManager.notifyInsertOrDelete(absoluteStart, _text.length);
 			
-			if (_characterFormat && !TextLayoutFormat.isEqual(_characterFormat, range.firstLeaf.format))
+			if (_characterFormat && !TextLayoutFormat.isEqual(_characterFormat, range.firstLeaf.format) && !(range.firstParagraph is ListItemElementX))
 				ParaEdit.applyTextStyleChange(textFlow,absoluteStart,absoluteStart+_text.length,_characterFormat,null);
 		}
 		

@@ -2,11 +2,13 @@ package flashx.textLayout.elements.list
 {
 	import flash.utils.getQualifiedClassName;
 	
+	import flashx.textLayout.elements.FlowElement;
 	import flashx.textLayout.elements.ParagraphElement;
 	import flashx.textLayout.events.InlineStyleEvent;
 	import flashx.textLayout.model.style.IListStyle;
 	import flashx.textLayout.model.style.InlineStyles;
 	import flashx.textLayout.model.style.ListStyle;
+	import flashx.textLayout.tlf_internal;
 	import flashx.textLayout.utils.StyleAttributeUtil;
 	
 	public class ListItemBaseElement extends ParagraphElement
@@ -20,6 +22,22 @@ package flashx.textLayout.elements.list
 			super();
 			_mode = ListItemModeEnum.UNORDERED;
 			_style = getDefaultListStyle( _mode );
+		}
+		
+		// [TA] 07-13-2010 :: Override shallow copy to push list item specific properties on copy creation.
+		override public function shallowCopy(startPos:int=0, endPos:int=-1):FlowElement
+		{
+			use namespace tlf_internal;
+			var copy:ListItemBaseElement = super.shallowCopy( startPos, endPos ) as ListItemBaseElement;
+			copy.mode = _mode;
+			copy.setListStyle( _style );
+			return copy;
+		}
+		// [END TA]
+		
+		tlf_internal function setListStyle( style:IListStyle ):void
+		{
+			_style = style;
 		}
 		
 		protected function getDefaultListStyle( defaultMode:int ):IListStyle

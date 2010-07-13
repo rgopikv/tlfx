@@ -91,6 +91,9 @@ package flashx.textLayout.operations
 				}
 				
 				if(nextLeaf) {
+					var parentList:ListElementX = nextLeaf.parent as ListElementX;
+					if( parentList ) parentList.update();
+					
 					var ss:SelectionState = new SelectionState(textFlow, nextLeaf.actualStart-1, nextLeaf.actualStart-1);
 					interactionManager.setSelectionState(ss);
 					interactionManager.refreshSelection();

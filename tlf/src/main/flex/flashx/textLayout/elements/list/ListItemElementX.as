@@ -360,7 +360,7 @@ package flashx.textLayout.elements.list
 			if ( xml.@style.toString().length < 1 )
 				delete xml.@style;
 			
-			return xml.toXMLString() != '<li/>' ? xml : null;
+			return xml;//xml.toXMLString() != '<li/>' ? xml : null;
 		}
 		
 		protected function getSeparator():String
@@ -548,5 +548,15 @@ package flashx.textLayout.elements.list
 				
 			}
 		}
+		
+		// [TA] 07-13-2010 :: Override shallow copy to push list item specific properties on copy creation.
+		override public function shallowCopy(startPos:int=0, endPos:int=-1):FlowElement
+		{
+			var copy:ListItemElementX = super.shallowCopy( startPos, endPos ) as ListItemElementX;
+			copy.indent = indent;
+			copy.number = number;
+			return copy;
+		}
+		// [END TA]
 	}
 }
