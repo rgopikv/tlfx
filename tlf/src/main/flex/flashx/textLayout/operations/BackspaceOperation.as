@@ -155,6 +155,8 @@ package flashx.textLayout.operations
 			var flowGroupStart:FlowGroupElement = flowLeafStart.parent;
 			var flowGroupEnd:FlowGroupElement = flowLeafEnd.parent;
 			
+			var listItemEnd:ListItemElementX;
+			
 			// correct the selection before we do any type of operations on the range of
 			// selected text.
 			//correctSelection();
@@ -183,15 +185,10 @@ package flashx.textLayout.operations
 				textFlow.flowComposer.updateAllControllers();
 				return true;
 			} 
-			
-			// is this a multi-deletion
-			/*if(listStart == listEnd) {
-				return true;
-			}*/
-			/*if(flow*/
-			
+						
 			// are we starting the deletion inside of a list?
 			if(flowGroupStart is ListItemElementX) {
+				var initialChildrenLen:int;
 				
 				if(flowGroupEnd is FlowGroupElement) {
 					// if listStart != listEnd then we know that we are doing a multi-list delete
@@ -200,11 +197,11 @@ package flashx.textLayout.operations
 						// ListItemElementX extends ParagraphElement
 						if(flowGroupEnd is ListItemElementX) {
 							// join lists by first adding the first child of the flowGroupEnd
-							var listItemEnd:ListItemElementX = ListItemElementX(listStart.listItems[listStart.listItems.length-1]);
+							listItemEnd = ListItemElementX(listStart.listItems[listStart.listItems.length-1]);
 							listItemEnd.addChild(flowGroupEnd.getChildAt(0));
 							listEnd.removeChild(flowGroupEnd);
 							// now add the remaining items from listEnd
-							var initialChildrenLen:int = listEnd.listItems.length;
+							initialChildrenLen = listEnd.listItems.length;
 							
 							// loop through the rest of the end lists children and add them
 							// to the start lists children. Always make sure that when using
@@ -218,29 +215,13 @@ package flashx.textLayout.operations
 						}
 						
 					} else {
-						var listItemEnd:ListItemElementX = ListItemElementX(listStart.listItems[listStart.listItems.length-1]);
+						listItemEnd = ListItemElementX(listStart.listItems[listStart.listItems.length-1]);
 						
 						// since the ListItemElementX overrides addChild, we need to get the children before hand.  
 						// This is because it actually shifts the children off of the previous flow element resulting
 						// in the loop counter getting smaller and not finishing the rest of the children.
-						var initialChildrenLen:int = flowGroupEnd.numChildren;
-						
-						// if we are deleting from within the same list, we just delete using the default tlf behavior]
-						// FIXME: may not need this after we correct the selection.. let me try that first.
-						/*if(flowGroupStart == flowGroupEnd) {
-							if(flowGroupStart.textLength == 0) {
-								flowGroupStart.parent.removeChild(flowGroupStart);
-								ListUtil.cleanEmptyLists( textFlow );
-								return;
-							}
-						}*/
-						
-						
-						/*if(listStart.getChildIndex(flowGroupStart) == -1) {
-							interactionManager.setSelectionState(new SelectionState(textFlow, tmpItem.actualStart, tmpItem.actualStart));
-							interactionManager.refreshSelection();
-						}*/
-						
+						initialChildrenLen = flowGroupEnd.numChildren;
+												
 						// if each entire list item is selected, the we should not append any children.
 						// instead we just need to delete and move the cursor up to the end of the previoius element
 						if(listStart.getChildIndex(flowGroupStart) == -1) {
@@ -254,14 +235,11 @@ package flashx.textLayout.operations
 														
 							// need to create one item
 							if(textFlow.numChildren < 1) {
-								//var div:DivElement = new DivElement();
-								//ParaEdit.createElement(new ParagraphElement(), 0, "ParagraphElement", interactionManager.
 								var para:ParagraphElement = new ParagraphElement();
 								var span:SpanElement = new SpanElement();
 								span.text = "";
 								para.addChild(span);
 								
-								//div.addChild(para);
 								textFlow.addChild(para);
 								textFlow.flowComposer.updateAllControllers();
 								interactionManager.setSelectionState(new SelectionState(textFlow, absoluteStart, absoluteStart));
@@ -271,26 +249,11 @@ package flashx.textLayout.operations
 								container.addMonitoredElement(para);
 							}
 							
-							//textFlow.flowComposer.updateAllControllers();
 							return true;
 						}
 						
-						/*
-						if(listStart.getChildIndex(flowGroupStart) == -1) {
-						var tmpFlowGroupEnd:ParagraphElement = flowGroupEnd as ParagraphElement;
-						if(tmpFlowGroupEnd.textLength == 0) {
-						listStart.removeChild(tmpFlowGroupEnd);
-						interactionManager.setSelectionState(new SelectionState(textFlow, this.absoluteStart-1, this.absoluteStart-1));
-						interactionManager.refreshSelection();
-						}
-						ListUtil.cleanEmptyLists( textFlow );
-						textFlow.flowComposer.updateAllControllers();
-						return true;
-						}
-						*/
-						
 						var fe:ListItemElementX;
-						for(var i:int=0; i<initialChildrenLen; i++) {
+						for(var j:int=0; j<initialChildrenLen; j++) {
 							fe = listItemEnd.addChild(flowGroupEnd.getChildAt(0)) as ListItemElementX;
 						}
 
@@ -300,9 +263,7 @@ package flashx.textLayout.operations
 				textFlow.flowComposer.updateAllControllers();
 				
 				ListUtil.cleanEmptyLists( textFlow );
-				
-				/*if(textFlow.numChildren < */
-				
+								
 				listStart.update();
 			}
 			
@@ -383,13 +344,15 @@ package flashx.textLayout.operations
 				trace("check this out");
 				//handleDeleteSymbol();
 				
+				var selectionState:SelectionState;
+				
 				// check to see the item contains content.  This can happen if the cursor is at the front of 
 				// the item but there is text afterwards. We add 1 to the seperatorLenth to account for the space.
 				if(flowGroupStart.textLength - (flowGroupStart.seperatorLength+1) > 0) {
 					
 					// we need to move the rest of its contents to a previous bullet or a previous paragraphElement
 					var remainingElements:Array = flowGroupStart.mxmlChildren.slice(1);
-					var selectionState:SelectionState = new SelectionState(textFlow, flowGroupStart.getAbsoluteStart()-1, flowGroupStart.getAbsoluteStart()-1);			
+					selectionState = new SelectionState(textFlow, flowGroupStart.getAbsoluteStart()-1, flowGroupStart.getAbsoluteStart()-1);			
 					interactionManager.setSelectionState(selectionState);
 					interactionManager.refreshSelection();
 					
@@ -405,170 +368,14 @@ package flashx.textLayout.operations
 					}
 					
 				} else {
-					var selectionState:SelectionState = new SelectionState(textFlow, flowGroupStart.getAbsoluteStart()-1, flowGroupStart.getAbsoluteStart()-1);			
+					selectionState = new SelectionState(textFlow, flowGroupStart.getAbsoluteStart()-1, flowGroupStart.getAbsoluteStart()-1);			
 					interactionManager.setSelectionState(selectionState);
 					flowGroupStart.parent.removeChild(flowGroupStart);
 				}
 				
 				ListUtil.cleanEmptyLists(textFlow);
 			}
-			
-			// delete selected range
-			/*deleteRange();
-			
-			var selectedListItems:Array = SelectionHelper.getSelectedListItems( textFlow, true );
-			// We use the helper class SelectionHelper to get the selected list items.
-			// remember that we have access to the textFlow from the operationState that
-			// was passed to the super class in our construction.
-			// Using the same SelectionHelper we can also get a list of the Lists.
-			var selectedLists:Array = SelectionHelper.getSelectedLists( textFlow );
-			var startItem:ListItemElementX = selectedListItems[0] as ListItemElementX;
-			var list:ListElementX = startItem.parent as ListElementX;
-			var start:int = list.getChildIndex( startItem );
-			
-			// FIXME: what does this stand for??? I believe it is Text Length
-			var tl:int;
-			
-			var item:ListItemElementX;
-			var prevItem:ListItemElementX;
-			
-			// If the absoluteStart is less than or equal to startItem.actualStart then we can
-			// deduce that we have the caret at the start of a list item.
-			if ( absoluteStart <= startItem.actualStart )
-			{
-				// First we need to check to see if we can join to an existing list previous in
-				// the text flow. We do this by checking to see if the previous element in
-				// a ListElementX.
-				if( canJoinList(list) ) {
-					joinLists(list);					
-				}
-				
-				//	Add new list after current list
-				var newList:ListElementX = new ListElementX();
-				list.parent.addChildAt( list.parent.getChildIndex(list)+1, newList );
-				
-				//	Switch all children AFTER the start child to the new list
-				for (var i:int = list.numChildren-1; i > start; i-- )
-				{
-					if ( list.getChildAt(i) is ListItemElementX )
-						newList.addChildAt(0, list.removeChildAt(i));
-				}
-				
-				newList.update();
-				
-				//	Add new paragraph right after current list
-				var p:ParagraphElement = new ParagraphElement();
-				list.parent.addChildAt( list.parent.getChildIndex(list)+1, p );
-				
-				//	Transfer children
-				extractChildrenToParagraphElement( startItem, p );
-				
-				//	Remove original child
-				startItem.parent.removeChild(startItem);
-				
-				// as percautionary we delete any empty lists
-				ListUtil.cleanEmptyLists( textFlow );
-			}
-				//	If the startItem does not have any text, we need to ... FIXME
-			else if ( startItem.text.length == 0 )
-			{
-				if ( start-1 < 0 )
-				{
-					var i:int = 0;
-					while ( i++ < list.numChildren )
-					{
-						if ( list.getChildAt(i) is ListItemElementX )
-						{
-							prevItem = list.getChildAt(i) as ListItemElementX;
-							break;
-						}
-					}
-					interactionManager.setSelectionState( new SelectionState( textFlow, prevItem.actualStart, prevItem.actualStart ));
-				}
-				else
-				{
-					//	Convoluted logic to get the item that the selection should jump to.
-					//	Let me explain...
-					//	Attempt to get the item at the NEW start position (start of original selection child index -1)
-					prevItem = list.getChildAt(start-1) as ListItemElementX;
-					
-					//	If null (or not a ListItemElementX)
-					if ( !prevItem )
-					{
-						//	Set i to be the NEW start position
-						i = start-1;
 						
-						//	i is 0
-						if ( i == 0 )
-						{
-							//	Check to see if item at index 0 is ListItemElementX
-							if ( list.getChildAt(0) is ListItemElementX )
-								prevItem = list.getChildAt(0) as ListItemElementX;
-							else
-							{
-								//	Go through all children to get the FIRST instance of a ListItemElementX
-								while ( i++ < list.numChildren )
-								{
-									if ( list.getChildAt(i) is ListItemElementX )
-									{
-										prevItem = list.getChildAt(i) as ListItemElementX;
-										break;
-									}
-								}
-							}
-						}
-							//	i is NOT 0
-						else
-						{
-							var iclone:int = i;
-							
-							//	Starting at i, peruse backwards through all children looking for the first (if any) ListItemElementX it can find
-							while ( i-- > -1)
-							{
-								if ( list.getChildAt(i) is ListItemElementX )
-								{
-									prevItem = list.getChildAt(i) as ListItemElementX;
-									break;
-								}
-							}
-							
-							//	In case it didn't find any
-							//	e.g. start at 1 go down to 0 and still no list item remains
-							//	This shouldn't happen, but it has been put here as error prevention
-							if ( !prevItem )
-							{
-								//	Start at original position of i (original selection child index -1) and progress to find the fist instance of ListItemElementX
-								while ( iclone++ < list.numChildren )
-								{
-									if ( list.getChildAt(iclone) is ListItemElementX )
-									{
-										prevItem = list.getChildAt(iclone) as ListItemElementX;
-										break;
-									}
-								}
-							}
-						}
-					}
-					
-					var cameBefore:Boolean = (list.getChildIndex(prevItem) < start);
-					
-					list.removeChildAt(start);
-					list.update();
-					textFlow.flowComposer.updateAllControllers();
-					
-					//												 -1 because it's returning start of list denoter + it's text length
-					tl = cameBefore ? prevItem.text.length : -1;
-					
-					interactionManager.setSelectionState( new SelectionState( textFlow, prevItem.actualStart + tl, prevItem.actualStart + tl ) );
-				}
-			}
-			else
-			{
-				// Just handle the backspace normally.
-				handleDefaultDeletion();
-				return true;
-			}*/
-			
 			return true;
 		}
 		
