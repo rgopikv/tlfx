@@ -122,7 +122,7 @@ package flashx.textLayout.operations
 				}
 			}
 			
-			setSelectionState( new SelectionState( textFlow, nextPara.getAbsoluteStart(), nextPara.getAbsoluteStart() ) );
+			//setSelectionState( new SelectionState( textFlow, nextPara.getAbsoluteStart(), nextPara.getAbsoluteStart() ) );
 			
 			//var firstNextParaLeaf:FlowLeafElement = nextPara.getFirstLeaf();
 			
