@@ -205,9 +205,10 @@ package flashx.textLayout.format
 							}
 						}
 						
-						// Differigng between child and parent, assumed a custom style.
-						if( childPropertyValue != parentPropertyValue )
-						{
+						// Differing between child and parent, assumed a custom style.
+//						if( childPropertyValue != parentPropertyValue )
+//						{
+						// Actually, Check if differing between explicit style and defined child style. That should be enough.
 							styleProperty = StyleProperty.normalizePropertyForCSS( property, childPropertyValue, childFormat );
 							
 							if( explicitStyle && explicitStyle[StyleAttributeUtil.dasherize( styleProperty.property )] != null )
@@ -220,7 +221,12 @@ package flashx.textLayout.format
 									styleProperty.value = explicitValue;
 							} 
 							styles[styleProperty.property] = styleProperty.value;
-						}
+//						}
+//						// If not differing, check to see if our explicit style differs
+//						else
+//						{
+//							
+//						}
 					}
 					catch( e:Error )
 					{
@@ -246,7 +252,7 @@ package flashx.textLayout.format
 				var inline:InlineStyles = getInlineStyleOfElement( element );
 				// serialize attributes.
 				if( inline ) inline.serialize( node );
-				var childFormat:ITextLayoutFormat = ( format ) ? format : element.format;
+				var childFormat:ITextLayoutFormat = ( format ) ? format : element;
 				var parentFormat:ITextLayoutFormat = getComputedParentFormat( element );
 				return applyStyleAttributesFromDifferingStyles( node, parentFormat, childFormat, element );
 			}
