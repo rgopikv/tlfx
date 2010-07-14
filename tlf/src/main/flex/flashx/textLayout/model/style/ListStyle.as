@@ -50,9 +50,6 @@ package flashx.textLayout.model.style
 		{
 			if( _mode == ListItemModeEnum.ORDERED )
 				return ListStyleEnum.ORDERED_DECIMAL;
-			else if( mode == ListItemModeEnum.UNORDERED )
-				return ListStyleEnum.UNORDERED_DISC;
-			
 			return null;
 		}
 		

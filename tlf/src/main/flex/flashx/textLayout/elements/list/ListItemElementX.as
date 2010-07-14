@@ -376,7 +376,7 @@ package flashx.textLayout.elements.list
 			if ( _mode == ListItemModeEnum.UNORDERED )
 			{
 				var modifier:Number = ( paragraphStartIndent ) ? (paragraphStartIndent / 24) : Number.NaN;
-				seperator = ListStyleConversionUtil.convertUnordered( styleType, modifier, number );
+				seperator = ListStyleConversionUtil.convertUnordered( styleType, modifier - 1, number );
 			}
 			else
 			{
