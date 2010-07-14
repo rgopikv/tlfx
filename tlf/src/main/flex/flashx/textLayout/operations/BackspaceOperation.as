@@ -60,12 +60,33 @@ package flashx.textLayout.operations
 		 * 
 		 */
 		public override function doOperation():Boolean	{
-						
+			
+			// are we in a list. if so, go to current logic below
+			
+			// if we aren't in a list, what are we currently in.
+			// are we in a Div, Para, Table
+			
+			// if its a table do nothing
+			
+			var prevElement:FlowElement = (textFlow.findLeaf(absoluteStart-1).parent) as ListPaddingElement;
+			
+			if(prevElement is ListPaddingElement) {
+
+				var operationState:SelectionState = interactionManager.getSelectionState();
+
+				//interactionManager.selectRange(absoluteStart-2, absoluteEnd+2);
+				interactionManager.setSelectionState(new SelectionState(textFlow, prevElement.getAbsoluteStart()-1, absoluteEnd));
+				interactionManager.refreshSelection();
+				
+				prevElement = textFlow.findLeaf(interactionManager.absoluteStart).parent;
+				//return true;
+			}
+			
 			// We determine whether there are selected list items in
 			// the selected range.  If there are we handle the deletion using
 			// tlfx list deletion logic.  If there is no list content in the 
 			// selected range we proceed with tlf default logic.
-			if ( hasListSelected() ) {
+			if ( hasListSelected() || prevElement) {
 				handleListDeletion();
 			} else {
 				handleDefaultDeletion();
@@ -134,6 +155,7 @@ package flashx.textLayout.operations
 		 */
 		private function deleteListByRange() : Boolean {
 			
+			var operationState:SelectionState = interactionManager.getSelectionState();
 			var selectedListItems:Array = SelectionHelper.getSelectedListItems( textFlow, true );
 			// We use the helper class SelectionHelper to get the selected list items.
 			// remember that we have access to the textFlow from the operationState that
@@ -147,8 +169,8 @@ package flashx.textLayout.operations
 	
 				// First we retreive the start and end leaf elements. These SpanElements will 
 			// help retreive their parent FlowGroupElements. 
-			var flowLeafStart:FlowLeafElement = textFlow.findLeaf(absoluteStart);
-			var flowLeafEnd:FlowLeafElement = textFlow.findLeaf(absoluteEnd);
+			var flowLeafStart:FlowLeafElement = textFlow.findLeaf(operationState.absoluteStart);
+			var flowLeafEnd:FlowLeafElement = textFlow.findLeaf(operationState.absoluteEnd);
 			
 			// Retreive the parent FlowGroupElement objects. These will help in 
 			// determining if we are deleting from within a list or outside of a list.
@@ -228,7 +250,7 @@ package flashx.textLayout.operations
 							var tmpFlowGroupEnd:ListItemElementX = flowGroupEnd as ListItemElementX;
 							if(tmpFlowGroupEnd.text == "") {
 								listStart.removeChild(tmpFlowGroupEnd);
-								interactionManager.setSelectionState(new SelectionState(textFlow, this.absoluteStart-1, this.absoluteStart-1));
+								interactionManager.setSelectionState(new SelectionState(textFlow, operationState.absoluteStart-1, operationState.absoluteStart-1));
 								interactionManager.refreshSelection();
 							}
 							ListUtil.cleanEmptyLists( textFlow );
@@ -242,7 +264,7 @@ package flashx.textLayout.operations
 								
 								textFlow.addChild(para);
 								textFlow.flowComposer.updateAllControllers();
-								interactionManager.setSelectionState(new SelectionState(textFlow, absoluteStart, absoluteStart));
+								interactionManager.setSelectionState(new SelectionState(textFlow, operationState.absoluteStart, operationState.absoluteStart));
 								interactionManager.refreshSelection();
 								
 								var container:AutosizableContainerController = ListUtil.findDefaultContainerController(para);
@@ -294,8 +316,9 @@ package flashx.textLayout.operations
 		 * 
 		 */
 		private function deleteRange() : void {
-			var deleteFrom:int = Math.max(0, absoluteStart);
-			var deleteTo:int = Math.min(absoluteEnd, textFlow.textLength-1);
+			var operationState:SelectionState = interactionManager.getSelectionState();
+			var deleteFrom:int = Math.max(0, operationState.absoluteStart);
+			var deleteTo:int = Math.min(operationState.absoluteEnd, textFlow.textLength-1);
 			
 			try {
 				interactionManager.deleteText( new SelectionState( textFlow, deleteFrom, deleteTo ) );//absoluteStart, i ) );
@@ -326,13 +349,14 @@ package flashx.textLayout.operations
 		 */
 		private function deleteListByCaret() : Boolean {
 
+			var operationState:SelectionState = interactionManager.getSelectionState();
 			var selectedLists:Array = SelectionHelper.getSelectedLists( textFlow );
 			var list:ListElementX = selectedLists[0] as ListElementX;
 			
 			// First we retreive the start and end leaf elements. These SpanElements will 
 			// help retreive their parent FlowGroupElements. 
-			var flowLeafStart:FlowLeafElement = textFlow.findLeaf(absoluteStart);
-			var flowLeafEnd:FlowLeafElement = textFlow.findLeaf(absoluteEnd);
+			var flowLeafStart:FlowLeafElement = textFlow.findLeaf(operationState.absoluteStart);
+			var flowLeafEnd:FlowLeafElement = textFlow.findLeaf(operationState.absoluteEnd);
 			
 			// Retreive the parent FlowGroupElement objects. These will help in 
 			// determining if we are deleting from within a list or outside of a list.
@@ -341,7 +365,7 @@ package flashx.textLayout.operations
 			
 			var tmp:int = flowGroupStart.getAbsoluteStart() + flowGroupStart.seperatorLength;
 			
-			if(absoluteStart > flowGroupStart.actualStart) {
+			if(operationState.absoluteStart > flowGroupStart.actualStart) {
 				handleDefaultDeletion();
 			} else {
 				trace("check this out");
@@ -455,7 +479,8 @@ package flashx.textLayout.operations
 		 * 
 		 */
 		private function isCaretSelection() : Boolean {
-			return (absoluteStart == absoluteEnd);
+			var operationState:SelectionState = interactionManager.getSelectionState();
+			return (operationState.absoluteStart == operationState.absoluteEnd);
 		}
 		
 		/**
