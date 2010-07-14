@@ -142,8 +142,8 @@ package flashx.textLayout.operations
 			var selectedLists:Array = SelectionHelper.getSelectedLists( textFlow );
 			var startItem:ListItemElementX = selectedListItems[0] as ListItemElementX;
 			var endItem:ListItemElementX = selectedListItems[selectedListItems.length-1] as ListItemElementX;
-				var listStart:ListElementX = startItem.parent as ListElementX;
-				var listEnd:ListElementX = endItem.parent as ListElementX;
+			var listStart:ListElementX = startItem.parent as ListElementX;
+			var listEnd:ListElementX = endItem.parent as ListElementX;
 	
 				// First we retreive the start and end leaf elements. These SpanElements will 
 			// help retreive their parent FlowGroupElements. 
@@ -325,6 +325,9 @@ package flashx.textLayout.operations
 		 * 
 		 */
 		private function deleteListByCaret() : Boolean {
+
+			var selectedLists:Array = SelectionHelper.getSelectedLists( textFlow );
+			var list:ListElementX = selectedLists[0] as ListElementX;
 			
 			// First we retreive the start and end leaf elements. These SpanElements will 
 			// help retreive their parent FlowGroupElements. 
@@ -373,8 +376,11 @@ package flashx.textLayout.operations
 					flowGroupStart.parent.removeChild(flowGroupStart);
 				}
 				
-				ListUtil.cleanEmptyLists(textFlow);
 			}
+			
+			ListUtil.cleanEmptyLists( textFlow );
+			
+			list.update();
 						
 			return true;
 		}

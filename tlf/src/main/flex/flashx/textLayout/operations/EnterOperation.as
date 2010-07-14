@@ -85,7 +85,9 @@ package flashx.textLayout.operations
 			var nextLeaf:ListItemElementX = textFlow.findLeaf(absoluteEnd+1).parent as ListItemElementX;
 			var prevLeaf:ListItemElementX = textFlow.findLeaf(absoluteEnd).parent as ListItemElementX;
 			if(prevLeaf) {
-				if(prevLeaf.modifiedTextLength == 0) {
+				// get the parent
+				var list:ListElementX = prevLeaf.parent as ListElementX;
+				if(prevLeaf.modifiedTextLength == 0 && list.listItems[list.listItems.length-1] == nextLeaf) {
 					closeList(nextLeaf);
 					return true;
 				}

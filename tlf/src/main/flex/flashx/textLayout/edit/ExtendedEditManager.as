@@ -127,11 +127,6 @@ package flashx.textLayout.edit
 				super.textInputHandler(event);
 		}
 		
-		/**
-		 * 
-		 * @param event
-		 * 
-		 */
 		override public function keyDownHandler(event:KeyboardEvent):void
 		{			
 			var operationState:SelectionState = defaultOperationState();
