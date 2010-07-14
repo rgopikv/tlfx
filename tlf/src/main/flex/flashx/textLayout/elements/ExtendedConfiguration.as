@@ -10,6 +10,7 @@ package flashx.textLayout.elements
 	import flashx.textLayout.formats.TextLayoutFormat;
 	import flashx.textLayout.formats.TextLayoutFormatValueHolder;
 	import flashx.textLayout.tlf_internal;
+	import flashx.textLayout.utils.DimensionTokenUtil;
 
 	use namespace tlf_internal;
 	
@@ -17,6 +18,7 @@ package flashx.textLayout.elements
 	{
 		protected var _defaultTableFormat:ITextLayoutFormat;
 		protected var _defaultTableHeaderFormat:ITextLayoutFormat;
+		protected var _defaultHeaderFormat:ITextLayoutFormat;
 		
 		public function ExtendedConfiguration(initializeWithDefaults:Boolean=true)
 		{
@@ -31,10 +33,16 @@ package flashx.textLayout.elements
 			var format:TextLayoutFormatValueHolder = new TextLayoutFormatValueHolder();
 			_defaultTableFormat = format;
 			
-			format = new TextLayoutFormatValueHolder();
-			format.fontWeight = FontWeight.BOLD;
-			format.textAlign = TextAlign.CENTER;
-			_defaultTableHeaderFormat = format;
+			var thFormat:TextLayoutFormatValueHolder = new TextLayoutFormatValueHolder();
+			thFormat.fontWeight = FontWeight.BOLD;
+			thFormat.textAlign = TextAlign.CENTER;
+			_defaultTableHeaderFormat = thFormat;
+			
+			var hFormat:TextLayoutFormatValueHolder = new TextLayoutFormatValueHolder();
+			hFormat.fontWeight = FontWeight.BOLD;
+			hFormat.fontSize = DimensionTokenUtil.convertPointToPixel( 14 );
+			hFormat.lineHeight = ( hFormat.fontSize ) * 1.2;
+			_defaultHeaderFormat = hFormat;
 		}
 		
 		override public function clone():Configuration
@@ -65,6 +73,7 @@ package flashx.textLayout.elements
 			
 			( exConfig as ExtendedConfiguration ).defaultTableFormat = _defaultTableFormat;
 			( exConfig as ExtendedConfiguration ).defaultTableHeaderFormat = _defaultTableHeaderFormat;
+			( exConfig as ExtendedConfiguration ).defaultHeaderFormat = _defaultHeaderFormat;
 			return exConfig; 
 		}
 		
@@ -85,5 +94,15 @@ package flashx.textLayout.elements
 		{
 			_defaultTableHeaderFormat = value;
 		}
+
+		public function get defaultHeaderFormat():ITextLayoutFormat
+		{
+			return _defaultHeaderFormat;
+		}
+		public function set defaultHeaderFormat(value:ITextLayoutFormat):void
+		{
+			_defaultHeaderFormat = value;
+		}
+
 	}
 }

@@ -17,6 +17,7 @@ package flashx.textLayout.edit
 	import flashx.textLayout.elements.FlowElement;
 	import flashx.textLayout.elements.FlowGroupElement;
 	import flashx.textLayout.elements.FlowLeafElement;
+	import flashx.textLayout.elements.HeaderElement;
 	import flashx.textLayout.elements.InlineGraphicElement;
 	import flashx.textLayout.elements.ParagraphElement;
 	import flashx.textLayout.elements.SpanElement;
@@ -453,40 +454,48 @@ package flashx.textLayout.edit
 			
 			if ((paraSplitPos == para.textLength - 1))
 			{
-				newPar = para.shallowCopy() as ParagraphElement;
-				newPar.replaceChildren(0, 0, new SpanElement());
-				var startIdx:int = para.parent.getChildIndex(para);
-				para.parent.replaceChildren(startIdx + 1, startIdx + 1, newPar);
-				if (newPar.textLength == 1)
+				// [TA] 07-13-2010 :: Check to see if ParagraphElement is a HeaderElement instance. If so, the context of splitting a para at the end of its content is different.
+				if( para is HeaderElement )
 				{
-					//we have an empty paragraph.  Make sure that the first
-					//span of this paragraph has the same character attributes
-					//of the last span of this
-
-					var lastSpan:FlowLeafElement = para.getLastLeaf();
-					var prevSpan:FlowLeafElement;
-					if (lastSpan != null && lastSpan.textLength == 1)
+					newPar = ParaEdit.splitHeader( para as HeaderElement, paraSplitPos, pointFormat );
+				}
+				// [END TA]
+				else
+				{
+					newPar = para.shallowCopy() as ParagraphElement;
+					newPar.replaceChildren(0, 0, new SpanElement());
+					var startIdx:int = para.parent.getChildIndex(para);
+					para.parent.replaceChildren(startIdx + 1, startIdx + 1, newPar);
+					if (newPar.textLength == 1)
 					{
-						//if the lastSpan is only a newline, you really want the span right before
-						var elementIdx:int = lastSpan.parent.getChildIndex(lastSpan);
-						if (elementIdx > 0)
+						//we have an empty paragraph.  Make sure that the first
+						//span of this paragraph has the same character attributes
+						//of the last span of this
+	
+						var lastSpan:FlowLeafElement = para.getLastLeaf();
+						var prevSpan:FlowLeafElement;
+						if (lastSpan != null && lastSpan.textLength == 1)
 						{
-							prevSpan = lastSpan.parent.getChildAt(elementIdx - 1) as SpanElement;
-							if (prevSpan != null) lastSpan = prevSpan;
+							//if the lastSpan is only a newline, you really want the span right before
+							var elementIdx:int = lastSpan.parent.getChildIndex(lastSpan);
+							if (elementIdx > 0)
+							{
+								prevSpan = lastSpan.parent.getChildAt(elementIdx - 1) as SpanElement;
+								if (prevSpan != null) lastSpan = prevSpan;
+							}
 						}
+						if (lastSpan != null)
+						{
+							ParaEdit.setTextStyleChange(para.getTextFlow(), absSplitPos + 1, absSplitPos + 2, lastSpan.format);
+						}
+						if (pointFormat != null)
+							ParaEdit.applyTextStyleChange(para.getTextFlow(),absSplitPos + 1, absSplitPos + 2, pointFormat, null);
 					}
-					if (lastSpan != null)
-					{
-						ParaEdit.setTextStyleChange(para.getTextFlow(), absSplitPos + 1, absSplitPos + 2, lastSpan.format);
-					}
-					if (pointFormat != null)
-						ParaEdit.applyTextStyleChange(para.getTextFlow(),absSplitPos + 1, absSplitPos + 2, pointFormat, null);
 				}							
 			}
 			else
 			{
 				newPar = para.splitAtPosition(paraSplitPos) as ParagraphElement;
-				
 			}
 			
 			//you can't have empty paragraphs.  Put the span back
@@ -567,6 +576,22 @@ package flashx.textLayout.edit
 			
 			return newPar;
 		}
+		
+		// [TA] 07-14-2010 :: Additioanl method to split HeaderElement. HeaderElement is essentially a ParagraphElement, but the context of splitting the element at last character holds different paradigm.
+		//						Normally a shallow copy of the paragraph is made, in this case we need to just set default element beneath HeaderElement.
+		//						If split occurs at position within the HeaderElement, handle as normal splitPara.
+		public static function splitHeader(header:HeaderElement, paraSplitPos:int, pointFormat:ITextLayoutFormat=null):ParagraphElement
+		{
+			var content:*;
+			content = new ParagraphElement();
+			content.replaceChildren( 0, 0, new SpanElement() );
+			var insertIndex:int = header.parent.getChildIndex(header) + 1;
+			header.parent.replaceChildren( insertIndex, insertIndex, content );
+			header.shallowTransfer( content );
+			
+			return content as ParagraphElement;
+		}
+		// [END TA]
 		
 		// TODO: rewrite this method by moving the elements.  This is buggy.
 		public static function mergeParagraphWithNext(para:ParagraphElement):Boolean

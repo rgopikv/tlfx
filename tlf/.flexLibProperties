@@ -308,6 +308,8 @@
     <classEntry path="flashx.textLayout.model.style.BackgroundShorthand"/>
     <classEntry path="flashx.textLayout.utils.BackgroundShorthandUtil"/>
     <classEntry path="flashx.textLayout.events.list.ListElementEvent"/>
+    <classEntry path="flashx.textLayout.model.style.IHeaderStyle"/>
+    <classEntry path="flashx.textLayout.model.style.HeaderStyle"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests>
