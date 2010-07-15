@@ -11,6 +11,7 @@ package flashx.textLayout.format
 	import flashx.textLayout.formats.TextLayoutFormat;
 	import flashx.textLayout.model.style.InlineStyles;
 	import flashx.textLayout.utils.ColorValueUtil;
+	import flashx.textLayout.utils.FragmentAttributeUtil;
 	import flashx.textLayout.utils.StyleAttributeUtil;
 
 	/**
@@ -168,7 +169,8 @@ package flashx.textLayout.format
 			while( _pendingStyledElements.length > 0 )
 			{
 				styleElement = _pendingStyledElements.shift();
-				applyStylesToElement( styleElement.node.@style.toString(), styleElement.element );
+				if( FragmentAttributeUtil.exists( styleElement.node, "style" ) )
+					applyStylesToElement( styleElement.node.@style.toString(), styleElement.element );
 			}
 		}
 		
