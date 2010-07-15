@@ -700,7 +700,7 @@ package flashx.textLayout.operations
 					fe1 = selectedListItems[0];
 					fe2 = selectedListItems[selectedListItems.length-1];
 					
-					absoluteStart = fe1.getAbsoluteStart();
+					absoluteStart = fe1.getAbsoluteStart() + (fe1 as ListItemElementX).seperatorLength;
 					absoluteEnd   = fe2.getAbsoluteStart() + fe2.textLength;
 				}
 				else
@@ -764,7 +764,7 @@ package flashx.textLayout.operations
 					}
 					
 					// we should select the entire list
-					absoluteStart = list.getAbsoluteStart()+1;
+					absoluteStart = list.getAbsoluteStart() + (list.getChildAt(1) as ListItemElementX).seperatorLength;
 					absoluteEnd   = list.getAbsoluteStart() + list.textLength-2;
 				}
 			}
