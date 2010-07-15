@@ -29,6 +29,7 @@ package flashx.textLayout.operations
 	import flashx.textLayout.format.IImportStyleHelper;
 	import flashx.textLayout.formats.ITextLayoutFormat;
 	import flashx.textLayout.formats.TextLayoutFormat;
+	import flashx.textLayout.tlf_internal;
 	import flashx.textLayout.utils.TextLayoutFormatUtils;
 	
 	public class ChangeListModeOperation extends FlowTextOperation
@@ -59,7 +60,7 @@ package flashx.textLayout.operations
 		//						This was needed as styles were not update on list items because the had a filled format that couldn't be overriding with inline or external styles.
 		protected function getCascadingFormatForElement( element:FlowElement ):ITextLayoutFormat
 		{
-			var format:ITextLayoutFormat = element.format;
+			var format:ITextLayoutFormat = element.format ? element.format : new TextLayoutFormat();
 			var parent:FlowElement = element.parent;
 			while( !(parent is TextFlow) )
 			{
@@ -226,7 +227,7 @@ package flashx.textLayout.operations
 				//	[FORMATING]
 				//	[KK] Hack to fix inheriting formatting from when ParagraphElement is inside DivElement
 				// [TA] 06-30-2010 :: Change to smartly figure out cascading format.
-				item.format = p.format ? getCascadingFormatForElement( p ) : new TextLayoutFormat();
+				item.format = getCascadingFormatForElement( p );
 				// [END TA]
 				item.mode = _mode;
 				if ( p && !(p is ListItemElementX) )
@@ -705,6 +706,8 @@ package flashx.textLayout.operations
 				}
 				else
 				{
+					var newPara:ParagraphElement;
+					var lastParaFormat:ITextLayoutFormat = getCascadingFormatForElement( paragraphs[paragraphs.length - 1] as ParagraphElement );
 					//	Add ListElementX at position of first element
 					p = paragraphs[0] as ParagraphElement;
 					var prnt:FlowGroupElement = p.parent;
@@ -741,8 +744,8 @@ package flashx.textLayout.operations
 							}
 						}
 						
-						var newPara:ParagraphElement = new ParagraphElement();
-						newPara.format = (paragraphs[0] as ParagraphElement).computedFormat;
+						newPara = new ParagraphElement();
+						newPara.format = lastParaFormat;
 						/*var newSpan:SpanElement = new SpanElement();
 						newSpan.text = "";
 						newPara.addChild(newSpan);*/
@@ -754,8 +757,8 @@ package flashx.textLayout.operations
 					{
 						containerController = findContainerControllerForElement( p );
 						list = splitAndAddListToTextFlow( prnt, paragraphs );
-						var newPara:ParagraphElement = new ParagraphElement();
-						newPara.format = (paragraphs[0] as ParagraphElement).computedFormat;
+						newPara = new ParagraphElement();
+						newPara.format = lastParaFormat;
 						/*var newSpan:SpanElement = new SpanElement();
 						newSpan.text = "";
 						newPara.addChild(newSpan);*/
