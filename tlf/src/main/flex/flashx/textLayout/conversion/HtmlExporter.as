@@ -445,18 +445,6 @@ package flashx.textLayout.conversion
 				//	Grab the child
 				var child:FlowElement = flowGroupElement.getChildAt(i);
 				
-				if ( child is SpanElement )
-				{
-					//	[KK]	BreakElements are considered to be SpanElements upon export, test for spans only containing a paragraph terminator
-					if ( ( child as SpanElement ).text.length == 1 && ( child as SpanElement ).text == '\u2028' )
-					{
-						xml.appendChild(<br/>);
-						continue;
-					}
-					else if ( ( child as SpanElement ).text.match( /\w/g ).length == 0 )
-						continue;
-				}
-				
 				//	Export element
 				xml.appendChild(exportElement(child));	
 			}
