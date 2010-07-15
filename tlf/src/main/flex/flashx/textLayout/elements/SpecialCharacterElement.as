@@ -10,9 +10,9 @@
 //////////////////////////////////////////////////////////////////////////////////
 package flashx.textLayout.elements
 {
+	import flashx.textLayout.debug.assert;
 	import flashx.textLayout.formats.TextLayoutFormat;
 	import flashx.textLayout.formats.WhiteSpaceCollapse;
-	import flashx.textLayout.debug.assert;
 	import flashx.textLayout.tlf_internal;
 	
 	use namespace tlf_internal;
@@ -59,15 +59,23 @@ package flashx.textLayout.elements
 				if (myidx != 0)
 				{
 					var sib:SpanElement = parent.getChildAt(myidx-1) as SpanElement;
-					if (sib != null && (sib is SpanElement) && TextLayoutFormat.isEqual(sib.format,format))
+					if ( (this is BreakElement) )
 					{
-						CONFIG::debug { assert(this.parent == sib.parent, "Should never merge two spans with different parents!"); }
-						
-						// Merge them in the Player's TextBlock structure
-						var siblingInsertPosition:int = sib.textLength;
-						sib.replaceText(siblingInsertPosition, siblingInsertPosition, this.text);
-						parent.replaceChildren(myidx,myidx+1);
-						return true;
+						//	[KK]	Return false without doing anything, because we don't want BreakElements to merge AT ALL
+						return false;
+					}
+					else
+					{
+						if (sib != null && (sib is SpanElement) && TextLayoutFormat.isEqual(sib.format,format))
+						{
+							CONFIG::debug { assert(this.parent == sib.parent, "Should never merge two spans with different parents!"); }
+							
+							// Merge them in the Player's TextBlock structure
+							var siblingInsertPosition:int = sib.textLength;
+							sib.replaceText(siblingInsertPosition, siblingInsertPosition, this.text);
+							parent.replaceChildren(myidx,myidx+1);
+							return true;
+						}
 					}
 				}
 				// make a span and replace ourself
