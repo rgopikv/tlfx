@@ -68,7 +68,7 @@ package flashx.textLayout.operations
 			
 			// if its a table do nothing
 			
-			var prevElement:FlowElement = (textFlow.findLeaf(absoluteStart-1).parent) as ListPaddingElement;
+			var prevElement:FlowElement = (textFlow.findLeaf(Math.max(0, absoluteStart-1)).parent) as ListPaddingElement;
 			
 			if(prevElement is ListPaddingElement) {
 
@@ -275,8 +275,11 @@ package flashx.textLayout.operations
 						}
 						
 						var fe:ListItemElementX;
-						for(var j:int=0; j<initialChildrenLen; j++) {
-							fe = listItemEnd.addChild(flowGroupEnd.getChildAt(0)) as ListItemElementX;
+						
+						if(flowGroupStart != flowGroupEnd) {
+							for(var j:int=0; j<initialChildrenLen; j++) {
+								fe = listItemEnd.addChild(flowGroupEnd.getChildAt(0)) as ListItemElementX;
+							}
 						}
 
 					}				
