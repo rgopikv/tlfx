@@ -170,7 +170,7 @@ package flashx.textLayout.edit.helpers
 		 * @return The list of selected items.
 		 * 
 		 */
-		public function get cachedListItems() : Array {
+		public static function get cachedListItems() : Array {
 			return _selectedListItemsCache;
 		}
 		
