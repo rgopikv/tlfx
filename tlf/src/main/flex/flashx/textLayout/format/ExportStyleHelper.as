@@ -252,7 +252,7 @@ package flashx.textLayout.format
 				var inline:InlineStyles = getInlineStyleOfElement( element );
 				// serialize attributes.
 				if( inline ) inline.serialize( node );
-				var childFormat:ITextLayoutFormat = ( format ) ? format : element;
+				var childFormat:ITextLayoutFormat = ( format ) ? format : element.format;
 				var parentFormat:ITextLayoutFormat = getComputedParentFormat( element );
 				return applyStyleAttributesFromDifferingStyles( node, parentFormat, childFormat, element );
 			}
