@@ -22,6 +22,8 @@ package flashx.textLayout.edit.helpers
 	 */
 	public class SelectionHelper
 	{
+		private static var _selectedListItemsCache:Array;
+		
 		/**
 		 * Returns true if the TextFlow's current selection state contains the supplied paragraph.
 		 */
@@ -158,6 +160,50 @@ package flashx.textLayout.edit.helpers
 			}
 			
 			return selectedElements;
+		}	
+		
+		/**
+		 * Get the cached selected list items.  This is used for
+		 * styling the symbols.  We need to know if the entire list
+		 * item has been selected.
+		 *  
+		 * @return The list of selected items.
+		 * 
+		 */
+		public function get cachedListItems() : Array {
+			return _selectedListItemsCache;
+		}
+		
+		/**
+		 * Helper funciton for setting the fully selected list items. 
+		 * This is needed to apply styles to their symbols.
+		 * 
+		 */
+		public static function cacheSelectedLists(textFlow:TextFlow, absoluteStart:int, absoluteEnd:int): void {
+			
+			// check to see if any list items are selected for performance reasons
+			if(SelectionHelper.getSelectedListItems(textFlow).length > 0) {
+				
+				// clear our current list of selectedListItemsCache
+				_selectedListItemsCache = new Array();
+				
+				// get the selected list items
+				var selectedListItems:Array = SelectionHelper.getSelectedListItems(textFlow);
+				
+				// loop through the list items to see if they are fully selected
+				for(var i:String in selectedListItems) {
+					
+					var listItem:ListItemElementX = selectedListItems[i];
+					
+					// find out if the entire list item is selected
+					if(absoluteStart <= listItem.actualStart && absoluteEnd >= listItem.getAbsoluteStart() + listItem.textLength - 1) {
+						_selectedListItemsCache.push(listItem);
+						trace(listItem.text);
+					}
+				}
+				
+			}			
+			
 		}
 	}
 }
