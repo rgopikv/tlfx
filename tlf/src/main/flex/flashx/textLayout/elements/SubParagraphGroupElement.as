@@ -226,10 +226,16 @@ package flashx.textLayout.elements
 			
 			// are we replacing the last element?
 			var oldLastLeaf:FlowLeafElement = p ? p.getLastLeaf() : null;
+			
+//			//	[KK]
+//			var olderLastLeaf:FlowLeafElement = oldLastLeaf ? oldLastLeaf.getPreviousLeaf(p) : null;
 				
 			var applyParams:Array = [beginChildIndex, endChildIndex];
 			super.replaceChildren.apply(this, applyParams.concat(rest));
 			
+				[KK]
+//			if (p)
+//				p.ensureTerminatorAfterReplace(oldLastLeaf, olderLastLeaf);
 			if (p)
 				p.ensureTerminatorAfterReplace(oldLastLeaf);
 		}

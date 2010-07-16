@@ -310,6 +310,9 @@ package flashx.textLayout.elements
 			// are we replacing the last element?
 			var oldLastLeaf:FlowLeafElement = getLastLeaf();
 			
+			//	[KK]
+			var olderLastLeaf:FlowLeafElement = oldLastLeaf ? oldLastLeaf.getPreviousLeaf(this) : null;
+			
 			CONFIG::debug 
 			{ 
 				if (oldLastLeaf && (oldLastLeaf is SpanElement))
@@ -329,23 +332,80 @@ package flashx.textLayout.elements
 			}
 			super.replaceChildren.apply(this, applyParams);
 			
+//			//	[KK]
+//			ensureTerminatorAfterReplace(oldLastLeaf, olderLastLeaf, true);
 			ensureTerminatorAfterReplace(oldLastLeaf);
 		}
+//		/** @private */
+//		tlf_internal function ensureTerminatorAfterReplace(oldLastLeaf:FlowLeafElement, olderLastLeaf:FlowLeafElement, addSecondFlag:Boolean = false):void
+//		{
+//			var newLastLeaf:FlowLeafElement = getLastLeaf();
+//			var prevLastLeaf:FlowLeafElement = newLastLeaf ? newLastLeaf.getPreviousLeaf(this) : null;
+//			
+//			if (oldLastLeaf != newLastLeaf)
+//			{
+//				if (oldLastLeaf && oldLastLeaf is SpanElement)
+//					oldLastLeaf.removeParaTerminator();
+//				
+//				if ( olderLastLeaf && olderLastLeaf is SpanElement )
+//					olderLastLeaf.removeParaTerminator();
+//				
+//				if (newLastLeaf)
+//				{
+//					if (newLastLeaf is SpanElement)
+//					{
+//						newLastLeaf.addParaTerminator();
+//					}
+//					else
+//					{
+//						var s:SpanElement = new SpanElement();
+//						var s2:SpanElement = new SpanElement();
+//						
+//						var toReplace:Array = [s];
+//						
+//						if (addSecondFlag)
+//						{
+//							toReplace.push(s2);
+//						}
+//						
+//						super.replaceChildren(numChildren,numChildren,toReplace);
+//						s.format = newLastLeaf.format;
+//						s.addParaTerminator();
+//						
+//						if ( addSecondFlag )
+//						{
+//							s2.format = newLastLeaf.format;
+//							s2.addParaTerminator();
+//						}
+//					}
+//				}
+//				
+//				if (prevLastLeaf && prevLastLeaf is SpanElement)
+//				{
+//					prevLastLeaf.addParaTerminator();
+//				}
+//			}
+//		}
 		/** @private */
 		tlf_internal function ensureTerminatorAfterReplace(oldLastLeaf:FlowLeafElement):void
 		{
 			var newLastLeaf:FlowLeafElement = getLastLeaf();
+			
 			if (oldLastLeaf != newLastLeaf)
 			{
 				if (oldLastLeaf && oldLastLeaf is SpanElement)
 					oldLastLeaf.removeParaTerminator();
+				
 				if (newLastLeaf)
 				{
 					if (newLastLeaf is SpanElement)
+					{
 						newLastLeaf.addParaTerminator();
+					}
 					else
 					{
 						var s:SpanElement = new SpanElement();
+						
 						super.replaceChildren(numChildren,numChildren,s);
 						s.format = newLastLeaf.format;
 						s.addParaTerminator();
@@ -384,6 +444,9 @@ package flashx.textLayout.elements
 					throw new TypeError(GlobalSettings.resourceStringFunction("badMXMLChildrenArgument",[ getQualifiedClassName(child) ]));
 			}
 			
+//			//	[KK]
+//			// Now ensure para terminator
+//			ensureTerminatorAfterReplace(null, null);
 			// Now ensure para terminator
 			ensureTerminatorAfterReplace(null);
 		}
