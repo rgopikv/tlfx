@@ -2,15 +2,21 @@ package flashx.textLayout.elements.list
 {
 	import flash.utils.getQualifiedClassName;
 	
+	import flashx.textLayout.container.AutosizableContainerController;
 	import flashx.textLayout.converter.IHTMLExporter;
+	import flashx.textLayout.edit.helpers.SelectionHelper;
 	import flashx.textLayout.elements.DivElement;
 	import flashx.textLayout.elements.FlowElement;
+	import flashx.textLayout.elements.FlowGroupElement;
+	import flashx.textLayout.elements.ListElement;
 	import flashx.textLayout.elements.ListItemElement;
+	import flashx.textLayout.elements.ParagraphElement;
 	import flashx.textLayout.elements.TextFlow;
 	import flashx.textLayout.events.ModelChange;
 	import flashx.textLayout.events.list.ListElementEvent;
 	import flashx.textLayout.format.IExportStyleHelper;
 	import flashx.textLayout.tlf_internal;
+	import flashx.textLayout.utils.ListUtil;
 	
 	use namespace tlf_internal;
 	
@@ -142,8 +148,53 @@ package flashx.textLayout.elements.list
 		{
 			removePadding();
 			
-			super.addChildAt( 0, _paddingItems[0] );
+			// if there is a list directly above the list we do not 
+			// want to add padding above
+			var listElem:ListElementX = this.getPreviousSibling() as ListElementX;
+			
+			// if the previous item is not a ListElementX then we can add the padding.
+			if(!listElem) {
+				super.addChildAt( 0, _paddingItems[0] );
+			}
+			
 			super.addChild( _paddingItems[1] );
+			
+		}
+		
+		public var bottomPadding:Boolean;
+		public var topPadding:Boolean;
+		
+		public function correctPadding1() : void {
+			// start clean
+			removePadding();
+			
+			// correct the padding of lists above and below you
+			var prevSibling:ListElementX = this.getPreviousSibling() as ListElementX;
+			var nextSibling:ListElementX = this.getNextSibling() as ListElementX;
+			
+			/*if(prevSibling) {
+				// adjust previous sibling bottom padding
+				if(prevSibling.bottomPadding) { 
+					topPadding = false
+					//prevSibling.correctPadding();
+				}
+			} else {
+				topPadding = true;
+				super.addChildAt(0, _paddingItems[0] );
+			}*/
+			
+			
+			
+			if(nextSibling) {
+				if(!nextSibling.topPadding) {
+					bottomPadding = false
+					nextSibling.correctPadding();
+				}
+			} else {
+				bottomPadding = true;
+				super.addChild( _paddingItems[1] );
+			}
+			
 		}
 		
 		protected function attemptRemoveChild( child:FlowElement ):Boolean
@@ -197,6 +248,26 @@ package flashx.textLayout.elements.list
 				return child;
 			}
 			return null;
+		}
+		
+		public function close():void {
+			var textFlow:TextFlow = this.getTextFlow();
+			
+			if(textFlow) {
+				var paragraphs:Array = SelectionHelper.getSelectedParagraphs( textFlow );
+				
+				var newPara:ParagraphElement = new ParagraphElement();
+				newPara.format = (paragraphs[0] as ParagraphElement).computedFormat;
+				
+				var paraElem:ParagraphElement = new ParagraphElement();
+				var listIdx:int = textFlow.getChildIndex(this);
+				
+				textFlow.addChildAt(++listIdx, paraElem);
+				
+				var acc:AutosizableContainerController = ListUtil.findContainerControllerForElement(this);
+				acc.addMonitoredElement(paraElem);
+			}
+			
 		}
 		
 		public function update():void

@@ -17,10 +17,12 @@ package flashx.textLayout.operations
 	import flashx.textLayout.elements.DivElement;
 	import flashx.textLayout.elements.FlowElement;
 	import flashx.textLayout.elements.FlowGroupElement;
+	import flashx.textLayout.elements.FlowLeafElement;
 	import flashx.textLayout.elements.LinkElement;
 	import flashx.textLayout.elements.ParagraphElement;
 	import flashx.textLayout.elements.SpanElement;
 	import flashx.textLayout.elements.TextFlow;
+	import flashx.textLayout.elements.TextRange;
 	import flashx.textLayout.elements.list.ListElementX;
 	import flashx.textLayout.elements.list.ListItemElementX;
 	import flashx.textLayout.elements.list.ListItemModeEnum;
@@ -30,6 +32,7 @@ package flashx.textLayout.operations
 	import flashx.textLayout.formats.ITextLayoutFormat;
 	import flashx.textLayout.formats.TextLayoutFormat;
 	import flashx.textLayout.tlf_internal;
+	import flashx.textLayout.utils.NavigationUtil;
 	import flashx.textLayout.utils.TextLayoutFormatUtils;
 	
 	public class ChangeListModeOperation extends FlowTextOperation
@@ -341,7 +344,7 @@ package flashx.textLayout.operations
 					p.addChild( listItemChildren.shift() );
 				}
 				returnedElements.push( p );
-				/*group.addChildAt( index++, p );*/
+				//group.addChildAt( index++, p );
 			}
 			return returnedElements;
 		}
@@ -452,7 +455,14 @@ package flashx.textLayout.operations
 			{
 				newList = splitListInTwo( list, start );	
 				listItems = removeItemsFromList( newList, 0, length );
-				returnedElements = returnListItemsAsParagraphElements( newList.parent, listItems, start + 1 );
+				returnedElements = returnListItemsAsParagraphElements( newList.parent, listItems, start );
+				
+				var tmpIdx:int = list.parent.getChildIndex(list);
+				
+				for(var w:int=0; w<returnedElements.length; w++) {
+					list.parent.addChildAt(++tmpIdx, returnedElements[w]);
+					addElementToAutosizableContainerController(returnedElements[w], containerController);
+				}
 				
 				// Update split lists.
 				list.update();
@@ -475,13 +485,13 @@ package flashx.textLayout.operations
 					addElementToAutosizableContainerController(returnedElements[w], containerController);
 				}
 
-				list.parent.removeChild( list );
+				//list.parent.removeChild( list );
 			}
 			
 			// Apply style and assign managing container controller to returned elements.
 			var node:XML;
 			var element:FlowElement;
-			for( var j:int=0; j<returnedElements.length-1; j++)
+			for( var j:int=0; j<returnedElements.length; j++)
 			{
 				element = returnedElements[j];
 				node = _htmlExporter.getSimpleMarkupModelForElement( element );
@@ -590,8 +600,8 @@ package flashx.textLayout.operations
 			var i:int;
 			for( i = startIndex; i < endIndex; i++ )
 			{
-				//items.push( list.removeChild(list.listItems[startIndex]));
-				items.push( list.getChildAt(list.getChildIndex(list.listItems[startIndex+i])));
+				items.push( list.removeChild(list.listItems[0]));
+				//items.push( list.getChildAt(list.getChildIndex(list.listItems[startIndex+i])));
 			}
 			return items;
 		}

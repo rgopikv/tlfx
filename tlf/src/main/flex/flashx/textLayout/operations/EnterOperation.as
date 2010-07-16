@@ -64,20 +64,25 @@ package flashx.textLayout.operations
 		 * 
 		 */
 		public override function doOperation():Boolean	{
+			var operationState:SelectionState = interactionManager.getSelectionState();
 			
 			if(isCaretSelection()) {
-				interactionManager.splitParagraph();
+				var leaf:FlowLeafElement = textFlow.findLeaf(operationState.absoluteStart-1);
+				//operationState.pointFormat = leaf.format;
+				interactionManager.splitParagraph(operationState);
 				interactionManager.refreshSelection();
 			} else {
-				var operationState:SelectionState = interactionManager.defaultOperationState();
 				
 				if( !operationState ) {
 					return true;
 				}
 				
+				var leaf:FlowLeafElement = textFlow.findLeaf(operationState.absoluteStart);
+				//operationState.pointFormat = leaf.format;
+				
 				// do the specific operation passing in the listMode argument
 				interactionManager.doOperation( new BackspaceOperation( operationState, interactionManager ) );
-				interactionManager.splitParagraph();
+				interactionManager.splitParagraph(operationState);
 				interactionManager.refreshSelection();
 				
 			}
@@ -110,15 +115,39 @@ package flashx.textLayout.operations
 			var item:ListItemElementX = leaf.parent as ListItemElementX;
 			
 			var list:ListElementX = leaf.parent as ListElementX;
-			var idx:int = list.listItems.indexOf(leaf);
+
 			list.removeChild(leaf);
 			list.removeChild(list.listItems.pop()); // use the same index since they shift
 			list.update();
 			
-			// now jump down
-			var ss:SelectionState = new SelectionState(textFlow, list.getAbsoluteStart()+list.textLength, list.getAbsoluteStart()+list.textLength);
-			interactionManager.setSelectionState(ss);
+			// we want to move to the next sibling of the list. however if we are in a blank editor
+			// and the user has removed the next sibling by deleting it we will need to create a new paragraph element.
+			var nextSibling:FlowElement = list.getNextSibling();
+			
+			if(!nextSibling) {
+				var containerController:AutosizableContainerController;
+				var newPara:ParagraphElement = new ParagraphElement();
+				var newSpan:SpanElement = new SpanElement();
+				newSpan.text = "";
+				newPara.addChild(newSpan);
+				containerController = ListUtil.findContainerControllerForElement(list);
+				//newPara.format = leaf.computedFormat;
+				nextSibling = textFlow.addChildAt(textFlow.getChildIndex(list)+1, newPara);
+				containerController.addMonitoredElement(newPara);
+				//textFlow.flowComposer.updateAllControllers();
+				
+			}
+						
+			// get the selection state
+			var operationState:SelectionState = interactionManager.getSelectionState();
+			operationState.anchorPosition = nextSibling.getAbsoluteStart();
+			operationState.activePosition = nextSibling.getAbsoluteStart();
+			
+			// set the selection state
+			interactionManager.setSelectionState(operationState);
 			interactionManager.refreshSelection();
+			
+			textFlow.flowComposer.updateAllControllers();
 		}
 		
 		/**

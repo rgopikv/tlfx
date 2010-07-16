@@ -14,6 +14,7 @@ package flashx.textLayout.operations
 	import flashx.textLayout.elements.FlowElement;
 	import flashx.textLayout.elements.FlowGroupElement;
 	import flashx.textLayout.elements.FlowLeafElement;
+	import flashx.textLayout.elements.ListElement;
 	import flashx.textLayout.elements.ParagraphElement;
 	import flashx.textLayout.elements.SpanElement;
 	import flashx.textLayout.elements.TextFlow;
@@ -34,9 +35,9 @@ package flashx.textLayout.operations
 	public class BackspaceOperation extends FlowTextOperation
 	{
 		private var interactionManager:ExtendedEditManager;
-				
+		
 		protected var selectedLists:Array = new Array();
-								
+		
 		/**
 		 * 
 		 * @param operationState
@@ -52,7 +53,7 @@ package flashx.textLayout.operations
 			// Set the interaction manager so that we can reference it while deleting lists.
 			this.interactionManager = interactionManager;
 		}
-				
+		
 		/**
 		 * doOperation is called by ExtendedEditManager.
 		 * 
@@ -68,31 +69,224 @@ package flashx.textLayout.operations
 			
 			// if its a table do nothing
 			
-			var prevElement:FlowElement = (textFlow.findLeaf(Math.max(0, absoluteStart-1)).parent) as ListPaddingElement;
+			/*var prevElement:FlowElement = (textFlow.findLeaf(Math.max(0, absoluteStart-1)).parent) as ListPaddingElement;
 			
 			if(prevElement is ListPaddingElement) {
-
-				var operationState:SelectionState = interactionManager.getSelectionState();
-
-				//interactionManager.selectRange(absoluteStart-2, absoluteEnd+2);
-				interactionManager.setSelectionState(new SelectionState(textFlow, prevElement.getAbsoluteStart()-1, absoluteEnd));
-				interactionManager.refreshSelection();
-				
-				prevElement = textFlow.findLeaf(interactionManager.absoluteStart).parent;
-				//return true;
-			}
+			
+			var operationState:SelectionState = interactionManager.getSelectionState();
+			
+			//interactionManager.selectRange(absoluteStart-2, absoluteEnd+2);
+			interactionManager.setSelectionState(new SelectionState(textFlow, prevElement.getAbsoluteStart()-1, absoluteEnd));
+			interactionManager.refreshSelection();
+			
+			prevElement = textFlow.findLeaf(interactionManager.absoluteStart).parent;
+			//return true;
+			}*/
 			
 			// We determine whether there are selected list items in
 			// the selected range.  If there are we handle the deletion using
 			// tlfx list deletion logic.  If there is no list content in the 
 			// selected range we proceed with tlf default logic.
-			if ( hasListSelected() || prevElement) {
-				handleListDeletion();
+			//if ( hasListSelected() /*|| prevElement*/) {
+			//	handleListDeletion();
+			//} else {
+			//handleDefaultDeletion();
+			//}
+			
+			if(isCaretSelection()) {
+				handleCaretDeletion();
+				// are we working on a ListItemElemenX
+				//handleDefaultDeletion(); 
 			} else {
-				handleDefaultDeletion();
+				handleRangeDeletion();
 			}
 			
+			ListUtil.cleanEmptyLists( textFlow );
+			
 			return true;	
+		}
+		
+		private function handleCaretDeletion() : void {
+			
+			// get the operation state
+			var operationState:SelectionState = interactionManager.getSelectionState();
+			
+			// get the current leaf
+			var fle:FlowGroupElement = textFlow.findLeaf(operationState.absoluteStart).parent;
+			
+			// check to see if this is a ListItemX
+			if(fle is ListItemElementX) {
+				
+				// if activepositin is greater than the list item
+				// then we can use default deletion
+				if(operationState.activePosition > (fle as ListItemElementX).actualStart) {
+					deleteText();
+				} else {
+					
+					// remove the current item. however if there is remaining elements
+					// we need to join them to the previous child.  if we are at the first
+					// item of a list then this would mean appending them to the previous paragraph 
+					// if one exists.  If one does not exist, we need to create one and append it to 
+					// the newly created element.
+					
+					// we can handle deleting the separator using the handleRangeDeletion function
+					
+					// retrieve the separator length
+					operationState.anchorPosition = fle.getAbsoluteStart() - 1;
+					operationState.activePosition = fle.getAbsoluteStart() + (fle as ListItemElementX).seperatorLength - 1;
+					
+					// if this is the first child, we just need to pop it off
+					if(fle.parent.getChildIndex(fle) == 1) {
+						
+						if(fle.parent.getPreviousSibling() != null) {
+							var para:ParagraphElement = new ParagraphElement();
+							var initialChildren:int = fle.mxmlChildren.length;
+							
+							fle.removeChildAt(0);
+							
+							var tf:TextFlow = fle.getTextFlow();
+							tf.addChildAt(tf.getChildIndex(fle.parent), para);
+							for(var i:int=0; i< initialChildren; i++) {
+								//if(i==0) continue;
+								para.addChild(fle.getChildAt(0));
+							}
+							
+							var acc:AutosizableContainerController = ListUtil.findContainerControllerForElement(fle.parent);
+							acc.addMonitoredElement(para);
+							
+							fle.parent.removeChild(fle);
+							tf.flowComposer.updateAllControllers();
+						}
+						
+						return;
+					}
+					
+					interactionManager.setSelectionState(operationState);
+					interactionManager.refreshSelection();
+					// now we can handle the range deletion like so
+					handleRangeDeletion();
+					
+				}
+			} else {
+				
+				// we can now deduce that we are in a non ListItemElementX. it may be possible that
+				// we have entered into the ListPaddingElementX. in fact, this probably the case. so 
+				// check to see if we are in a padding element.
+				var padding:ListPaddingElement = (fle as ListPaddingElement);
+				
+				if(padding) {
+					
+				} else {
+					handleDefaultDeletion();
+				}
+			}
+			
+			
+		}
+		
+		private function handleRangeDeletion() : void {
+			
+			var selectedLists:Array = SelectionHelper.getSelectedLists( textFlow );
+			var startList:ListElementX = selectedLists[0] as ListElementX;
+			
+			// if there are lists selected we need to get access to the top
+			// level list
+			if(startList) {
+				if(isOperatingWithinSingleList(startList)) {
+					// we delete the text by default in a range deletion
+					deleteText();			
+				} else {
+					// loop through and add remaining children to the last item
+					// find the leaf at the current absolute position.
+					if(startList) {
+						joinElements();
+					}
+				}
+			}
+			
+			
+			if(selectedLists.length > 0) {
+				for(var i:String in selectedLists) {
+					
+					var list:ListElementX = selectedLists[i] as ListElementX;
+					
+					if(list) {
+						trace("updating list: " + i);
+						list.update();
+					}
+				}
+			} else {
+				deleteText();
+			}
+			
+			//textFlow.flowComposer.updateAllControllers();
+		}
+		
+		/**
+		 * 
+		 * @param element
+		 * 
+		 */
+		private function joinElements() : void {
+			// we delete the text by default in a range deletion
+			deleteText();
+			
+			// get selection operation
+			var operationState:SelectionState = interactionManager.getSelectionState();
+			
+			// we need to subtract 2 from the numChildren to account for 
+			// the ListPaddingElement added to the end of the List
+			var fe1:FlowGroupElement = textFlow.findLeaf(operationState.absoluteStart).parent;
+			var fe2:FlowGroupElement = textFlow.findLeaf(operationState.absoluteEnd+1).parent;
+			
+			// loop through all of the remaining children and join them to 
+			// the existing flow group element. we need to get the initial
+			// amount of children since the addChild is overriden and slices
+			// the children.
+			var initialChildren:int = fe2.numChildren;
+			
+			for(var i:int=0; i < initialChildren; i++) {
+				fe1.addChild(fe2.getChildAt(0));
+			}
+			
+			// remove the dangling paragraph
+			fe2.parent.removeChild(fe2);
+		}
+		
+		/**
+		 * Helper function that determines if we are deleting within a single list. 
+		 * If we are deleting within a single list, we do not need to loop through
+		 * and add remaining children to the last list item.  
+		 * 
+		 * @param list
+		 * @return 
+		 * 
+		 */
+		private function isOperatingWithinSingleList(list:ListElementX) : Boolean{
+			if(list) {
+				
+				// get the selection state
+				var operatingState:SelectionState = interactionManager.getSelectionState();
+				
+				// we now know that we have the top level list
+				// we need to find out if we are deleting within the list.
+				// If we are deleting within the list, we do not need to add
+				// remaining span elements to the last item.
+				trace(list.getAbsoluteStart());
+				trace((list.getAbsoluteStart() + list.textLength));
+				trace("absStart: " + operatingState.absoluteStart);
+				trace("absend: " + operatingState.absoluteEnd );
+				if(operatingState.absoluteStart > list.getAbsoluteStart()  && 
+					
+					// we subtract 2 to account for the padding element and the 0 based index
+					operatingState.absoluteEnd < (list.getAbsoluteStart() + list.textLength-2)) {
+					
+					// we now know that we are operating within one list
+					return true;
+				}
+			}
+			
+			return false;
 		}
 		
 		/**
@@ -113,7 +307,7 @@ package flashx.textLayout.operations
 			}*/
 			return originalSelectionState; 
 		}
-				
+		
 		/**
 		 * 
 		 * 
@@ -139,16 +333,71 @@ package flashx.textLayout.operations
 		 * we can see that it also will delete a text range if there is a selection as compared to just
 		 * a caret selection.
 		 */
-		private function handleDefaultDeletion() : void {
+		private function deleteText() : void {
 			interactionManager.deletePreviousCharacter(interactionManager.getSelectionState());
 		}
+		
+		/**
+		 * Delete content that contains no lists 
+		 * Instead of calling super.keyDownHanlder(event) we just call the correct function
+		 * the function name "deletePreviousCharacter" is actually misleading. It leads the developer
+		 * to believe that it will only delete the previous single character. However, in the operation
+		 * we can see that it also will delete a text range if there is a selection as compared to just
+		 * a caret selection.
+		 */
+		private function handleDefaultDeletion() : void {
+			
+			var operationState:SelectionState = interactionManager.getSelectionState();
+			
+			// if we are moving into a padding element we need to use our select range function
+			var currentElement:FlowGroupElement = textFlow.findLeaf(absoluteStart).parent;
+			var previousSibling:FlowGroupElement = currentElement.getPreviousSibling() as FlowGroupElement;
+			
+			// get the actual parent
+			if(!previousSibling) {
+				// we must be in a div, so we need tto get the actual parent
+				if(currentElement.parent) {
+					previousSibling = currentElement.parent.getPreviousSibling() as FlowGroupElement;
+					if(!previousSibling) {
+						trace("no previous sibling");
+						//return;
+					}
+				}
+			}
+			
+							
+			if(absoluteStart <= currentElement.getAbsoluteStart()) {
+				if(previousSibling is ListElementX) {
+					// since the previousSibling is a ListElementX we know that
+					// there is a ListItemElementX above so we get a reference to that
+					// we need to subtract by 2 to account for the padding
+					var lastListItem:ListItemElementX = previousSibling.getChildAt(previousSibling.numChildren-2) as ListItemElementX;
+					
+					if(lastListItem) {
+						operationState.activePosition = lastListItem.getAbsoluteStart() + lastListItem.textLength - 1;
+						interactionManager.setSelectionState(operationState)
+						interactionManager.refreshSelection();
+						// now we can use our handlerange deletion function
+						handleRangeDeletion();
+						return;
+					}
+				}
+			} else {
+				//interactionManager.deletePreviousCharacter(interactionManager.getSelectionState());
+			}
 						
+			//var operationState:SelectionState = interactionManager.getSelectionState();
+			deleteText();
+			//var deleteOperation:DeleteTextOperation = new DeleteTextOperation(operationState, operationState, true);
+			//var success:Boolean = deleteOperation.doOperation();
+		}
+		
 		/**
 		 * Delete the list by its caret selection.
 		 * // rule 1: if the absoluteStart is <= startItem.actualStart then we can assume that we are
-			// at the beginning of the item and should delete the entire item and move up to the previous 
-			// item if one exists. If one doesn't exist, we should remove the list and move to the previous
-			// paragraph and select it's last leaf FlowElement.
+		 // at the beginning of the item and should delete the entire item and move up to the previous 
+		 // item if one exists. If one doesn't exist, we should remove the list and move to the previous
+		 // paragraph and select it's last leaf FlowElement.
 		 *  
 		 * @return Returns the state of the operation. 
 		 * 
@@ -166,8 +415,8 @@ package flashx.textLayout.operations
 			var endItem:ListItemElementX = selectedListItems[selectedListItems.length-1] as ListItemElementX;
 			var listStart:ListElementX = startItem.parent as ListElementX;
 			var listEnd:ListElementX = endItem.parent as ListElementX;
-	
-				// First we retreive the start and end leaf elements. These SpanElements will 
+			
+			// First we retreive the start and end leaf elements. These SpanElements will 
 			// help retreive their parent FlowGroupElements. 
 			var flowLeafStart:FlowLeafElement = textFlow.findLeaf(operationState.absoluteStart);
 			var flowLeafEnd:FlowLeafElement = textFlow.findLeaf(operationState.absoluteEnd);
@@ -207,7 +456,7 @@ package flashx.textLayout.operations
 				textFlow.flowComposer.updateAllControllers();
 				return true;
 			} 
-						
+			
 			// are we starting the deletion inside of a list?
 			if(flowGroupStart is ListItemElementX) {
 				var initialChildrenLen:int;
@@ -243,7 +492,7 @@ package flashx.textLayout.operations
 						// This is because it actually shifts the children off of the previous flow element resulting
 						// in the loop counter getting smaller and not finishing the rest of the children.
 						initialChildrenLen = flowGroupEnd.numChildren;
-												
+						
 						// if each entire list item is selected, the we should not append any children.
 						// instead we just need to delete and move the cursor up to the end of the previoius element
 						if(listStart.getChildIndex(flowGroupStart) == -1) {
@@ -254,7 +503,7 @@ package flashx.textLayout.operations
 								interactionManager.refreshSelection();
 							}
 							ListUtil.cleanEmptyLists( textFlow );
-														
+							
 							// need to create one item
 							if(textFlow.numChildren < 1) {
 								var para:ParagraphElement = new ParagraphElement();
@@ -281,20 +530,20 @@ package flashx.textLayout.operations
 								fe = listItemEnd.addChild(flowGroupEnd.getChildAt(0)) as ListItemElementX;
 							}
 						}
-
+						
 					}				
 				} 
 				
 				textFlow.flowComposer.updateAllControllers();
 				
 				ListUtil.cleanEmptyLists( textFlow );
-								
+				
 				listStart.update();
 			}
 			
 			return true;
 		}
-					
+		
 		protected function findContainerControllerForElement( element:FlowElement ):AutosizableContainerController
 		{
 			var tf:TextFlow = element.getTextFlow();
@@ -343,7 +592,7 @@ package flashx.textLayout.operations
 			// Monitor element in autosizable container controller associated with sibling.
 			if( containerController ) containerController.addMonitoredElement( element );
 		}
-				
+		
 		/**
 		 * Delete the list by its caret selection.
 		 *  
@@ -351,10 +600,12 @@ package flashx.textLayout.operations
 		 * 
 		 */
 		private function deleteListByCaret() : Boolean {
-
+			
 			var operationState:SelectionState = interactionManager.getSelectionState();
 			var selectedLists:Array = SelectionHelper.getSelectedLists( textFlow );
 			var list:ListElementX = selectedLists[0] as ListElementX;
+			
+			//if(
 			
 			// First we retreive the start and end leaf elements. These SpanElements will 
 			// help retreive their parent FlowGroupElements. 
@@ -366,7 +617,7 @@ package flashx.textLayout.operations
 			var flowGroupStart:ListItemElementX = flowLeafStart.parent as ListItemElementX;
 			var flowGroupEnd:FlowGroupElement = flowLeafEnd.parent;
 			
-			var tmp:int = flowGroupStart.getAbsoluteStart() + flowGroupStart.seperatorLength;
+			/*var tmp:int = flowGroupStart.getAbsoluteStart() + flowGroupStart.seperatorLength;*/
 			
 			if(operationState.absoluteStart > flowGroupStart.actualStart) {
 				handleDefaultDeletion();
@@ -408,7 +659,7 @@ package flashx.textLayout.operations
 			ListUtil.cleanEmptyLists( textFlow );
 			
 			list.update();
-						
+			
 			return true;
 		}
 		

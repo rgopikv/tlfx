@@ -3,6 +3,7 @@ package flashx.textLayout.edit
 	import flash.desktop.ClipboardFormats;
 	import flash.events.Event;
 	import flash.events.KeyboardEvent;
+	import flash.events.MouseEvent;
 	import flash.events.TextEvent;
 	import flash.net.getClassByAlias;
 	import flash.ui.Keyboard;
@@ -29,14 +30,17 @@ package flashx.textLayout.edit
 	import flashx.textLayout.elements.list.ListElementX;
 	import flashx.textLayout.elements.list.ListItemElementX;
 	import flashx.textLayout.elements.list.ListPaddingElement;
+	import flashx.textLayout.elements.table.TableDataElement;
 	import flashx.textLayout.elements.table.TableElement;
 	import flashx.textLayout.formats.TextLayoutFormat;
 	import flashx.textLayout.operations.BackspaceOperation;
 	import flashx.textLayout.operations.ClearOperation;
+	import flashx.textLayout.operations.DeleteElementsOperation;
 	import flashx.textLayout.operations.DeleteOperation;
 	import flashx.textLayout.operations.DownArrowOperation;
 	import flashx.textLayout.operations.DummyOperation;
 	import flashx.textLayout.operations.EnterOperation;
+	import flashx.textLayout.operations.FlowTextOperation;
 	import flashx.textLayout.operations.PasteOperation;
 	import flashx.textLayout.operations.TabOperation;
 	import flashx.textLayout.tlf_internal;
@@ -132,22 +136,48 @@ package flashx.textLayout.edit
 			var operationState:SelectionState = defaultOperationState();
 			if( !operationState ) return;
 			
+			
+			if(event.keyCode > 31 
+				&& event.keyCode != Keyboard.DELETE) {
+				
+				// if any of these keys are selected and there is a range of text
+				if(absoluteStart != absoluteEnd
+					&& !event.ctrlKey
+					&& !event.altKey
+					&& !event.shiftKey
+					&& event.charCode != 0) {
+					
+					// range deletion must account for lists
+					doOperation( new BackspaceOperation( operationState, this ) );		
+				}
+			}
+			
 			switch ( event.keyCode )
 			{
 				case Keyboard.TAB:
-					doOperation( new TabOperation( operationState, this, event, _htmlImporter, _htmlExporter ) );					
+					doOperation( new TabOperation( operationState, this, event, _htmlImporter, _htmlExporter ) );
+					return;
 					break;
 				
-				case Keyboard.ENTER:
+				case Keyboard.ENTER:	
+					if(absoluteStart != absoluteEnd) {
+						doOperation( new BackspaceOperation( operationState, this ) );
+					}
 					doOperation( new EnterOperation( operationState, this, _htmlImporter, _htmlExporter ) );
+					return;
 					break;
+				
 				case Keyboard.BACKSPACE:
 					doOperation( new BackspaceOperation( operationState, this ) );
+					return;
 					break;
 				
 				case Keyboard.DELETE:
 					doOperation( new DeleteOperation( operationState, this ) );
+					
+					return;
 					break;
+				
 				default:
 					super.keyDownHandler( event );
 					break;
