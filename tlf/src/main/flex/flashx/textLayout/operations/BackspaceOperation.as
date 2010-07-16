@@ -140,12 +140,17 @@ package flashx.textLayout.operations
 						
 						if(fle.parent.getPreviousSibling() != null) {
 							var para:ParagraphElement = new ParagraphElement();
-							var initialChildren:int = fle.mxmlChildren.length;
-							
 							fle.removeChildAt(0);
+
+							var initialChildren:int = (fle.mxmlChildren) ? fle.mxmlChildren.length : 0;
+							
+							var spanExists:Boolean = (fle.getChildAt(0) as SpanElement);
 							
 							var tf:TextFlow = fle.getTextFlow();
 							tf.addChildAt(tf.getChildIndex(fle.parent), para);
+							
+							var paraAbsEnd:int = para.getAbsoluteStart() + para.textLength-1;
+							
 							for(var i:int=0; i< initialChildren; i++) {
 								//if(i==0) continue;
 								para.addChild(fle.getChildAt(0));
@@ -155,17 +160,27 @@ package flashx.textLayout.operations
 							acc.addMonitoredElement(para);
 							
 							fle.parent.removeChild(fle);
-							tf.flowComposer.updateAllControllers();
+							if(initialChildren == 0) {
+								para.addChild(new SpanElement());
+								tf.flowComposer.updateAllControllers();
+								trace("**abs: " + para.getAbsoluteStart());
+								trace("**: " + para.textLength);
+								paraAbsEnd = para.getAbsoluteStart() + para.textLength-1;
+							}
+							
+							operationState.activePosition = paraAbsEnd;
+							operationState.anchorPosition = paraAbsEnd;
 						}
 						
 						return;
 					}
 					
-					interactionManager.setSelectionState(operationState);
-					interactionManager.refreshSelection();
 					// now we can handle the range deletion like so
 					handleRangeDeletion();
 					
+					paraAbsEnd = para.getAbsoluteStart() + para.textLength-1;
+					interactionManager.setSelectionState(operationState);
+					interactionManager.refreshSelection();
 				}
 			} else {
 				
