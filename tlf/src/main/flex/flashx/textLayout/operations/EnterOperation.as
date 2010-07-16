@@ -82,7 +82,11 @@ package flashx.textLayout.operations
 				
 				// do the specific operation passing in the listMode argument
 				interactionManager.doOperation( new BackspaceOperation( operationState, interactionManager ) );
+				
+				// get previous leaf format
 				interactionManager.splitParagraph(operationState);
+				
+				/// apply it
 				interactionManager.refreshSelection();
 				
 			}
@@ -91,8 +95,11 @@ package flashx.textLayout.operations
 			var prevLeaf:ListItemElementX = textFlow.findLeaf(absoluteEnd).parent as ListItemElementX;
 			if(prevLeaf) {
 				// get the parent
+				// if the previous leaf has a modified text length of 0 we then have to check to see if the next
+				// leaf does not have a modifiedtextlength of 0. If the next leaf has a modified text length
+				// greater than 0 then we know we are moving the item down.  Without this logic, the list will close.o
 				var list:ListElementX = prevLeaf.parent as ListElementX;
-				if(prevLeaf.modifiedTextLength == 0 && list.listItems[list.listItems.length-1] == nextLeaf) {
+				if(prevLeaf.modifiedTextLength == 0 && nextLeaf.modifiedTextLength == 0 && list.listItems[list.listItems.length-1] == nextLeaf) {
 					closeList(nextLeaf);
 					return true;
 				}
