@@ -147,8 +147,11 @@ package flashx.textLayout.edit
 					&& !event.shiftKey
 					&& event.charCode != 0) {
 					
-					// range deletion must account for lists
-					doOperation( new BackspaceOperation( operationState, this ) );		
+					// we need to make sure that if the entire contents are selected, that characters 
+					// do not try to delete text.  without this guard, the table is not deleted properly
+					if(absoluteStart != textFlow.getAbsoluteStart() && absoluteEnd != textFlow.textLength-1) {
+						doOperation( new BackspaceOperation( operationState, this ) )
+					} 		
 				}
 			}
 			
