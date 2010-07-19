@@ -812,6 +812,7 @@ package flashx.textLayout.operations
 			// set the new selection
 			var newSS:SelectionState = new SelectionState(textFlow, absoluteStart, absoluteEnd);
 			textFlow.interactionManager.setSelectionState(newSS);
+			SelectionHelper.cacheSelectedLists(textFlow, absoluteStart, absoluteEnd);
 		//	textFlow.interactionManager.focusInHandler(null);
 			textFlow.interactionManager.refreshSelection();
 		

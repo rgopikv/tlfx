@@ -310,6 +310,7 @@
     <classEntry path="flashx.textLayout.events.list.ListElementEvent"/>
     <classEntry path="flashx.textLayout.model.style.IHeaderStyle"/>
     <classEntry path="flashx.textLayout.model.style.HeaderStyle"/>
+    <classEntry path="flashx.textLayout.operations.ExtendedApplyFormatOperation"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests>

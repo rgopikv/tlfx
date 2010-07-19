@@ -51,9 +51,11 @@ package flashx.textLayout.operations
 
 		// helper array of styles to revert
 		// each entry has a begIdx, endIdx, ContainerFormat
-		private var undoLeafArray:Array;	
-		private var undoParagraphArray:Array;	
-		private var undoContainerArray:Array;	
+		// [TA] 07-15-2010 :: Marked from private to protected.
+		protected var undoLeafArray:Array;	
+		protected var undoParagraphArray:Array;	
+		protected var undoContainerArray:Array;	
+		// [END TA]
 		
 		/** 
 		 * Creates an ApplyFormatOperation object.
@@ -134,7 +136,9 @@ package flashx.textLayout.operations
 			applyContainerFormat = value ? new TextLayoutFormat(value) : null;
 		}
 		
-		private function doInternal():SelectionState
+		// [TA] 07-15-2010 :: Made protected to so as to override.
+		protected function doInternal():SelectionState
+		// [END TA]
 		{
 			var anyNewSelectionState:SelectionState;
 			

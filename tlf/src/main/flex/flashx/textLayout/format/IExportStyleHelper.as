@@ -22,5 +22,12 @@ package flashx.textLayout.format
 		 * @return Boolean
 		 */
 		function applyStyleAttributesFromDifferingStyles( node:XML, parentFormat:ITextLayoutFormat, elementFormat:ITextLayoutFormat, element:FlowElement = null ):Boolean;
+		
+		/**
+		 * Accessor/Modifier for default format of content to base differing styles off of. 
+		 * @return ITextLayoutFormat
+		 */
+		function get defaultFormat():ITextLayoutFormat;
+		function set defaultFormat( value:ITextLayoutFormat ):void
 	}
 }

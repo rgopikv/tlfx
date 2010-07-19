@@ -22,17 +22,20 @@ package flashx.textLayout.format
 	import flashx.textLayout.formats.Direction;
 	import flashx.textLayout.formats.ITextLayoutFormat;
 	import flashx.textLayout.formats.TextAlign;
+	import flashx.textLayout.formats.TextLayoutFormat;
 	import flashx.textLayout.model.style.InlineStyles;
+	import flashx.textLayout.tlf_internal;
 	import flashx.textLayout.utils.FragmentAttributeUtil;
 	import flashx.textLayout.utils.StyleAttributeUtil;
 
+	use namespace tlf_internal
 	/**
 	 * ExportStyleHelper is a helper class to export inline styles associated with FlowElements 
 	 * @author toddanderson
 	 */
 	public class ExportStyleHelper implements IExportStyleHelper
 	{
-		// TODO: Run diffs on stylesheets.
+		protected var _defaultFormat:ITextLayoutFormat;
 		
 		/**
 		 * Constrcutor.
@@ -174,24 +177,24 @@ package flashx.textLayout.format
 		{
 			var styles:Object = {};
 			var property:String;
-			var propertyList:XMLList = describeType( childFormat )..accessor;
+			var description:Object = TextLayoutFormat.description;
 			var explicitStyle:Object = getExplicitStyleOfElement( element );
 			var styleProperty:StyleProperty;
 			var childPropertyValue:*;
 			var parentPropertyValue:*;
+			var defaultPropertyValue:*;
 			var explicitProperty:String
 			var explicitValue:*;
 			var i:int;
-			for( i = 0; i < propertyList.length(); i++ )
-			{
-				if( propertyList[i].@access == "writeonly" ) continue;
-				property = propertyList[i].@name; 
-				if( childFormat[property] != undefined )
+			for( property in description )
+			{	
+				if( childFormat && childFormat[property] != undefined )
 				{
 					try
 					{
 						childPropertyValue = childFormat[property];
 						parentPropertyValue = parentFormat[property];
+						defaultPropertyValue = _defaultFormat[property];
 						
 						// Special case for links. If they have been decorated as none, then they
 						//	could possibly equal the property value of parent
@@ -205,10 +208,13 @@ package flashx.textLayout.format
 							}
 						}
 						
-						// Differing between child and parent, assumed a custom style.
-//						if( childPropertyValue != parentPropertyValue )
-//						{
-						// Actually, Check if differing between explicit style and defined child style. That should be enough.
+						// Differing between child and parent || child and default, assumed a custom style.
+						// If a childPropertyVlaue is not undefined, than it is use specified and can be related to default formatting.
+						//	If it is undefined that the element is styled cascading and we techincally wouldn't reach here because of prior clause.
+						if( childPropertyValue != parentPropertyValue ||
+							childPropertyValue == defaultPropertyValue )
+						{
+							// Actually, Check if differing between explicit style and defined child style. That should be enough.
 							styleProperty = StyleProperty.normalizePropertyForCSS( property, childPropertyValue, childFormat );
 							
 							if( explicitStyle && explicitStyle[StyleAttributeUtil.dasherize( styleProperty.property )] != null )
@@ -221,12 +227,7 @@ package flashx.textLayout.format
 									styleProperty.value = explicitValue;
 							} 
 							styles[styleProperty.property] = styleProperty.value;
-//						}
-//						// If not differing, check to see if our explicit style differs
-//						else
-//						{
-//							
-//						}
+						}
 					}
 					catch( e:Error )
 					{
@@ -297,6 +298,16 @@ package flashx.textLayout.format
 			}
 			var hasAttributes:Boolean = FragmentAttributeUtil.hasAttributes( node );
 			return ( applicableStyles.length > 0 ) || hasAttributes;	
+		}
+
+		public function get defaultFormat():ITextLayoutFormat
+		{
+			return _defaultFormat;
+		}
+
+		public function set defaultFormat(value:ITextLayoutFormat):void
+		{
+			_defaultFormat = value;
 		}
 	}
 }

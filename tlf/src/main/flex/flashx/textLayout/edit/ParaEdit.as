@@ -694,7 +694,9 @@ package flashx.textLayout.edit
 					newFormat.apply(applyFormat);
 				undefineDefinedFormats(newFormat,undefineFormat);
 				para.format = newFormat;
-				
+				// [TA] 07-16-2010 :: If you have to suply a user defined style to a paragraph, it needs to retain that structure on export, so flip original to true.
+				para.original = true;
+				// [END TA]
 				curIndex = para.getAbsoluteStart() + para.textLength;
 			}		
 		}

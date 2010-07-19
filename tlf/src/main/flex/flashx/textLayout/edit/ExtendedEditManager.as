@@ -32,6 +32,7 @@ package flashx.textLayout.edit
 	import flashx.textLayout.elements.list.ListPaddingElement;
 	import flashx.textLayout.elements.table.TableDataElement;
 	import flashx.textLayout.elements.table.TableElement;
+	import flashx.textLayout.formats.ITextLayoutFormat;
 	import flashx.textLayout.formats.TextLayoutFormat;
 	import flashx.textLayout.operations.BackspaceOperation;
 	import flashx.textLayout.operations.ClearOperation;
@@ -40,6 +41,7 @@ package flashx.textLayout.edit
 	import flashx.textLayout.operations.DownArrowOperation;
 	import flashx.textLayout.operations.DummyOperation;
 	import flashx.textLayout.operations.EnterOperation;
+	import flashx.textLayout.operations.ExtendedApplyFormatOperation;
 	import flashx.textLayout.operations.FlowTextOperation;
 	import flashx.textLayout.operations.PasteOperation;
 	import flashx.textLayout.operations.TabOperation;
@@ -364,6 +366,17 @@ package flashx.textLayout.edit
 				scrapToPaste = TextClipboard.getContents();
 			}
 			doOperation(new PasteOperation(operationState, scrapToPaste));
+		}
+		
+		// Overriding t o ensure proper styling of list items.
+		override public function applyLeafFormat(characterFormat:ITextLayoutFormat, operationState:SelectionState=null):void
+		{
+			operationState = defaultOperationState(operationState);
+			if (!operationState)
+				return;
+			
+			// apply to the current selection else remember new format for next char typed
+			doOperation(new ExtendedApplyFormatOperation(operationState, characterFormat, null, null));
 		}
 		
 		public function get htmlImporter():IHTMLImporter
