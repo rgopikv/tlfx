@@ -33,6 +33,9 @@ package flashx.textLayout.operations
 		override protected function doInternal():SelectionState
 		{
 			var newState:SelectionState = super.doInternal();
+			// If we aren't concerned with list items, return right away.
+			if( fullySelectedListItems == null || fullySelectedListItems.length == 0 ) return newState;
+			
 			// Grab selected items. It is possible to have a not fully selected item, but the list item be selected up to symbol.
 			// In which case we have to go through and undo any possibly formatted symbols.
 			// Formatting symbols is only viable when a whole list item is selected.
