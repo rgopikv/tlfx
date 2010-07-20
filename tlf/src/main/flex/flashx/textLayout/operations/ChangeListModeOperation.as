@@ -348,6 +348,7 @@ package flashx.textLayout.operations
 				listItemChildren = listItem.nonListRelatedContent;
 				p = new ParagraphElement();
 				p.format = listItem.format;
+				p.original = true;
 				p.paragraphStartIndent = Math.max(0, listItem.indent - 24);
 				while( listItemChildren.length > 0 )
 				{
@@ -507,8 +508,8 @@ package flashx.textLayout.operations
 				node = _htmlExporter.getSimpleMarkupModelForElement( element );
 				_htmlImporter.importStyleHelper.assignInlineStyle( node, element );
 				addElementToAutosizableContainerController( element, containerController );
-				containerController.flowComposer.updateAllControllers();
 			}
+			containerController.flowComposer.updateAllControllers();
 			_htmlImporter.importStyleHelper.apply();
 			
 			return returnedElements;			
