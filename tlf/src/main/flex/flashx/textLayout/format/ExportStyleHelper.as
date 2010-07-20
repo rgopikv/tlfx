@@ -53,6 +53,36 @@ package flashx.textLayout.format
 			}
 			return null;
 		}
+		
+		protected function serializeAttributes( node:XML, element:FlowElement, inline:InlineStyles ):void
+		{
+			inline.serialize( node );
+			
+			var explicitStyle:Object = inline.explicitStyle;
+			var property:String;
+			var styleProperty:StyleProperty;
+			var formatDefinition:Object = TextLayoutFormat.description;
+			var styleAttribute:String = "";
+			for( property in explicitStyle )
+			{
+				styleProperty = StyleProperty.normalizeForFormat( property, explicitStyle[property] );
+				if( formatDefinition.hasOwnProperty( styleProperty.property ) )
+				{
+					if( element.format[styleProperty.property] != styleProperty.value )
+					{
+						delete explicitStyle[property];
+						continue;
+					}
+				}
+				styleAttribute += StyleAttributeUtil.assembleStyleProperty( property, explicitStyle[property] );
+			}
+			// Assemble incoming explicit styles to style tag. This will likely be merged in other helpers for export of node.
+			if( StyleAttributeUtil.isValidStyleString( styleAttribute ) )
+			{
+				node.@style = styleAttribute;
+			}
+		}
+		
 		/**
 		 * Returns the explicit styles set on the element id available. 
 		 * @param element FlowElement
@@ -252,7 +282,7 @@ package flashx.textLayout.format
 			{
 				var inline:InlineStyles = getInlineStyleOfElement( element );
 				// serialize attributes.
-				if( inline ) inline.serialize( node );
+				if( inline ) serializeAttributes( node, element, inline );
 				var childFormat:ITextLayoutFormat = ( format ) ? format : element.format;
 				var parentFormat:ITextLayoutFormat = getComputedParentFormat( element );
 				return applyStyleAttributesFromDifferingStyles( node, parentFormat, childFormat, element );

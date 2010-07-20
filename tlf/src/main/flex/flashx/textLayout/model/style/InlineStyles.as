@@ -57,17 +57,6 @@ package flashx.textLayout.model.style
 						tag["@" + propertyName] = propertyValue;
 				}
 			}
-			
-			// Assemble incoming explicit styles to style tag. This will likely be merged in other helpers for export of node.
-			var styleAttribute:String = "";
-			for( propertyName in _explicitStyle )
-			{
-				styleAttribute += StyleAttributeUtil.assembleStyleProperty( propertyName, _explicitStyle[propertyName] );
-			}
-			if( StyleAttributeUtil.isValidStyleString( styleAttribute ) )
-			{
-				tag.@style = styleAttribute;
-			}
 		}
 		
 		/**
