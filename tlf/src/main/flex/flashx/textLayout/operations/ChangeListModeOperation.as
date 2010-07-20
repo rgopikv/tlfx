@@ -63,7 +63,7 @@ package flashx.textLayout.operations
 		//						This was needed as styles were not update on list items because the had a filled format that couldn't be overriding with inline or external styles.
 		protected function getCascadingFormatForElement( element:FlowElement ):ITextLayoutFormat
 		{
-			var format:ITextLayoutFormat = element.format ? element.format : new TextLayoutFormat();
+			var format:ITextLayoutFormat = element.format ? element.format : null;//new TextLayoutFormat();
 			var parent:FlowElement = element.parent;
 			while( !(parent is TextFlow) )
 			{
@@ -218,6 +218,10 @@ package flashx.textLayout.operations
 			var item:ListItemElementX;
 			var pchild:FlowElement;
 			var node:XML;
+			// Used to decipher the format to transfer to the list item if available.
+			var transferFormat:ITextLayoutFormat;
+			var isTransferFormatUndefined:Boolean;
+			var undefinedFormat:ITextLayoutFormat = new TextLayoutFormat();
 			for ( i = paragraphs.length-1; i > -1; i-- )
 			{
 				item = new ListItemElementX();
@@ -228,9 +232,15 @@ package flashx.textLayout.operations
 //				node = _htmlExporter.getSimpleMarkupModelForElement( p );
 				
 				//	[FORMATING]
-				//	[KK] Hack to fix inheriting formatting from when ParagraphElement is inside DivElement
 				// [TA] 06-30-2010 :: Change to smartly figure out cascading format.
-				item.format = getCascadingFormatForElement( p );
+				transferFormat = ( p.findLeaf( 0 ) ) ? p.getFirstLeaf().format : null;
+				isTransferFormatUndefined = TextLayoutFormat.isEqual( transferFormat, undefinedFormat ); 
+				// If no format from first child, so grab the cascading format.
+				if( isTransferFormatUndefined )
+				{
+					transferFormat = getCascadingFormatForElement( p );
+				}
+				item.format = transferFormat;
 				// [END TA]
 				item.mode = _mode;
 				if ( p && !(p is ListItemElementX) )
