@@ -119,82 +119,6 @@ package flashx.textLayout.format
 		}
 		
 		/**
-		 * Returns the next possible parent from hiearchical list of possible parents in order to access computed format. 
-		 * @param element FlowElement
-		 * @param parentList Array An Array of Class type reprsenting the heiarchical strcutrue of parenting elements.
-		 * @return FlowElement
-		 */
-		protected function getParentElementForComputedFormat( element:FlowElement, parentList:Array /* Class[] */ ):FlowElement
-		{
-			var parent:FlowElement;
-			while( parent == null && parentList.length > 0 )
-			{
-				parent = element.getParentByType( parentList.shift() as Class );
-			}
-			return parent;
-		}
-		
-		/**
-		 * @private
-		 * 
-		 * Returns the computed format of the parented FlowElement 
-		 * @param element FlowElement
-		 * @return ITextLayoutFormat
-		 */
-		protected function getComputedParentFormat( element:FlowElement ):ITextLayoutFormat
-		{
-			var format:ITextLayoutFormat;
-			var parent:FlowElement;
-			var parentList:Array;
-			// Cycle through the type of element and determine parent format based on that type.
-			var type:Class = Class( getDefinitionByName( getQualifiedClassName( element ) ) );
-			switch( type )
-			{
-				case SpanElement:
-				case VarElement:
-				case GreetingElement:
-					parentList = [LinkElement, ParagraphElement, DivElement, TextFlow];
-					break;
-				case LinkElement:
-				case ExtendedLinkElement:
-					parentList = [ParagraphElement, DivElement, TextFlow];
-					break;
-				case ParagraphElement:
-					parentList = [TableDataElement, DivElement, TextFlow];
-					break;
-				case ListItemElementX:
-					parentList = [ListElementX, TextFlow];
-					break;
-				case DivElement:
-					parentList = [DivElement, TextFlow];
-					break;
-				case TableHeadingElement:
-				case TableDataElement:
-					parentList = [TableRowElement];
-					break;
-				case TableRowElement:
-					parentList = [TableElement];
-					break;
-				case TableElement:
-					parentList = [TextFlow];
-					break;
-			}
-			
-			// If we have deciphered a heiarchical parent list based on the element type, try to find parent computed format.
-			if( parentList )
-			{
-				// Get the next possible parent for computed format.
-				parent = getParentElementForComputedFormat( element, parentList );
-				// If a parent has been found, assign format to computed format of parent.
-				if( parent )
-				{
-					format = parent.computedFormat;
-				}
-			}
-			return format;
-		}
-		
-		/**
 		 * @private
 		 * 
 		 * Returns an array of differing styles between child and parent if they are defined. 
@@ -276,15 +200,15 @@ package flashx.textLayout.format
 		 * @param format ITextLayoutFormat The format to base the element styles on.
 		 * @return Boolean
 		 */
-		public function applyStyleAttributesFromElement( node:XML, element:FlowElement, format:ITextLayoutFormat = null ):Boolean
+		public function applyStyleAttributesFromElement( node:XML, element:FlowElement, childFormat:ITextLayoutFormat = null, parentFormat:ITextLayoutFormat = null ):Boolean
 		{
 			if ( element )
 			{
 				var inline:InlineStyles = getInlineStyleOfElement( element );
 				// serialize attributes.
 				if( inline ) serializeAttributes( node, element, inline );
-				var childFormat:ITextLayoutFormat = ( format ) ? format : element.format;
-				var parentFormat:ITextLayoutFormat = getComputedParentFormat( element );
+				var childFormat:ITextLayoutFormat = ( childFormat ) ? childFormat : element.format;
+				var parentFormat:ITextLayoutFormat = ( parentFormat ) ? parentFormat : ExportStyleHelper.getComputedParentFormat( element );
 				return applyStyleAttributesFromDifferingStyles( node, parentFormat, childFormat, element );
 			}
 			return false;
@@ -328,6 +252,82 @@ package flashx.textLayout.format
 			}
 			var hasAttributes:Boolean = FragmentAttributeUtil.hasAttributes( node );
 			return ( applicableStyles.length > 0 ) || hasAttributes;	
+		}
+		
+		/**
+		 * Returns the computed format of the parented FlowElement 
+		 * @param element FlowElement
+		 * @return ITextLayoutFormat
+		 */
+		public static function getComputedParentFormat( element:FlowElement ):ITextLayoutFormat
+		{
+			var format:ITextLayoutFormat;
+			var parent:FlowElement;
+			var parentList:Array;
+			// Cycle through the type of element and determine parent format based on that type.
+			var type:Class = Class( getDefinitionByName( getQualifiedClassName( element ) ) );
+			switch( type )
+			{
+				case SpanElement:
+				case VarElement:
+				case GreetingElement:
+					parentList = [LinkElement, ParagraphElement, DivElement, TextFlow];
+					break;
+				case LinkElement:
+				case ExtendedLinkElement:
+					parentList = [ParagraphElement, DivElement, TextFlow];
+					break;
+				case ParagraphElement:
+					parentList = [TableDataElement, DivElement, TextFlow];
+					break;
+				case ListItemElementX:
+					parentList = [ListElementX, TextFlow];
+					break;
+				case DivElement:
+					parentList = [DivElement, TextFlow];
+					break;
+				case TableHeadingElement:
+				case TableDataElement:
+					parentList = [TableRowElement];
+					break;
+				case TableRowElement:
+					parentList = [TableElement];
+					break;
+				case TableElement:
+					parentList = [TextFlow];
+					break;
+			}
+			
+			// If we have deciphered a heiarchical parent list based on the element type, try to find parent computed format.
+			if( parentList )
+			{
+				// Get the next possible parent for computed format.
+				parent = ExportStyleHelper.getParentElementForComputedFormat( element, parentList );
+				// If a parent has been found, assign format to computed format of parent.
+				if( parent )
+				{
+					format = parent.computedFormat;
+				}
+			}
+			return format;
+		}
+		
+		/**
+		 * @private
+		 * 
+		 * Returns the next possible parent from hiearchical list of possible parents in order to access computed format. 
+		 * @param element FlowElement
+		 * @param parentList Array An Array of Class type reprsenting the heiarchical strcutrue of parenting elements.
+		 * @return FlowElement
+		 */
+		private static function getParentElementForComputedFormat( element:FlowElement, parentList:Array /* Class[] */ ):FlowElement
+		{
+			var parent:FlowElement;
+			while( parent == null && parentList.length > 0 )
+			{
+				parent = element.getParentByType( parentList.shift() as Class );
+			}
+			return parent;
 		}
 
 		public function get defaultFormat():ITextLayoutFormat

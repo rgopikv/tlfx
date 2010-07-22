@@ -12,7 +12,7 @@ package flashx.textLayout.format
 		 * @param format ITextLayoutFormat The format to base the element styles on.
 		 * @return Boolean
 		 */
-		function applyStyleAttributesFromElement( node:XML, element:FlowElement, format:ITextLayoutFormat = null ):Boolean;
+		function applyStyleAttributesFromElement( node:XML, element:FlowElement, childFormat:ITextLayoutFormat = null, parentFormat:ITextLayoutFormat = null ):Boolean;
 		/**
 		 * Constrcuts @style attribute based on differing styles between parent and child formatting. 
 		 * @param node XML
