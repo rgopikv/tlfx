@@ -77,7 +77,7 @@ package flashx.textLayout.operations
 					return true;
 				}
 				
-				var leaf:FlowLeafElement = textFlow.findLeaf(operationState.absoluteStart);
+				leaf = textFlow.findLeaf(operationState.absoluteStart);
 				//operationState.pointFormat = leaf.format;
 				
 				// do the specific operation passing in the listMode argument

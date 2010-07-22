@@ -462,13 +462,14 @@ package flashx.textLayout.operations
 			length = end - start + 1;
 			// Operate on a split of lists.
 			var i:int;
+			var tmpIdx:int;
 			if( length != list.listItems.length ) 
 			{
 				newList = splitListInTwo( list, start );	
 				listItems = removeItemsFromList( newList, 0, length );
 				returnedElements = returnListItemsAsParagraphElements( newList.parent, listItems, start );
 				
-				var tmpIdx:int = list.parent.getChildIndex(list);
+				tmpIdx = list.parent.getChildIndex(list);
 				
 				for(var w:int=0; w<returnedElements.length; w++) {
 					list.parent.addChildAt(++tmpIdx, returnedElements[w]);
@@ -486,12 +487,12 @@ package flashx.textLayout.operations
 				listItems = removeItemsFromList( list, 0, length );
 				textFlow.flowComposer.updateAllControllers();
 
-				var tmpIdx:int = list.parent.getChildIndex(list);
+				tmpIdx = list.parent.getChildIndex(list);
 				// get the returned paragraphs
 				returnedElements = returnListItemsAsParagraphElements( list.parent, listItems, list.parent.getChildIndex( list ) );
 				
 				// loop through each paragraph and add to the autosizable container.
-				for(var w:int=0; w<returnedElements.length; w++) {
+				for(w=0; w<returnedElements.length; w++) {
 					list.parent.addChildAt(tmpIdx++, returnedElements[w]);
 					addElementToAutosizableContainerController(returnedElements[w], containerController);
 				}
