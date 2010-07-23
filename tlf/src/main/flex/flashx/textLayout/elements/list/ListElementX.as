@@ -129,6 +129,7 @@ package flashx.textLayout.elements.list
 		}
 		protected function notifyOfChildElementsChange( elements:Vector.<PendingNotifyingElement> ):void
 		{
+			var requiresUpdate:Boolean = elements.length > 0;
 			var element:PendingNotifyingElement;
 			while( elements.length > 0 )
 			{
@@ -263,9 +264,6 @@ package flashx.textLayout.elements.list
 				var listIdx:int = textFlow.getChildIndex(this);
 				
 				textFlow.addChildAt(++listIdx, paraElem);
-				
-				var acc:AutosizableContainerController = ListUtil.findContainerControllerForElement(this);
-				acc.addMonitoredElement(paraElem);
 			}
 			
 		}

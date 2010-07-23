@@ -912,6 +912,10 @@ package flashx.textLayout.elements
 
 				if (graphic is MovieClip)
 					MovieClip(graphic).stop();
+				// [TA] 07-21-2010 :: Passing stop to managed graphic if avialable.
+				else if( graphic is IManagedInlineGraphicSource )
+					IManagedInlineGraphicSource(graphic).stop();
+				// [END TA]
 			}
 		}
 		
@@ -992,8 +996,15 @@ package flashx.textLayout.elements
 			 var copy:InlineGraphicElement = super.deepCopy( relativeStart, relativeEnd ) as InlineGraphicElement;
 			 copy.width = _elementWidth;
 			 copy.height = _elementHeight;
+			 // [TA] 07-22-2010 :: Pushing referenc to copied inline graphic to source is managed.
+//			 if( copy.source is IManagedInlineGraphicSource )
+//			 {
+//				 copy.source = ( copy.source as IManagedInlineGraphicSource ).copy();
+//			 }
+			 // [END TA]
 			 return copy;
 		 }
+		 // [END TA]
 
 		/** @private */
 		override protected function get abstract():Boolean

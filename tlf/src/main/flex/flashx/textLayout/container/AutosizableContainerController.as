@@ -15,13 +15,17 @@ package flashx.textLayout.container
 	import flashx.textLayout.compose.TextFlowLine;
 	import flashx.textLayout.edit.SelectionFormat;
 	import flashx.textLayout.edit.SelectionState;
+	import flashx.textLayout.edit.TextFlowEdit;
+	import flashx.textLayout.edit.TextScrap;
 	import flashx.textLayout.elements.Configuration;
 	import flashx.textLayout.elements.FlowElement;
+	import flashx.textLayout.elements.FlowGroupElement;
 	import flashx.textLayout.elements.IConfiguration;
 	import flashx.textLayout.elements.InlineGraphicElement;
 	import flashx.textLayout.elements.InlineGraphicElementStatus;
 	import flashx.textLayout.elements.ParagraphElement;
 	import flashx.textLayout.elements.TextFlow;
+	import flashx.textLayout.elements.table.TableElement;
 	import flashx.textLayout.events.AutosizableContainerEvent;
 	import flashx.textLayout.events.StatusChangeEvent;
 	import flashx.textLayout.factory.TextFlowTextLineFactory;
@@ -38,7 +42,7 @@ package flashx.textLayout.container
 	public class AutosizableContainerController extends ContainerController
 	{	
 		protected var _uid:String;
-		protected var _elements:Vector.<FlowElement>;
+		protected var _initialMonitoredElements:Vector.<FlowElement>;
 		protected var _containerFlow:TextFlow;
 		
 		protected var _actualHeight:Number = Number.NaN;
@@ -66,7 +70,7 @@ package flashx.textLayout.container
 			container.initialize( this );
 			
 			_uid = "AutosizableContainerController" + AutosizableContainerController.UID++;
-			_elements = new Vector.<FlowElement>();
+			_initialMonitoredElements = new Vector.<FlowElement>();
 			
 			_containerFlow = new TextFlow( textFlowConfiguration );
 		}
@@ -97,17 +101,52 @@ package flashx.textLayout.container
 		{
 			if( textFlow == null || textFlow.mxmlChildren == null ) return new Vector.<MonitoredElementContent>();
 			
-			var flowElements:Array = textFlow.mxmlChildren.slice();
 			var i:int;
 			var element:FlowElement;
 			var elements:Vector.<MonitoredElementContent> = new Vector.<MonitoredElementContent>();
-			for( i = 0; i < flowElements.length; i++ )
+			if( textLength > 0 )
 			{
-				element = flowElements[i] as FlowElement;
-				if( element.uid == _uid )
-					elements.push( new MonitoredElementContent( element, i ) );
+				removeInitialMonitoredElements();
+				
+				var startIndex:int = textFlow.getChildIndex( findTopLevel( absoluteStart ) );
+				var endIndex:int = textFlow.getChildIndex( findTopLevel( Math.max(absoluteStart + textLength - 1, 0) ) );
+				for( i = startIndex; i <= endIndex; i++ )
+				{
+					element = textFlow.mxmlChildren[i] as FlowElement;
+					// This container does not monitor tables. They have their own container controller monitoring system.
+					// We could reach this from endIndex if the operation was a delete and the flow has not completed updating this contoller with final textlength.
+					if( !( element is TableElement ) )
+					{
+						elements.push( new MonitoredElementContent( element, i ) );
+					}
+					else
+					{
+						break;
+					}
+				}
+			}
+			else
+			{
+				var flowElements:Array = textFlow.mxmlChildren.slice();
+				for( i = 0; i < flowElements.length; i++ )
+				{
+					element = flowElements[i] as FlowElement;
+					if( _initialMonitoredElements.indexOf( element ) > -1 )
+						elements.push( new MonitoredElementContent( element, i ) );
+				}
 			}
 			return elements;
+		}
+		
+		protected function findTopLevel( position:int ):FlowElement
+		{
+			var topLevel:FlowElement = textFlow.findLeaf( position );
+			findTopLevel: while( topLevel != null )
+			{
+				if( topLevel.parent == textFlow ) break findTopLevel;
+				topLevel = topLevel.parent;
+			}
+			return topLevel;
 		}
 		
 		/**
@@ -131,91 +170,23 @@ package flashx.textLayout.container
 		/**
 		 * @private
 		 * 
-		 * Returns flag of element being related to this container based on uid. 
-		 * @param element FlowElement
-		 * @return Boolean
+		 * Empties inital monitored element list.
 		 */
-		protected function containsElement( element:FlowElement ):Boolean
+		protected function removeInitialMonitoredElements():void
 		{
-			while( element != null )
-			{
-				if( element.uid == _uid ) return true;
-				element = element.parent;
-			}
-			return false;
+			if( _initialMonitoredElements.length > 0 )
+				_initialMonitoredElements = new Vector.<FlowElement>();
 		}
-		
+	
 		/**
-		 * @private
-		 * 
-		 * Returns elemental index of item within monitored list. 
-		 * @param element FlowElement
-		 * @return int
-		 */
-		protected function getElementIndex( element:FlowElement ):int
-		{
-			var index:Number;
-			var i:int = _elements.length;
-			while( --i > -1 )
-			{
-				if( _elements[i] == element )
-				{
-					index = i;
-					break;
-				}
-			}
-			return index;
-		}
-		
-		/**
-		 * @private
-		 * 
-		 * Removes the element from the list of monitored elements (if exists). 
+		 * Adds an initial element to the monitored elements list. these are used on start up, afterward once absolute start and textlength are update, it instictively knows what elements reside in the container. 
 		 * @param element FlowElement
 		 */
-		protected function removeElementFromList( element:FlowElement ):void
+		public function addInitialMonitoredElement( element:FlowElement ):void
 		{
-			var index:Number = getElementIndex( element );
-			if( !isNaN(index) )
-			{
-				_elements.splice( index, 1 );	
-			}
-		}
-		
-		/**
-		 * Adds an element to the monitored elements list. 
-		 * @param element FlowElement
-		 */
-		public function addMonitoredElement( element:FlowElement ):void
-		{
-			if( !containsElement( element ) )
-			{
-				element.uid = _uid;
-				_elements.push( element );
-			}
-		}
-		
-		/**
-		 * Removes the element from the list of monitored elements (if exists). 
-		 * @param element FlowElement
-		 */
-		public function removeMonitoredElement( element:FlowElement ):void
-		{
-			if( containsElement( element ) )
-			{
-				removeElementFromList( element );
-				element.uid = null;
-			}
-		}
-		
-		/**
-		 * Returns flag of existance of element in monitored elements list. 
-		 * @param element FlowElement
-		 * @return Boolean
-		 */
-		public function containsMonitoredElement( element:FlowElement ):Boolean
-		{
-			return containsElement( element );
+			if( textLength > 0 ) return;
+			
+			_initialMonitoredElements.push( element );
 		}
 		
 		/**
@@ -237,19 +208,20 @@ package flashx.textLayout.container
 			for( i = 0 ;i < _processedElements.length; i++ )
 			{
 				element = _processedElements[i].element;
-				element.uid = _uid;
 				_containerFlow.addChild( element );
 			}
 			
 			// Pump elements through creation factory to determine the size of this container.
 			_numLines = 0;
+			
 			var bounds:Rectangle = new Rectangle( 0, 0, compositionWidth, 1000000 );
 			var factory:TextFlowTextLineFactory = new TextFlowTextLineFactory();
 			factory.compositionBounds = bounds;
 			factory.createTextLines( handleLineCreation, _containerFlow );
-			
+		
 			// Return the elements and resize.
 			returnMonitoredElements();
+			
 			setCompositionSize( compositionWidth, _actualHeight );
 			
 			textFlow.setGeneration( generation );
@@ -261,38 +233,6 @@ package flashx.textLayout.container
 				// notify of change through container.
 				container.dispatchEvent( new AutosizableContainerEvent( AutosizableContainerEvent.RESIZE_COMPLETE, _actualHeight, _previousHeight ) );
 			}
-		}
-		
-		/**
-		 * Removes all monitored elements from the track list.
-		 */
-		public function removeAllMonitoredElements():void
-		{
-			while( _elements.length > 0 )
-			{
-				removeMonitoredElement( _elements[0] );
-			}
-		}
-		
-		/**
-		 * Returns all monitored elements of this containr based on uid. 
-		 * @return Array An array of FlowElement
-		 */
-		public function getAllMonitoredElements():Array
-		{
-			if( textFlow == null || textFlow.mxmlChildren == null ) return [];
-			
-			var flowElements:Array = textFlow.mxmlChildren;
-			var i:int;
-			var element:FlowElement;
-			var elements:Array = []
-			for( i = 0; i < flowElements.length; i++ )
-			{
-				element = flowElements[i] as FlowElement;
-				if( element.uid == _uid )
-					elements.push( element );
-			}
-			return elements;
 		}
 		
 		/** Add selection shapes to the displaylist. @private */
@@ -329,7 +269,7 @@ package flashx.textLayout.container
 						{
 							var p:ParagraphElement = textFlow.addChild(new ParagraphElement()) as ParagraphElement;
 							textFlow.flowComposer.updateAllControllers();
-							addMonitoredElement( p );
+//							addMonitoredElement( p );
 						
 							if ( textFlow.interactionManager )
 								textFlow.interactionManager.setSelectionState( new SelectionState( textFlow, p.getAbsoluteStart(), p.getAbsoluteStart() ) );

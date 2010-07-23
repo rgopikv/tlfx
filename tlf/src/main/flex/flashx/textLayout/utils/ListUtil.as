@@ -70,25 +70,6 @@ package flashx.textLayout.utils
 			editManager.doOperation(op);
 		}
 		
-		public static function findContainerControllerForElement( element:FlowElement ):AutosizableContainerController
-		{
-			var tf:TextFlow = element.getTextFlow();
-			var i:int;
-			var cc:ContainerController;
-			var acc:AutosizableContainerController;
-			for ( i = 0; i < tf.flowComposer.numControllers; i++ )
-			{
-				cc = tf.flowComposer.getControllerAt(i);
-				if ( cc is AutosizableContainerController )
-				{
-					acc = cc as AutosizableContainerController;
-					if ( acc.containsMonitoredElement( element ) )
-						return acc;
-				}
-			}
-			return null;
-		}
-		
 		public static function findDefaultContainerController( element:FlowElement ):AutosizableContainerController
 		{
 			var tf:TextFlow = element.getTextFlow();

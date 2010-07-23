@@ -156,9 +156,6 @@ package flashx.textLayout.operations
 								para.addChild(fle.getChildAt(0));
 							}
 							
-							var acc:AutosizableContainerController = ListUtil.findContainerControllerForElement(fle.parent);
-							acc.addMonitoredElement(para);
-							
 							fle.parent.removeChild(fle);
 							if(initialChildren == 0) {
 								para.addChild(new SpanElement());
@@ -532,7 +529,7 @@ package flashx.textLayout.operations
 								interactionManager.refreshSelection();
 								
 								var container:AutosizableContainerController = ListUtil.findDefaultContainerController(para);
-								container.addMonitoredElement(para);
+//								container.addMonitoredElement(para);
 							}
 							
 							return true;
@@ -559,25 +556,6 @@ package flashx.textLayout.operations
 			return true;
 		}
 		
-		protected function findContainerControllerForElement( element:FlowElement ):AutosizableContainerController
-		{
-			var tf:TextFlow = element.getTextFlow();
-			var i:int;
-			var cc:ContainerController;
-			var acc:AutosizableContainerController;
-			for ( i = 0; i < tf.flowComposer.numControllers; i++ )
-			{
-				cc = tf.flowComposer.getControllerAt(i);
-				if ( cc is AutosizableContainerController )
-				{
-					acc = cc as AutosizableContainerController;
-					if ( acc.containsMonitoredElement( element ) )
-						return acc;
-				}
-			}
-			return null;
-		}
-		
 		/**
 		 * 
 		 * 
@@ -593,19 +571,6 @@ package flashx.textLayout.operations
 				trace( '[KK] {' + getQualifiedClassName(this) + '} :: Could not delete from position ' + deleteFrom + ' to position ' + deleteTo + ' on ' + textFlow + ' because:\n\t' + e);
 				textFlow.flowComposer.updateAllControllers();
 			}
-		}
-		
-		/**
-		 * @private
-		 * 
-		 * Adds the list to be monitored by the specified autosizable container controller for resizing of layout. 
-		 * @param element FlowElement
-		 * @param containerController AutosizableContainerController
-		 */
-		protected function addElementToAutosizableContainerController( element:FlowElement, containerController:AutosizableContainerController ):void
-		{
-			// Monitor element in autosizable container controller associated with sibling.
-			if( containerController ) containerController.addMonitoredElement( element );
 		}
 		
 		/**

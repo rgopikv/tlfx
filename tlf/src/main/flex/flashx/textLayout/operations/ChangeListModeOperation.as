@@ -189,19 +189,6 @@ package flashx.textLayout.operations
 		/**
 		 * @private
 		 * 
-		 * Adds the list to be monitored by the specified autosizable container controller for resizing of layout. 
-		 * @param element FlowElement
-		 * @param containerController AutosizableContainerController
-		 */
-		protected function addElementToAutosizableContainerController( element:FlowElement, containerController:AutosizableContainerController ):void
-		{
-			// Monitor element in autosizable container controller associated with sibling.
-			if( containerController ) containerController.addMonitoredElement( element );
-		}
-		
-		/**
-		 * @private
-		 * 
 		 * Removes paragraph elements from their parent and adds them as list items to the list. 
 		 * @param paragraphs Array An Array of ParagraphElement
 		 * @param list ListElementX
@@ -383,8 +370,6 @@ package flashx.textLayout.operations
 			{
 				var firstParagraph:ParagraphElement = paragraphs[0] as ParagraphElement;
 				var index:int = parent.getChildIndex( firstParagraph );
-				var containerController:AutosizableContainerController = findContainerControllerForElement( firstParagraph );
-				
 				//	Will go through this loop at least once
 				//	Splits the div at the specified index (starting at the ParagraphElement)
 				while ( !(parent is TextFlow) )
@@ -428,8 +413,6 @@ package flashx.textLayout.operations
 //							}
 //						}
 //					}
-					
-					addElementToAutosizableContainerController( list, containerController ); 
 				}
 			}
 			
@@ -451,8 +434,6 @@ package flashx.textLayout.operations
 			var start:int;
 			var end:int;
 			var length:int;
-			// Grab reference to governing container cotnroller.
-			var containerController:AutosizableContainerController = findContainerControllerForElement( list );
 			// Grab start index.
 			item = items[0] as ListItemElementX;
 			start = list.getChildIndex(item);
@@ -473,7 +454,6 @@ package flashx.textLayout.operations
 				
 				for(var w:int=0; w<returnedElements.length; w++) {
 					list.parent.addChildAt(++tmpIdx, returnedElements[w]);
-					addElementToAutosizableContainerController(returnedElements[w], containerController);
 				}
 				
 				// Update split lists.
@@ -494,7 +474,6 @@ package flashx.textLayout.operations
 				// loop through each paragraph and add to the autosizable container.
 				for(w=0; w<returnedElements.length; w++) {
 					list.parent.addChildAt(tmpIdx++, returnedElements[w]);
-					addElementToAutosizableContainerController(returnedElements[w], containerController);
 				}
 
 				//list.parent.removeChild( list );
@@ -508,9 +487,8 @@ package flashx.textLayout.operations
 				element = returnedElements[j];
 				node = _htmlExporter.getSimpleMarkupModelForElement( element );
 				_htmlImporter.importStyleHelper.assignInlineStyle( node, element );
-				addElementToAutosizableContainerController( element, containerController );
 			}
-			containerController.flowComposer.updateAllControllers();
+			textFlow.flowComposer.updateAllControllers();
 			_htmlImporter.importStyleHelper.apply();
 			
 			return returnedElements;			
@@ -549,7 +527,6 @@ package flashx.textLayout.operations
 			listItems = removeItemsFromList( startList, start, length );
 			removedItemLength = listItems.length;
 			returnedElements = returnListItemsAsParagraphElements( startList.parent, listItems, startList.parent.getChildIndex( startList ) + 1 );
-			containerController = findContainerControllerForElement( startList );
 			if( listItemLength == removedItemLength )
 			{
 				startList.parent.removeChild( startList );	
@@ -590,7 +567,6 @@ package flashx.textLayout.operations
 				element = returnedElements.shift();
 				node = _htmlExporter.getSimpleMarkupModelForElement( element );
 				_htmlImporter.importStyleHelper.assignInlineStyle( node, element );
-				addElementToAutosizableContainerController( element, containerController );
 			}
 			_htmlImporter.importStyleHelper.apply();
 			
@@ -638,10 +614,6 @@ package flashx.textLayout.operations
 				newDiv.addChildAt( 0, div.removeChildAt(i) );
 			}
 			
-			// Monitor element in previous autosizable container controller.
-			var containerController:AutosizableContainerController = findContainerControllerForElement( div );
-			if( containerController ) containerController.addMonitoredElement( newDiv );
-			
 			// Add to lookup for styling.
 			var node:XML = _htmlExporter.getSimpleMarkupModelForElement( newDiv );
 			_htmlImporter.importStyleHelper.assignInlineStyle( node, newDiv );
@@ -661,33 +633,11 @@ package flashx.textLayout.operations
 				newList.addChildAt( 0, list.removeChildAt( i ) );
 			}
 			
-			var containerController:AutosizableContainerController = findContainerControllerForElement( list );
-			if( containerController ) containerController.addMonitoredElement( newList );
-			
 			var node:XML = _htmlExporter.getSimpleMarkupModelForElement( newList );
 			_htmlImporter.importStyleHelper.assignInlineStyle( node, newList );
 			_htmlImporter.importStyleHelper.apply();
 			
 			return parent.addChildAt( listIndex + 1, newList ) as ListElementX;
-		}
-		
-		protected function findContainerControllerForElement( element:FlowElement ):AutosizableContainerController
-		{
-			var tf:TextFlow = element.getTextFlow();
-			var i:int;
-			var cc:ContainerController;
-			var acc:AutosizableContainerController;
-			for ( i = 0; i < tf.flowComposer.numControllers; i++ )
-			{
-				cc = tf.flowComposer.getControllerAt(i);
-				if ( cc is AutosizableContainerController )
-				{
-					acc = cc as AutosizableContainerController;
-					if ( acc.containsMonitoredElement( element ) )
-						return acc;
-				}
-			}
-			return null;
 		}
 		
 		/** @private */
@@ -736,7 +686,6 @@ package flashx.textLayout.operations
 					//	Owner is a TextFlow, just add at same position as first ParagraphElement
 					if ( prnt is TextFlow )
 					{
-						containerController = findContainerControllerForElement( p );
 						list = addListDirectlyToTextFlow( prnt as TextFlow, paragraphs, prnt.getChildIndex( p ) );
 						
 						//	[KK]	Attempt to remove last (empty) paragraph added through the creation process
@@ -771,13 +720,10 @@ package flashx.textLayout.operations
 						/*var newSpan:SpanElement = new SpanElement();
 						newSpan.text = "";
 						newPara.addChild(newSpan);*/
-						textFlow.addChildAt(textFlow.getChildIndex(list)+1, newPara);						
-						addElementToAutosizableContainerController( list, containerController );
-						addElementToAutosizableContainerController( newPara, containerController );
+						textFlow.addChildAt(textFlow.getChildIndex(list)+1, newPara);
 					}
 					else
 					{
-						containerController = findContainerControllerForElement( p );
 						list = splitAndAddListToTextFlow( prnt, paragraphs );
 						newPara = new ParagraphElement();
 						newPara.format = lastParaFormat;
@@ -785,7 +731,6 @@ package flashx.textLayout.operations
 						newSpan.text = "";
 						newPara.addChild(newSpan);*/
 						textFlow.addChildAt(textFlow.getChildIndex(list)+1, newPara);
-						addElementToAutosizableContainerController( newPara, containerController );
 					}
 					
 					// we should select the entire list

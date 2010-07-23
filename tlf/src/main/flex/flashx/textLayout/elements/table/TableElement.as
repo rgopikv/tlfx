@@ -362,7 +362,7 @@ package flashx.textLayout.elements.table
 		{
 			XML.prettyIndent = 4;
 			XML.prettyPrinting = true;
-			_fragment = XML( _exporter.createFragment( this ) )
+			_fragment = ( _exporter ) ? XML( _exporter.createFragment( this ) ) : _fragment; 
 			return _fragment.toXMLString();
 		}
 		

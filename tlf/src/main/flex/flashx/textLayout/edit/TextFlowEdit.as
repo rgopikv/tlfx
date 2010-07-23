@@ -22,6 +22,7 @@ package flashx.textLayout.edit
 	import flashx.textLayout.elements.SubParagraphGroupElement;
 	import flashx.textLayout.elements.TCYElement;
 	import flashx.textLayout.elements.TextFlow;
+	import flashx.textLayout.elements.list.ListElementX;
 	import flashx.textLayout.elements.table.TableDataElement;
 	import flashx.textLayout.elements.table.TableElement;
 	import flashx.textLayout.elements.table.TableRowElement;
@@ -168,7 +169,7 @@ package flashx.textLayout.edit
 		
 		private static function isInsertableItem(flItem:FlowElement, missingBeginElements:Array, missingEndElements:Array):Boolean
 		{
-			return ((flItem is ParagraphElement) ||
+			return ((flItem is ParagraphElement) || /* [TA] 07-24-2010 :: Added ListElement as exclusive to the club */ (flItem is ListElementX) || /* [END TA] */
 					(!TextFlowEdit.isFlowElementInArray(missingBeginElements, flItem) &&
 					 !TextFlowEdit.isFlowElementInArray(missingEndElements, flItem)));
 		}
@@ -196,8 +197,13 @@ package flashx.textLayout.edit
 				insertedTextFlow.replaceChildren(0, 1, null);
 				nextInsertionPosition = TextFlowEdit.insertTextFlow(theFlow, nextInsertionPosition, tempFlChild as FlowGroupElement, missingBeginElements, missingEndElements, separatorArray);
 			}
-			var elementIdx:int = tempDiv.parent.getChildIndex(tempDiv);
-			tempDiv.parent.replaceChildren(elementIdx, elementIdx + 1, null);
+			// [TA] 07-22-2010 :: Check for parent on tempDiv. container might not be able to hold div.
+			if( tempDiv.parent )
+			{
+				var elementIdx:int = tempDiv.parent.getChildIndex(tempDiv);
+				tempDiv.parent.replaceChildren(elementIdx, elementIdx + 1, null);
+			}
+			// [END TA]
 			separatorArray.pop();
 			return nextInsertionPosition;
 		}
@@ -342,7 +348,12 @@ package flashx.textLayout.edit
 						}
 					}
 				}
-				
+				// [TA] 07-24-2010 :: Check to see if inserted element is a List. IF so run an update.
+				else if( insertedTextFlow is ListElementX )
+				{
+					( insertedTextFlow as ListElementX ).update();
+				}
+				// [END TA]
 				
 				processedFirstFlowElement = true;			
 			}

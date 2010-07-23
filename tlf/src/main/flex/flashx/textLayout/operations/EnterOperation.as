@@ -137,10 +137,8 @@ package flashx.textLayout.operations
 				var newSpan:SpanElement = new SpanElement();
 				newSpan.text = "";
 				newPara.addChild(newSpan);
-				containerController = ListUtil.findContainerControllerForElement(list);
 				//newPara.format = leaf.computedFormat;
 				nextSibling = textFlow.addChildAt(textFlow.getChildIndex(list)+1, newPara);
-				containerController.addMonitoredElement(newPara);
 				//textFlow.flowComposer.updateAllControllers();
 				
 			}

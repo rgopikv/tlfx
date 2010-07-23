@@ -858,5 +858,14 @@ package flashx.textLayout.elements
 			return _breakCount;
 		}
 		//	[END KK]
+		
+		// [TA]
+//		override public function deepCopy(startPos:int=0, endPos:int=-1):FlowElement
+//		{
+//			var copy:FlowElement = super.deepCopy( startPos, endPos );
+//			copy.original = _original;
+//			return copy;
+//		}
+		// [END TA]
 	}
 }

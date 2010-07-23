@@ -10,7 +10,6 @@
 //////////////////////////////////////////////////////////////////////////////////
 package flashx.textLayout.operations
 {
-	import flashx.textLayout.edit.ExtendedTextClipboard;
 	import flashx.textLayout.edit.SelectionState;
 	import flashx.textLayout.edit.TextClipboard;
 	import flashx.textLayout.edit.TextScrap;
@@ -54,7 +53,10 @@ package flashx.textLayout.operations
 		public override function doOperation():Boolean
 		{
 			if (originalSelectionState.activePosition != originalSelectionState.anchorPosition)
-				TextClipboard.setContents(TextScrap.createTextScrap(originalSelectionState));
+			{
+				var scrap:TextScrap = TextScrap.createTextScrap(originalSelectionState);
+				TextClipboard.setContents(scrap);
+			}
 			return true;
 		}
 		

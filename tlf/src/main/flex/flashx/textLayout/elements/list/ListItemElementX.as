@@ -7,6 +7,7 @@ package flashx.textLayout.elements.list
 	import flash.utils.getQualifiedClassName;
 	
 	import flashx.textLayout.converter.IHTMLExporter;
+	import flashx.textLayout.elements.BulletSpanElement;
 	import flashx.textLayout.elements.ExtendedLinkElement;
 	import flashx.textLayout.elements.FlowElement;
 	import flashx.textLayout.elements.FlowLeafElement;
@@ -58,7 +59,7 @@ package flashx.textLayout.elements.list
 		{
 			if( _bulletSpan != null ) return;
 			
-			_bulletSpan = new SpanElement();
+			_bulletSpan = new BulletSpanElement();
 			addChild( _bulletSpan );
 		}
 		// [END TA]
@@ -110,8 +111,23 @@ package flashx.textLayout.elements.list
 					//	Fail silently
 				}
 				iaddChildAt(0, _bulletSpan);
+				ensureSingleBullet();
 			} catch ( e:* ) {
 				//	Fail silently
+			}
+		}
+		
+		/**
+		 * Multiple bullets can occur due to how TextScraps are created on paste.
+		 */
+		protected function ensureSingleBullet():void
+		{
+			if( numChildren > 1 )
+			{
+				if( getChildAt( 1 ) is BulletSpanElement )
+				{
+					removeChildAt( 1 );
+				}
 			}
 		}
 		
@@ -549,6 +565,7 @@ package flashx.textLayout.elements.list
 					updateBulletFormat();
 					break;
 				case ModelChange.ELEMENT_ADDED:
+					correctChildren();
 					updateBulletFormat();
 					break;
 				
@@ -561,6 +578,12 @@ package flashx.textLayout.elements.list
 			var copy:ListItemElementX = super.shallowCopy( startPos, endPos ) as ListItemElementX;
 			copy.indent = indent;
 			copy.number = number;
+			return copy;
+		}
+		override public function deepCopy(startPos:int=0, endPos:int=-1):FlowElement
+		{
+			var copy:FlowElement = super.deepCopy(startPos, endPos);
+			copy.original = true;
 			return copy;
 		}
 		// [END TA]

@@ -85,8 +85,9 @@ package flashx.textLayout.elements
 					}									
 				}
 			}
-			
-			retFlow.original = true;
+			// [TA] 07-24-2010 :: Removing overide of copy to be true original. This is marked as member flag in FlowElement:shallowCopy.
+//			retFlow.original = true;
+			// [END TA]
 			return retFlow;
 		}
 		
