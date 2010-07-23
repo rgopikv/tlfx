@@ -66,15 +66,19 @@ package flashx.textLayout.format
 			for( property in explicitStyle )
 			{
 				styleProperty = StyleProperty.normalizeForFormat( property, explicitStyle[property] );
-				if( formatDefinition.hasOwnProperty( styleProperty.property ) )
+				//	[KK] Added null check to prevent throwing error
+				if ( styleProperty )
 				{
-					if( element.format[styleProperty.property] != styleProperty.value )
+					if( formatDefinition.hasOwnProperty( styleProperty.property ) )
 					{
-						delete explicitStyle[property];
-						continue;
+						if( element.format[styleProperty.property] != styleProperty.value )
+						{
+							delete explicitStyle[property];
+							continue;
+						}
 					}
+					styleAttribute += StyleAttributeUtil.assembleStyleProperty( property, explicitStyle[property] );
 				}
-				styleAttribute += StyleAttributeUtil.assembleStyleProperty( property, explicitStyle[property] );
 			}
 			// Assemble incoming explicit styles to style tag. This will likely be merged in other helpers for export of node.
 			if( StyleAttributeUtil.isValidStyleString( styleAttribute ) )
