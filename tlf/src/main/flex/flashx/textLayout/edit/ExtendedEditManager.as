@@ -32,6 +32,7 @@ package flashx.textLayout.edit
 	import flashx.textLayout.elements.list.ListPaddingElement;
 	import flashx.textLayout.elements.table.TableDataElement;
 	import flashx.textLayout.elements.table.TableElement;
+	import flashx.textLayout.events.SelectionEvent;
 	import flashx.textLayout.formats.ITextLayoutFormat;
 	import flashx.textLayout.formats.TextLayoutFormat;
 	import flashx.textLayout.operations.BackspaceOperation;
@@ -170,7 +171,11 @@ package flashx.textLayout.edit
 				
 				case Keyboard.ENTER:	
 					if(absoluteStart != absoluteEnd) {
-						doOperation( new BackspaceOperation( operationState, this ) );
+						var ss:SelectionState = operationState;
+						ss.absoluteEnd--;
+						setSelectionState( ss );
+						refreshSelection();
+						doOperation( new BackspaceOperation( ss, this ) );
 					}
 					doOperation( new EnterOperation( operationState, this, _htmlImporter, _htmlExporter ) );
 					return;

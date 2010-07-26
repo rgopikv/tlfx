@@ -11,6 +11,7 @@
 package flashx.textLayout.edit
 {
 	import flash.utils.getDefinitionByName;
+	import flash.utils.getQualifiedClassName;
 	
 	import flashx.textLayout.container.ContainerController;
 	import flashx.textLayout.debug.assert;
@@ -511,7 +512,11 @@ package flashx.textLayout.edit
 			}
 			
 			// [TA] 07-01-2010 :: Added flag for marking paragraph as original as we are creating a new paragraph element.
-			if( newPar ) newPar.original = true;
+			if( newPar )
+			{
+				newPar.original = true;
+				newPar.extraBreak = true;	//	[KK]
+			}
 			// [END TA]
 			return newPar;
 		}
@@ -574,6 +579,7 @@ package flashx.textLayout.edit
 				para.replaceChildren(0, 0, newFormattedSpan);
 			}
 			
+			newPar.extraBreak = true;	//	[KK]
 			return newPar;
 		}
 		

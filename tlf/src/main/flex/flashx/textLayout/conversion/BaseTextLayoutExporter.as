@@ -196,7 +196,7 @@ package flashx.textLayout.conversion
 			else
 			{
 				//this is the simple case where we don't have a character to replace
-				destination.appendChild(span.text);
+				destination.appendChild(span.text.substr(0, span.text.length-1));
 			}		
 		}  
 		

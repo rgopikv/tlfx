@@ -74,7 +74,7 @@ package flashx.textLayout.elements
 		private var _parentRelativeStart:int = 0;		
 		
 		/** _textLength (number of chars) in the element, including child content */
-		private var _textLength:int = 0;	
+		protected var _textLength:int = 0;	//	[KK]	Changed to protected from private	
 		
 		/**
 		 * [TA] :: Added uid to allow client to set a unique identifier for the FlowElement 

@@ -70,7 +70,7 @@ package flashx.textLayout.operations
 				var leaf:FlowLeafElement = textFlow.findLeaf(operationState.absoluteStart-1);
 				//operationState.pointFormat = leaf.format;
 				interactionManager.splitParagraph(operationState);
-				interactionManager.refreshSelection();
+				interactionManager.setSelectionState( new SelectionState( textFlow, operationState.absoluteStart + 2, operationState.absoluteEnd + 2 ) );
 			} else {
 				
 				if( !operationState ) {
@@ -88,6 +88,8 @@ package flashx.textLayout.operations
 				
 				/// apply it
 				interactionManager.refreshSelection();
+				
+				interactionManager.setSelectionState( new SelectionState( textFlow, operationState.absoluteStart + 2, operationState.absoluteEnd + 2 ) );
 				
 			}
 			

@@ -71,8 +71,7 @@ package flashx.textLayout.elements
 		private var _textBlock:TextBlock;
 		
 		//	[KK]	Added to force paragraphs to keep HTML like padding
-		private var _breakCount:uint;
-		private var _breaks:Vector.<BreakElement>;
+		public var extraBreak:Boolean;
 		//	[END KK]
 		
 		/** Constructor - represents a paragraph in a text flow. 
@@ -85,18 +84,14 @@ package flashx.textLayout.elements
 		public function ParagraphElement()
 		{
 			super();
-			
-			//	[KK]
-			_breakCount = 1;
-			_breaks = new Vector.<BreakElement>();
-			_breaks.push( new BreakElement(), new BreakElement() );
-			//	[END KK]
+			extraBreak = false;	//	[KK]
 		}
 		
 		/** @private */
 		public override function shallowCopy(startPos:int = 0, endPos:int = -1):FlowElement
 		{
 			var retFlow:ParagraphElement = super.shallowCopy(startPos, endPos) as ParagraphElement;
+			retFlow.extraBreak = extraBreak;
 			if (_textBlock)
 				retFlow.createTextBlock();
 			return retFlow;
@@ -314,6 +309,34 @@ package flashx.textLayout.elements
 		{
 			return false;
 		}		
+		
+		//	[KK]
+		override public function splitAtIndex(childIndex:int):FlowGroupElement
+		{
+			if (childIndex > _numChildren)
+				throw RangeError(GlobalSettings.resourceStringFunction("invalidSplitAtIndex"));
+			
+			var newSibling:ParagraphElement = shallowCopy() as ParagraphElement;
+			
+			var numChildrenToMove:int = _numChildren-childIndex;
+			if (numChildrenToMove == 1)
+				newSibling.addChild(removeChildAt(childIndex));
+			else if (numChildrenToMove != 0)
+			{
+				var childArray:Array = _childArray.slice(childIndex);
+				this.replaceChildren(childIndex,_numChildren-1);
+				newSibling.replaceChildren(0, 0, childArray);		
+			}
+			
+			if (parent)
+			{
+				var myidx:int = parent.getChildIndex(this);
+				parent.replaceChildren(myidx+1,myidx+1,newSibling);
+			}
+			
+			return newSibling;
+		}
+		//	[END KK]
 
 		/** @private */
 		public override function replaceChildren(beginChildIndex:int,endChildIndex:int,...rest):void
@@ -350,13 +373,19 @@ package flashx.textLayout.elements
 			if (oldLastLeaf != newLastLeaf)
 			{
 				if (oldLastLeaf && oldLastLeaf is SpanElement)
+				{
 					oldLastLeaf.removeParaTerminator();
+					if ( extraBreak )
+						(oldLastLeaf as SpanElement).removeSecondaryParaTerminator();
+				}
 				
 				if (newLastLeaf)
 				{
 					if (newLastLeaf is SpanElement)
 					{
 						newLastLeaf.addParaTerminator();
+						if ( extraBreak )
+							(newLastLeaf as SpanElement).addSecondaryParaTerminator();
 					}
 					else
 					{
@@ -365,6 +394,8 @@ package flashx.textLayout.elements
 						super.replaceChildren(numChildren,numChildren,s);
 						s.format = newLastLeaf.format;
 						s.addParaTerminator();
+						if ( extraBreak )
+							s.addSecondaryParaTerminator();
 					}
 				}
 			}
@@ -847,17 +878,6 @@ package flashx.textLayout.elements
 					return false;
 			}
 		}
-		
-		//	[KK]
-		public function set breakCount( value:uint ):void
-		{
-			_breakCount = Math.max( Math.min( value, 2 ), 1 );
-		}
-		public function get breakCount():uint
-		{
-			return _breakCount;
-		}
-		//	[END KK]
 		
 		// [TA]
 //		override public function deepCopy(startPos:int=0, endPos:int=-1):FlowElement

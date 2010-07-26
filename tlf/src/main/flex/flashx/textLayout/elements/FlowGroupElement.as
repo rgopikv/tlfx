@@ -44,9 +44,9 @@ package flashx.textLayout.elements
 	public class FlowGroupElement extends FlowElement
 	{
 		/** children of the FlowGroupElement.  They must all be FlowElements. Depending on _numChildren either store a single child in _singleChild or multiple children in the array. */
-		private var _childArray:Array;
+		protected var _childArray:Array;	//	[KK]	Changed from private to protected
 		private var _singleChild:FlowElement;
-		private var _numChildren:int;
+		protected var _numChildren:int;		//	[KK]	Changed from private to protected
 		
 		/** Base class - invoking <code>new FlowGroupElement()</code> throws an error exception.
 		 *
