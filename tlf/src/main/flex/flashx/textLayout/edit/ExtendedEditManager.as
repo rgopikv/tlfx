@@ -151,7 +151,11 @@ package flashx.textLayout.edit
 					
 					// we need to make sure that if the entire contents are selected, that characters 
 					// do not try to delete text.  without this guard, the table is not deleted properly
-					if(absoluteStart != textFlow.getAbsoluteStart() && absoluteEnd != textFlow.textLength-1) {
+					trace("absoluteStart: " + absoluteStart);
+					trace("absoluteEnd: " + absoluteEnd);
+					trace("textFlow.getAbsoluteStart(): " + textFlow.getAbsoluteStart());
+					trace("textFlow.textLength-1: " + (textFlow.textLength-1));
+					if(absoluteStart == textFlow.getAbsoluteStart() && absoluteEnd == textFlow.textLength-1) {
 						doOperation( new BackspaceOperation( operationState, this ) )
 					} 		
 				}
@@ -188,7 +192,7 @@ package flashx.textLayout.edit
 					break;
 			}
 			
-			textFlow.flowComposer.updateAllControllers();
+			//textFlow.flowComposer.updateAllControllers();
 		}
 		
 		override public function editHandler(event:Event):void

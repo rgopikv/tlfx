@@ -97,9 +97,9 @@ package flashx.textLayout.operations
 			
 			var nextPara:ParagraphElement = ParaEdit.splitParagraphCloseList(para, paraSelBegIdx, _characterFormat);
 			
-			var cc:AutosizableContainerController = ListUtil.findContainerControllerForElement(para);
+			/*var cc:AutosizableContainerController = ListUtil.findContainerControllerForElement(para);
 			cc.addMonitoredElement(nextPara);
-			
+			*/
 			
 			//getQualifiedClassName( SpanElement )
 			//para.addChild(new ListPaddingElement());

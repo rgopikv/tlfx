@@ -476,7 +476,8 @@ package flashx.textLayout.operations
 					list.parent.addChildAt(tmpIdx++, returnedElements[w]);
 				}
 
-				//list.parent.removeChild( list );
+				// we must remove the currnt list or the editor will keep growing unnecessarily 
+				list.parent.removeChild( list );
 			}
 			
 			// Apply style and assign managing container controller to returned elements.
@@ -689,7 +690,7 @@ package flashx.textLayout.operations
 						list = addListDirectlyToTextFlow( prnt as TextFlow, paragraphs, prnt.getChildIndex( p ) );
 						
 						//	[KK]	Attempt to remove last (empty) paragraph added through the creation process
-						var lastItem:ListItemElementX;
+/*						var lastItem:ListItemElementX;
 						var idx:int = list.numChildren;
 						while ( !lastItem || !(lastItem is ListItemElementX) )
 						{
