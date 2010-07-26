@@ -23,6 +23,7 @@ package flashx.textLayout.edit
 	import flashx.textLayout.elements.TCYElement;
 	import flashx.textLayout.elements.TextFlow;
 	import flashx.textLayout.elements.list.ListElementX;
+	import flashx.textLayout.elements.list.ListItemElementX;
 	import flashx.textLayout.elements.table.TableDataElement;
 	import flashx.textLayout.elements.table.TableElement;
 	import flashx.textLayout.elements.table.TableRowElement;
@@ -188,8 +189,18 @@ package flashx.textLayout.edit
 		{
 			var tempFlChild:FlowElement;
 			var nextInsertionPosition:int = pos;
-			var insertContainer:ContainerFormattedElement = TextFlowEdit.getContainer(theFlow.findAbsoluteParagraph(nextInsertionPosition));						
-			var tempDiv:DivElement = TextFlowEdit.putDivAtEndOfContainer(insertContainer);
+			var insertContainer:ContainerFormattedElement = TextFlowEdit.getContainer(theFlow.findAbsoluteParagraph(nextInsertionPosition));
+			// [TA] 07-26-2010 :: Pasting into a list takes on a slightly different context as we cannot directly add div children to a list, which is how temporary elements are placed on the flow for insertion.
+			var tempDiv:DivElement;
+			if( insertContainer is ListElementX )
+			{
+				tempDiv = ( insertContainer as ListElementX ).getTemporaryPasteContainer() as DivElement;
+			}
+			else
+			{
+				tempDiv = TextFlowEdit.putDivAtEndOfContainer(insertContainer);
+			}
+			// [END TA];
 			separatorArray.push(tempDiv);
 			while (insertedTextFlow.numChildren > 0)
 			{
@@ -308,12 +319,21 @@ package flashx.textLayout.edit
 					flowElIndex--;	
 				}
 				
+				// [TA] 07-26-2010 :: Converting pasted content to List Item if we are pasting into a List Element. This allows for proper split/join that occurs on paragraph elements (of which List Item is a subclass).
+				var missingEnd:Boolean = TextFlowEdit.isFlowElementInArray(missingEndElementsInFlow, insertedTextFlow);
+				if( para is ListItemElementX )
+				{
+					var childElements:Array = insertedTextFlow.mxmlChildren;
+					insertedTextFlow = para.shallowCopy() as ListItemElementX;
+					( insertedTextFlow as ListItemElementX ).replaceChildren( 0, 0, childElements );
+				}
+				// [END TA]
+				
 				paragraphContainer.replaceChildren(flowElIndex + 1, flowElIndex + 1, insertedTextFlow);
 				nextInsertionPosition = pos + insertedTextFlow.textLength;
 
 				if (insertedTextFlow is ParagraphElement)
 				{	
-					var missingEnd:Boolean = TextFlowEdit.isFlowElementInArray(missingEndElementsInFlow, insertedTextFlow);
 					if (okToMergeWithAfter && missingEnd)
 					{
 						// Merge the paragraph with what comes next. If the inserted paragraph is inserted to the middle or end of the paragraph,
@@ -1236,21 +1256,39 @@ package flashx.textLayout.edit
 					// right now, you can only merge with other paragraphs
 					var sibParagraph:ParagraphElement = para.parent.getChildAt(myidx+1) as ParagraphElement;
 					if (sibParagraph)
-					{						
-						while (sibParagraph.numChildren > 0)
+					{
+						var requiresListUpdate:Boolean;
+						// [TA] 07-26-2010 :: If we are dealing with joingin list item elements, we need to transfer children that are not related to list content.
+						if( para is ListItemElementX && sibParagraph is ListItemElementX )
 						{
-							var curFlowElement:FlowElement = sibParagraph.getChildAt(0);
-							// [TA] 04-27-2010 :: In order to stay consistant with inline styles,
-							//						any computed styles for the first child from parent need to be applied.
-							//						Other wise, user-defined styles are wiped.
-							// [TA] 06-21-2010 :: Checking if first child of sibling paragraph is a SpanElement. If it is, the style is
-							//						attributed as that which previous paragraph holds. We need to merge with any inline styles.
-							if( curFlowElement is SpanElement ) curFlowElement.format = TextLayoutFormatUtils.mergeFormats( sibParagraph.computedFormat, ( curFlowElement.format ) ? curFlowElement.format : new TextLayoutFormat() );
-							// [END TA]
-							sibParagraph.replaceChildren(0, 1, null);
-							para.replaceChildren(para.numChildren, para.numChildren, curFlowElement);
+							var content:Array = ( sibParagraph as ListItemElementX ).nonListRelatedContent;
+							while( content.length > 0 )
+							{
+								var element:FlowElement = sibParagraph.removeChildAt( sibParagraph.getChildIndex( content.shift() ) );
+								if( element is SpanElement ) element.format = TextLayoutFormatUtils.mergeFormats( sibParagraph.computedFormat, ( element.format ) ? element.format : new TextLayoutFormat() );
+								para.replaceChildren( para.numChildren, para.numChildren, element );
+							}
+							requiresListUpdate = ( para.parent is ListElementX );	
+						}
+						// [END TA]
+						else
+						{
+							while (sibParagraph.numChildren > 0)
+							{
+								var curFlowElement:FlowElement = sibParagraph.getChildAt(0);
+								// [TA] 04-27-2010 :: In order to stay consistant with inline styles,
+								//						any computed styles for the first child from parent need to be applied.
+								//						Other wise, user-defined styles are wiped.
+								// [TA] 06-21-2010 :: Checking if first child of sibling paragraph is a SpanElement. If it is, the style is
+								//						attributed as that which previous paragraph holds. We need to merge with any inline styles.
+								if( curFlowElement is SpanElement ) curFlowElement.format = TextLayoutFormatUtils.mergeFormats( sibParagraph.computedFormat, ( curFlowElement.format ) ? curFlowElement.format : new TextLayoutFormat() );
+								// [END TA]
+								sibParagraph.replaceChildren(0, 1, null);
+								para.replaceChildren(para.numChildren, para.numChildren, curFlowElement);
+							}
 						}
 						para.parent.replaceChildren(myidx+1, myidx+2, null);
+						if( requiresListUpdate ) ( para.parent as ListElementX ).update();
 						return true;
 					}
 				}

@@ -5,12 +5,14 @@ package flashx.textLayout.elements.list
 	import flashx.textLayout.container.AutosizableContainerController;
 	import flashx.textLayout.converter.IHTMLExporter;
 	import flashx.textLayout.edit.helpers.SelectionHelper;
+	import flashx.textLayout.elements.ContainerFormattedElement;
 	import flashx.textLayout.elements.DivElement;
 	import flashx.textLayout.elements.FlowElement;
 	import flashx.textLayout.elements.FlowGroupElement;
 	import flashx.textLayout.elements.ListElement;
 	import flashx.textLayout.elements.ListItemElement;
 	import flashx.textLayout.elements.ParagraphElement;
+	import flashx.textLayout.elements.SpanElement;
 	import flashx.textLayout.elements.TextFlow;
 	import flashx.textLayout.events.ModelChange;
 	import flashx.textLayout.events.list.ListElementEvent;
@@ -720,6 +722,24 @@ package flashx.textLayout.elements.list
 		{
 			return elem is ListItemElementX || elem is ListPaddingElement;
 		}
+		
+		// [TA] 07-26-2010 :: Factory method for creating an empty div container to be used during paste operations within TextFlowEdit.
+		//						The way that paste works in TextflowEdit is to add the paste content temporarily to the end of the target container.
+		//						Since we are pasting into a list item element, the container is a list element. Technically, due to the override of canOwnFlowElement()
+		//							the operation in TextflowEdit could not add a temp div to finish the paste operation. 
+		//							As such this is a quick access factort method to create that container legally.
+		tlf_internal function getTemporaryPasteContainer():ContainerFormattedElement
+		{
+			if( mxmlChildren == null ) mxmlChildren = [];
+			
+			var div:DivElement = new DivElement();
+			var p:ParagraphElement = new ParagraphElement();
+			p.replaceChildren( 0, 0, new SpanElement() );
+			div.replaceChildren( 0, 0, p );
+			mxmlChildren[numChildren] = div;
+			return div;
+		}
+		// [END TA]
 		
 		public function get listItems():Array
 		{
