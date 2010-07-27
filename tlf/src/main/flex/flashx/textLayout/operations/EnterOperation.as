@@ -70,6 +70,7 @@ package flashx.textLayout.operations
 			var group:FlowGroupElement;
 			var idx:int;
 			var br:BreakElement;
+			var span:SpanElement;
 			
 			if(isCaretSelection()) {
 				leaf = textFlow.findLeaf(operationState.absoluteStart-1);
@@ -92,6 +93,10 @@ package flashx.textLayout.operations
 					
 					//	Get leaf index in parent
 					idx = leaf.parent.getChildIndex(leaf);
+					
+//					span = new SpanElement();
+//					span.format = leaf.format;
+//					leaf.parent.addChildAt(idx+1, span);
 					
 					//	Add break element at next index in parent
 					br = new BreakElement();
@@ -141,9 +146,15 @@ package flashx.textLayout.operations
 					//	Get leaf index in parent
 					idx = leaf.parent.getChildIndex(leaf);
 					
+//					span = new SpanElement();
+//					span.format = leaf.format;
+//					leaf.parent.addChildAt(idx+1, span);
+					
 					//	Add break element at next index in parent
 					br = new BreakElement();
 					leaf.parent.addChildAt(idx+1, br);
+					
+					
 					
 					//	reset selection state
 					interactionManager.setSelectionState( new SelectionState( textFlow, operationState.absoluteStart+1, operationState.absoluteStart+1 ) );
