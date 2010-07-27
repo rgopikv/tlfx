@@ -394,14 +394,14 @@ package flashx.textLayout.elements
 				if (relativeEndPosition == textLength)
 					relativeEndPosition--;
 				
-				//	[KK]	Do not return secondary end line char if one exists
-				if ( hasSecondaryParagraphTerminator )
-				{
-					if ( relativeStartPosition == textLength)
-						relativeStartPosition--;
-					if ( relativeEndPosition == textLength)
-						relativeEndPosition--;
-				}
+//				//	[KK]	Do not return secondary end line char if one exists
+//				if ( hasSecondaryParagraphTerminator )
+//				{
+//					if ( relativeStartPosition == textLength)
+//						relativeStartPosition--;
+//					if ( relativeEndPosition == textLength)
+//						relativeEndPosition--;
+//				}
 			}
 			
 			if (relativeEndPosition != relativeStartPosition)

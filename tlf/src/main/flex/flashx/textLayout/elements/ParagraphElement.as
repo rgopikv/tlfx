@@ -309,34 +309,6 @@ package flashx.textLayout.elements
 		{
 			return false;
 		}		
-		
-		//	[KK]
-		override public function splitAtIndex(childIndex:int):FlowGroupElement
-		{
-			if (childIndex > _numChildren)
-				throw RangeError(GlobalSettings.resourceStringFunction("invalidSplitAtIndex"));
-			
-			var newSibling:ParagraphElement = shallowCopy() as ParagraphElement;
-			
-			var numChildrenToMove:int = _numChildren-childIndex;
-			if (numChildrenToMove == 1)
-				newSibling.addChild(removeChildAt(childIndex));
-			else if (numChildrenToMove != 0)
-			{
-				var childArray:Array = _childArray.slice(childIndex);
-				this.replaceChildren(childIndex,_numChildren-1);
-				newSibling.replaceChildren(0, 0, childArray);		
-			}
-			
-			if (parent)
-			{
-				var myidx:int = parent.getChildIndex(this);
-				parent.replaceChildren(myidx+1,myidx+1,newSibling);
-			}
-			
-			return newSibling;
-		}
-		//	[END KK]
 
 		/** @private */
 		public override function replaceChildren(beginChildIndex:int,endChildIndex:int,...rest):void

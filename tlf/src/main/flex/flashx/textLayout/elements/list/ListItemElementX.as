@@ -64,10 +64,10 @@ package flashx.textLayout.elements.list
 		}
 		// [END TA]
 		
-//		tlf_internal override function ensureTerminatorAfterReplace(oldLastLeaf:FlowLeafElement):void
-//		{
-//			//	Nothing
-//		}
+		tlf_internal override function ensureTerminatorAfterReplace(oldLastLeaf:FlowLeafElement):void
+		{
+			//	Nothing
+		}
 		
 		public function updateBulletFormat():void
 		{
@@ -570,12 +570,14 @@ package flashx.textLayout.elements.list
 			var copy:ListItemElementX = super.shallowCopy( startPos, endPos ) as ListItemElementX;
 			copy.indent = indent;
 			copy.number = number;
+			copy.extraBreak = false;	//	[KK]	Extra break
 			return copy;
 		}
 		override public function deepCopy(startPos:int=0, endPos:int=-1):FlowElement
 		{
 			var copy:FlowElement = super.deepCopy(startPos, endPos);
 			copy.original = true;
+			(copy as ListItemElementX).extraBreak = false;	//	[KK]	Extra break
 			return copy;
 		}
 		// [END TA]
