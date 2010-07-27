@@ -12,6 +12,7 @@ package flashx.textLayout.operations
 	import flashx.textLayout.edit.ParaEdit;
 	import flashx.textLayout.edit.SelectionState;
 	import flashx.textLayout.edit.helpers.SelectionHelper;
+	import flashx.textLayout.elements.BreakElement;
 	import flashx.textLayout.elements.FlowElement;
 	import flashx.textLayout.elements.FlowGroupElement;
 	import flashx.textLayout.elements.FlowLeafElement;
@@ -65,12 +66,46 @@ package flashx.textLayout.operations
 		 */
 		public override function doOperation():Boolean	{
 			var operationState:SelectionState = interactionManager.getSelectionState();
+			var leaf:FlowLeafElement;
+			var group:FlowGroupElement;
+			var idx:int;
+			var br:BreakElement;
 			
 			if(isCaretSelection()) {
-				var leaf:FlowLeafElement = textFlow.findLeaf(operationState.absoluteStart-1);
+				leaf = textFlow.findLeaf(operationState.absoluteStart-1);
+				group = leaf.getParagraph();
 				//operationState.pointFormat = leaf.format;
-				interactionManager.splitParagraph(operationState);
-				interactionManager.setSelectionState( new SelectionState( textFlow, operationState.absoluteStart + 2, operationState.absoluteEnd + 2 ) );
+				
+				if ( group is ListItemElementX || !(group is ParagraphElement) )
+				{
+					interactionManager.splitParagraph(operationState);
+					interactionManager.setSelectionState( new SelectionState( textFlow, operationState.absoluteStart + 2, operationState.absoluteEnd + 2 ) );
+				}
+				//	[KK]	Handle normal ParagraphElement breaking
+				else if ( group is ParagraphElement )
+				{
+					//	Get actual leaf
+					leaf = textFlow.findLeaf( operationState.absoluteStart );
+					
+					//	Split leaf
+					leaf.splitAtPosition( operationState.absoluteStart - leaf.getAbsoluteStart() );
+					
+					//	Get leaf index in parent
+					idx = leaf.parent.getChildIndex(leaf);
+					
+					//	Add break element at next index in parent
+					br = new BreakElement();
+					leaf.parent.addChildAt(idx+1, br);
+					
+					//	reset selection state
+					interactionManager.setSelectionState( new SelectionState( textFlow, operationState.absoluteStart+1, operationState.absoluteStart+1 ) );
+				}
+				else
+				{
+					interactionManager.splitParagraph(operationState);
+					interactionManager.setSelectionState( new SelectionState( textFlow, operationState.absoluteStart + 2, operationState.absoluteEnd + 2 ) );
+				}
+				
 			} else {
 				
 				if( !operationState ) {
@@ -78,18 +113,53 @@ package flashx.textLayout.operations
 				}
 				
 				leaf = textFlow.findLeaf(operationState.absoluteStart);
+				group = leaf.getParagraph();
 				//operationState.pointFormat = leaf.format;
 				
-				// do the specific operation passing in the listMode argument
-				interactionManager.doOperation( new BackspaceOperation( operationState, interactionManager ) );
-				
-				// get previous leaf format
-				interactionManager.splitParagraph(operationState);
-				
-				/// apply it
-				interactionManager.refreshSelection();
-				
-				interactionManager.setSelectionState( new SelectionState( textFlow, operationState.absoluteStart + 2, operationState.absoluteEnd + 2 ) );
+				if ( group is ListItemElementX )
+				{
+					// do the specific operation passing in the listMode argument
+					interactionManager.doOperation( new BackspaceOperation( operationState, interactionManager ) );
+					
+					// get previous leaf format
+					interactionManager.splitParagraph(operationState);
+					
+					/// apply it
+					interactionManager.refreshSelection();
+					
+					interactionManager.setSelectionState( new SelectionState( textFlow, operationState.absoluteStart + 2, operationState.absoluteEnd + 2 ) );
+				}
+				else if ( group is ParagraphElement )
+				{
+//					// do the specific operation passing in the listMode argument
+//					var ss:SelectionState = new SelectionState( textFlow, operationState.absoluteStart+3, operationState.absoluteEnd );
+//					interactionManager.doOperation( new BackspaceOperation( ss, interactionManager ) );
+					
+					//	Split leaf
+					leaf.splitAtPosition( operationState.absoluteStart - leaf.getAbsoluteStart() );
+					
+					//	Get leaf index in parent
+					idx = leaf.parent.getChildIndex(leaf);
+					
+					//	Add break element at next index in parent
+					br = new BreakElement();
+					leaf.parent.addChildAt(idx+1, br);
+					
+					//	reset selection state
+					interactionManager.setSelectionState( new SelectionState( textFlow, operationState.absoluteStart+1, operationState.absoluteStart+1 ) );
+				}
+				else
+				{
+					// do the specific operation passing in the listMode argument
+					interactionManager.doOperation( new BackspaceOperation( operationState, interactionManager ) );
+					
+					interactionManager.splitParagraph(operationState);
+					
+					/// apply it
+					interactionManager.refreshSelection();
+					
+					interactionManager.setSelectionState( new SelectionState( textFlow, operationState.absoluteStart + 2, operationState.absoluteEnd + 2 ) );
+				}
 				
 			}
 			

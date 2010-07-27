@@ -171,13 +171,19 @@ package flashx.textLayout.edit
 				
 				case Keyboard.ENTER:	
 					if(absoluteStart != absoluteEnd) {
+						//	[KK]	Correct, because it was deleting one to many characters at start
 						var ss:SelectionState = operationState;
-						ss.absoluteEnd--;
+						ss.absoluteStart++;
 						setSelectionState( ss );
 						refreshSelection();
-						doOperation( new BackspaceOperation( ss, this ) );
+						doOperation( new BackspaceOperation( ss, this ) );//operationState, this ) );
+						
+						//	Reset for next operation
+						setSelectionState( new SelectionState( textFlow, operationState.absoluteStart-1, operationState.absoluteStart-1 ) );
+						refreshSelection();
 					}
-					doOperation( new EnterOperation( operationState, this, _htmlImporter, _htmlExporter ) );
+					//	[KK]	Changed to getSelectionState() from operationState
+					doOperation( new EnterOperation( getSelectionState(), this, _htmlImporter, _htmlExporter ) );
 					return;
 					break;
 				
