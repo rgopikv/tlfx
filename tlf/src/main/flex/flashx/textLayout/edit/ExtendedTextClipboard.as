@@ -121,6 +121,9 @@ package flashx.textLayout.edit
 					{
 						if( isExtendedClipboardContent( textOnClipboard ) )
 						{
+							var previousSettings:Object = XML.settings();
+							XML.prettyIndent = 0;
+							XML.prettyPrinting = false;
 							var xmlContent:XML = XML( textOnClipboard );
 							var rootTextFlow:XML = xmlContent..div.(@id == ExtendedTextClipboard.ROOT_FLOW_ID)[0];
 							var textFlow:TextFlow = _htmlImporter.importToFlow( rootTextFlow.toString() );
@@ -144,6 +147,7 @@ package flashx.textLayout.edit
 								retTextScrap.endMissingArray = getMissingArray( endMissingChild, textFlow );
 								return retTextScrap;
 							}
+							XML.setSettings( previousSettings );
 						}
 					}
 				}

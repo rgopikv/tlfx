@@ -283,6 +283,15 @@ package flashx.textLayout.edit
 				var flowElIndex:int = para.parent.getChildIndex(para);
 				var okToMergeWithAfter:Boolean = true;
 				
+				// [TA] See if we should handle as a list being inserted into a DivElement
+				//			If so we will need to split the div, as lists need to be top level elements.
+				if( handleInsertionAsListInDiv( theFlow, pos, insertedTextFlow ) )
+				{
+					processedFirstFlowElement = true;
+					return pos + insertedTextFlow.textLength;
+				}
+				// [END TA]
+				
 				if (paraSplitIndex > 0)
 				{
 					if (paraSplitIndex < (para.textLength - 1))
@@ -321,15 +330,27 @@ package flashx.textLayout.edit
 				
 				// [TA] 07-26-2010 :: Converting pasted content to List Item if we are pasting into a List Element. This allows for proper split/join that occurs on paragraph elements (of which List Item is a subclass).
 				var missingEnd:Boolean = TextFlowEdit.isFlowElementInArray(missingEndElementsInFlow, insertedTextFlow);
-				if( para is ListItemElementX )
+				var isPastingListInListItem:Boolean = ( insertedTextFlow is ListElementX ) && ( para is ListItemElementX );
+				if( isPastingListInListItem )
+				{
+					var listItems:Array = ( insertedTextFlow as ListElementX ).listItems;
+					while( listItems.length > 0 )
+					{
+						paragraphContainer.replaceChildren( flowElIndex + 1, flowElIndex + 1, insertedTextFlow.removeChild( listItems.pop() ) );
+					}
+				}
+				else if( para is ListItemElementX )
 				{
 					var childElements:Array = insertedTextFlow.mxmlChildren;
 					insertedTextFlow = para.shallowCopy() as ListItemElementX;
 					( insertedTextFlow as ListItemElementX ).replaceChildren( 0, 0, childElements );
+					paragraphContainer.replaceChildren(flowElIndex + 1, flowElIndex + 1, insertedTextFlow);
+				}
+				else
+				{
+					paragraphContainer.replaceChildren(flowElIndex + 1, flowElIndex + 1, insertedTextFlow);
 				}
 				// [END TA]
-				
-				paragraphContainer.replaceChildren(flowElIndex + 1, flowElIndex + 1, insertedTextFlow);
 				nextInsertionPosition = pos + insertedTextFlow.textLength;
 
 				if (insertedTextFlow is ParagraphElement)
@@ -371,13 +392,44 @@ package flashx.textLayout.edit
 				// [TA] 07-24-2010 :: Check to see if inserted element is a List. IF so run an update.
 				else if( insertedTextFlow is ListElementX )
 				{
-					( insertedTextFlow as ListElementX ).update();
+					if( para is ListItemElementX )
+					{
+						var list:ListElementX = ( para as ListItemElementX ).parent as ListElementX;
+						list.update();
+					}
+					else ( insertedTextFlow as ListElementX ).update();
 				}
 				// [END TA]
 				
 				processedFirstFlowElement = true;			
 			}
 			return nextInsertionPosition;
+		}
+		
+		private static function handleInsertionAsListInDiv( textFlow:TextFlow, position:int, insertedTextFlow:FlowGroupElement ):Boolean
+		{
+			if( insertedTextFlow is ListElementX )
+			{
+				var para:FlowGroupElement = textFlow.findAbsoluteParagraph(position);
+				if( para.parent is TextFlow ) return false;
+				
+				var parent:FlowGroupElement = para.parent;
+				findParent: while( parent && !(parent is TextFlow) )
+				{
+					if( parent.parent is TextFlow ) break findParent;
+					parent = parent.parent;
+				}
+				
+				if( !(parent is ListElementX) && parent is DivElement )
+				{
+					var splitIndex:int = position - parent.getAbsoluteStart();
+					var insertIndex:int = ( parent.parent as TextFlow ).getChildIndex( parent ) + 1;
+					( parent as DivElement ).splitAtPosition( splitIndex );
+					( parent.parent as TextFlow ).addChildAt( insertIndex, insertedTextFlow );
+					return true;	
+				}
+			}
+			return false;
 		}
 		
 		/**

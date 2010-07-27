@@ -307,15 +307,7 @@ package flashx.textLayout.elements.list
 			}
 			
 			correctChildren();
-			
-			//	Remove the paragraphStartIndent for applying styles
-			var origIndent:int = indent;
-			indent = 0;
-			
 			styleExporter.applyStyleAttributesFromElement( xml, this );
-			
-			//	Apply the indent once more
-			indent = origIndent;
 			
 			for ( i = 1; i < numChildren; i++ )
 			{
