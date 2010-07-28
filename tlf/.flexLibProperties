@@ -312,6 +312,7 @@
     <classEntry path="flashx.textLayout.model.style.HeaderStyle"/>
     <classEntry path="flashx.textLayout.operations.ExtendedApplyFormatOperation"/>
     <classEntry path="flashx.textLayout.elements.BulletSpanElement"/>
+    <classEntry path="flashx.textLayout.edit.ExtendedTextScrap"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests>
