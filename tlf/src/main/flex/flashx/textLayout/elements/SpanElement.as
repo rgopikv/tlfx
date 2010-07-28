@@ -152,6 +152,24 @@ package flashx.textLayout.elements
 				
 			return textValue != null ? textValue : "";
 		}
+		
+		// [TA] 07-27-2010 :: Added accessor for correct length of text without terminators. Theere are times during replaceChildren from various actions that will push termination count up higher than 2.
+		tlf_internal function get unterminatedTextLength():int
+		{
+			var length:int = textLength;
+			var textValue:String = _blockElement ? _blockElement.rawText : _text;
+			if( textValue )
+			{
+				var index:int = textValue.length;
+				while( index-- > 0 )
+				{
+					if( textValue.charAt( index ) == kParagraphTerminator ) length--;
+				}
+			}
+			return length;
+		}
+		// [END TA]
+		
 		/** 
 		 * Receives the String of text that this SpanElement object holds.
 		 *

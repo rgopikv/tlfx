@@ -42,7 +42,8 @@ package flashx.textLayout.edit
 		protected function createHTMLFlowExportString( scrap:TextScrap ):String
 		{
 			if( scrap == null ) return null;
-			return _htmlExporter.export( scrap.textFlow, ConversionType.XML_TYPE ).toString();
+			var export:* = _htmlExporter.export( scrap.textFlow, ConversionType.XML_TYPE );
+			return export.toXMLString();
 		}
 		
 		protected function getMissingArray( missingChild:XML, textFlow:TextFlow ):Array
@@ -145,6 +146,7 @@ package flashx.textLayout.edit
 								var retTextScrap:TextScrap = new TextScrap(textFlow);
 								retTextScrap.beginMissingArray = getMissingArray( beginMissingChild, textFlow );
 								retTextScrap.endMissingArray = getMissingArray( endMissingChild, textFlow );
+								XML.setSettings( previousSettings );
 								return retTextScrap;
 							}
 							XML.setSettings( previousSettings );

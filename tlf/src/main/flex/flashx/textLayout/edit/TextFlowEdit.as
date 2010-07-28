@@ -355,27 +355,41 @@ package flashx.textLayout.edit
 
 				if (insertedTextFlow is ParagraphElement)
 				{	
+					// [TA] 07-27-2010 :: Updating insert position based on terminators being removed on join.
+					var terminatorOffset:int = 1;
+					var leaf:SpanElement;
+					// [END TA]
 					if (okToMergeWithAfter && missingEnd)
 					{
+						leaf = ( insertedTextFlow as ParagraphElement ).getLastLeaf() as SpanElement;
+						if( leaf )
+						{
+							nextInsertionPosition -= ( leaf.textLength - leaf.unterminatedTextLength );
+						}
 						// Merge the paragraph with what comes next. If the inserted paragraph is inserted to the middle or end of the paragraph,
 						// then merge the next paragraph into the inserted paragraph. If we're inserting to the start of the paragraph, merge
 						// the inserted paragraph into the next paragraph, so that the original host paragraph maintains its format settings.
 						if (paraSplitIndex == 0)
 						{
 							if (joinToNextParagraph(ParagraphElement(insertedTextFlow)))
-								nextInsertionPosition--;
+								nextInsertionPosition -= terminatorOffset;
 						}
 						else if (joinNextParagraph(ParagraphElement(insertedTextFlow)))
-							nextInsertionPosition--;
+							nextInsertionPosition -= terminatorOffset;
 					}
 
 					if (!processedFirstFlowElement)
 					{
 						if (paraSplitIndex > 0)
 						{
+							terminatorOffset = 0;
 							var prevSibling:ParagraphElement = insertedTextFlow.getPreviousSibling() as ParagraphElement;
 							if (prevSibling && joinNextParagraph(prevSibling))
-								nextInsertionPosition--;
+								nextInsertionPosition -= terminatorOffset;
+						}
+						else
+						{
+							nextInsertionPosition += 1;
 						}
 					}
 					
@@ -1309,16 +1323,33 @@ package flashx.textLayout.edit
 					var sibParagraph:ParagraphElement = para.parent.getChildAt(myidx+1) as ParagraphElement;
 					if (sibParagraph)
 					{
-						var requiresListUpdate:Boolean;
+						// [TA] 07-27-2010 :: Removing terminators before join.
+						var leaf:SpanElement = para.getLastLeaf() as SpanElement;
+						if( leaf )
+						{
+							var hasTerminator:Boolean = leaf.hasParagraphTerminator;
+							var index:int;
+							while( hasTerminator )
+							{
+								leaf.removeParaTerminator();
+								hasTerminator = leaf.hasParagraphTerminator;
+							}
+						}
+						// [END TA]
 						// [TA] 07-26-2010 :: If we are dealing with joingin list item elements, we need to transfer children that are not related to list content.
+						var requiresListUpdate:Boolean;
 						if( para is ListItemElementX && sibParagraph is ListItemElementX )
 						{
 							var content:Array = ( sibParagraph as ListItemElementX ).nonListRelatedContent;
 							while( content.length > 0 )
 							{
 								var element:FlowElement = sibParagraph.removeChildAt( sibParagraph.getChildIndex( content.shift() ) );
-								if( element is SpanElement ) element.format = TextLayoutFormatUtils.mergeFormats( sibParagraph.computedFormat, ( element.format ) ? element.format : new TextLayoutFormat() );
-								para.replaceChildren( para.numChildren, para.numChildren, element );
+								leaf = ( para.getLastLeaf() as SpanElement );
+								if( leaf )
+								{
+									leaf.format = TextLayoutFormatUtils.mergeFormats( sibParagraph.computedFormat, ( leaf.format ) ? leaf.format : new TextLayoutFormat() );
+								}
+								para.replaceChildrenForJoin( para.numChildren, para.numChildren, element );
 							}
 							requiresListUpdate = ( para.parent is ListElementX );	
 						}
@@ -1328,16 +1359,24 @@ package flashx.textLayout.edit
 							while (sibParagraph.numChildren > 0)
 							{
 								var curFlowElement:FlowElement = sibParagraph.getChildAt(0);
+								
 								// [TA] 04-27-2010 :: In order to stay consistant with inline styles,
 								//						any computed styles for the first child from parent need to be applied.
 								//						Other wise, user-defined styles are wiped.
 								// [TA] 06-21-2010 :: Checking if first child of sibling paragraph is a SpanElement. If it is, the style is
 								//						attributed as that which previous paragraph holds. We need to merge with any inline styles.
-								if( curFlowElement is SpanElement ) curFlowElement.format = TextLayoutFormatUtils.mergeFormats( sibParagraph.computedFormat, ( curFlowElement.format ) ? curFlowElement.format : new TextLayoutFormat() );
+								leaf = curFlowElement as SpanElement;
+								if( leaf )
+								{
+									leaf.format = TextLayoutFormatUtils.mergeFormats( sibParagraph.computedFormat, ( leaf.format ) ? leaf.format : new TextLayoutFormat() );
+								}
 								// [END TA]
 								sibParagraph.replaceChildren(0, 1, null);
-								para.replaceChildren(para.numChildren, para.numChildren, curFlowElement);
+								// [TA] 07-27-2010 :: Usnig replaceChildrenForJoin which will not add terminators on replace.
+								para.replaceChildrenForJoin(para.numChildren, para.numChildren, curFlowElement);
 							}
+							para.ensureTerminatorAfterReplace(null);
+							// [END TA]
 						}
 						para.parent.replaceChildren(myidx+1, myidx+2, null);
 						if( requiresListUpdate ) ( para.parent as ListElementX ).update();
@@ -1360,13 +1399,28 @@ package flashx.textLayout.edit
 					var sibParagraph:ParagraphElement = para.parent.getChildAt(myidx+1) as ParagraphElement;
 					if (sibParagraph)
 					{			
+						// [TA] 07-27-2010 :: Removing terminators before join.
+						var leaf:SpanElement = para.getLastLeaf() as SpanElement;
+						if( leaf )
+						{
+							var hasTerminator:Boolean = leaf.hasParagraphTerminator;
+							var index:int;
+							while( hasTerminator )
+							{
+								leaf.removeParaTerminator();
+								hasTerminator = leaf.hasParagraphTerminator;
+							}
+						}
+						// [END TA]
 						// Add the first paragraph's children to the front of the next paragraph's child list
 						var addAtIndex:int = 0;
 						while (para.numChildren > 0)
 						{
 							var curFlowElement:FlowElement = para.getChildAt(0);
-							para.replaceChildren(0, 1, null);
-							sibParagraph.replaceChildren(addAtIndex, addAtIndex, curFlowElement);
+							// [TA] 07-27-2010 :: Usnig replaceChildrenForJoin which will not add terminators on replace.
+							para.replaceChildrenForJoin(0, 1, null);
+							sibParagraph.replaceChildrenForJoin(addAtIndex, addAtIndex, curFlowElement);
+							// [END TA]
 							++addAtIndex;
 						}
 						para.parent.replaceChildren(myidx, myidx+1, null);
