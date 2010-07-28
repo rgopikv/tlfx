@@ -94,10 +94,6 @@ package flashx.textLayout.operations
 					//	Get leaf index in parent
 					idx = leaf.parent.getChildIndex(leaf);
 					
-//					span = new SpanElement();
-//					span.format = leaf.format;
-//					leaf.parent.addChildAt(idx+1, span);
-					
 					//	Add break element at next index in parent
 					br = new BreakElement();
 					leaf.parent.addChildAt(idx+1, br);
@@ -136,19 +132,11 @@ package flashx.textLayout.operations
 				}
 				else if ( group is ParagraphElement )
 				{
-//					// do the specific operation passing in the listMode argument
-//					var ss:SelectionState = new SelectionState( textFlow, operationState.absoluteStart+3, operationState.absoluteEnd );
-//					interactionManager.doOperation( new BackspaceOperation( ss, interactionManager ) );
-					
 					//	Split leaf
 					leaf.splitAtPosition( operationState.absoluteStart - leaf.getAbsoluteStart() );
 					
 					//	Get leaf index in parent
 					idx = leaf.parent.getChildIndex(leaf);
-					
-//					span = new SpanElement();
-//					span.format = leaf.format;
-//					leaf.parent.addChildAt(idx+1, span);
 					
 					//	Add break element at next index in parent
 					br = new BreakElement();

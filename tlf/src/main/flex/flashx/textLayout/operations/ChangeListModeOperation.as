@@ -14,6 +14,7 @@ package flashx.textLayout.operations
 	import flashx.textLayout.edit.ExtendedEditManager;
 	import flashx.textLayout.edit.SelectionState;
 	import flashx.textLayout.edit.helpers.SelectionHelper;
+	import flashx.textLayout.elements.BreakElement;
 	import flashx.textLayout.elements.DivElement;
 	import flashx.textLayout.elements.FlowElement;
 	import flashx.textLayout.elements.FlowGroupElement;
@@ -238,8 +239,36 @@ package flashx.textLayout.operations
 					{
 						pchild = p.getChildAt(j);
 						
+						//	Break on break element
+						if ( pchild is BreakElement )
+						{
+							//	If item already exists, add it to the list
+							if ( item.numChildren > 1 )
+							{
+								list.addChildAt( 0, item );
+							}
+							
+							var prevIndent:int = item.indent;
+							
+							item = new ListItemElementX();
+							item.format = transferFormat;
+							item.mode = _mode;
+							item.indent = prevIndent;
+							item.text = (pchild as BreakElement).text.substring(0, (pchild as BreakElement).text.length-1);
+							p.removeChildAt(j);
+							
+							list.addChildAt( 0, item );
+							
+							//	Reset the item for the next time through
+							item = new ListItemElementX();
+							item.format = transferFormat;
+							item.mode = _mode;
+							item.indent = prevIndent;
+							
+							continue;
+						}
 						//	Prevent adding blank list items by ensuring that they have either word characters or a TLF element
-						if ( pchild is SpanElement )
+						else if ( pchild is SpanElement )
 						{
 							if ( (pchild as SpanElement).text.match( /\w/g ).length > 0 )
 								item.addChildAt(0, p.removeChildAt(j));

@@ -336,6 +336,8 @@ package flashx.textLayout.elements
 			super.replaceChildren.apply(this, applyParams);
 			
 			ensureTerminatorAfterReplace(oldLastLeaf);
+			
+			ensureProperNumberOfTerminators();
 		}
 		
 		// [TA] 07-27-2010 :: Need a custom replace of children as we don't need to keep ensuring terminators when doing a join.
@@ -375,6 +377,8 @@ package flashx.textLayout.elements
 				if (oldLastLeaf && oldLastLeaf is SpanElement)
 				{
 					oldLastLeaf.removeParaTerminator();
+					
+					//	[KK]	Extra break
 					if ( extraBreak )
 						(oldLastLeaf as SpanElement).removeSecondaryParaTerminator();
 				}
@@ -384,6 +388,8 @@ package flashx.textLayout.elements
 					if (newLastLeaf is SpanElement)
 					{
 						newLastLeaf.addParaTerminator();
+						
+						//	[KK]	Extra break
 						if ( extraBreak )
 							(newLastLeaf as SpanElement).addSecondaryParaTerminator();
 					}
@@ -394,8 +400,42 @@ package flashx.textLayout.elements
 						super.replaceChildren(numChildren,numChildren,s);
 						s.format = newLastLeaf.format;
 						s.addParaTerminator();
+						
+						//	[KK]	Extra break
 						if ( extraBreak )
 							s.addSecondaryParaTerminator();
+					}
+				}
+			}
+		}
+		
+		protected function ensureProperNumberOfTerminators():void
+		{
+			var lastLeaf:FlowLeafElement = getLastLeaf();
+			var secondToLastLeaf:FlowLeafElement;
+			
+//			if ( secondToLastLeaf is BreakElement )
+//			{
+//				if ( lastLeaf is SpanElement )
+//				{
+//					var span:SpanElement = lastLeaf as SpanElement;
+//					if ( span.hasSecondaryParagraphTerminator )
+//						span.removeSecondaryParaTerminator();
+//				}
+//			}
+			
+			if ( lastLeaf && lastLeaf is SpanElement )
+			{
+				secondToLastLeaf = lastLeaf.getPreviousLeaf(this);
+				if ( secondToLastLeaf && secondToLastLeaf is BreakElement )
+				{
+					if ( (lastLeaf as SpanElement).hasParagraphTerminator )
+					{
+						(lastLeaf as SpanElement).removeParaTerminator();
+						if ( (lastLeaf as SpanElement).hasSecondaryParagraphTerminator == false )
+						{
+							(lastLeaf as SpanElement).addParaTerminator();
+						}
 					}
 				}
 			}

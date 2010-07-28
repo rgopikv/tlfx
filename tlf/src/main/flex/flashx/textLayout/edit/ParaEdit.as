@@ -515,7 +515,7 @@ package flashx.textLayout.edit
 			if( newPar )
 			{
 				newPar.original = true;
-				newPar.extraBreak = true;	//	[KK]
+				newPar.extraBreak = para.extraBreak;	//	[KK]
 			}
 			// [END TA]
 			return newPar;
@@ -579,7 +579,7 @@ package flashx.textLayout.edit
 				para.replaceChildren(0, 0, newFormattedSpan);
 			}
 			
-			newPar.extraBreak = true;	//	[KK]
+			newPar.extraBreak = para.extraBreak;	//	[KK]
 			return newPar;
 		}
 		

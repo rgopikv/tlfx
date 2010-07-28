@@ -219,26 +219,23 @@ package flashx.textLayout.elements
 			}
 		}
 		
-		/** @private */
-		public override function replaceChildren(beginChildIndex:int,endChildIndex:int,...rest):void
-		{
-			var p:ParagraphElement = this.getParagraph();
-			
-			// are we replacing the last element?
-			var oldLastLeaf:FlowLeafElement = p ? p.getLastLeaf() : null;
-			
-//			//	[KK]
-//			var olderLastLeaf:FlowLeafElement = oldLastLeaf ? oldLastLeaf.getPreviousLeaf(p) : null;
-				
-			var applyParams:Array = [beginChildIndex, endChildIndex];
-			super.replaceChildren.apply(this, applyParams.concat(rest));
-			
-				[KK]
+		//	[KK]	Commented out to force SubParagraphGroupElements to use ParagraphElement like logic when replacing children.
+		//			This is mainly because of the need for ensureParagraphTerminator() when editing content
+		
+//		/** @private */
+//		public override function replaceChildren(beginChildIndex:int,endChildIndex:int,...rest):void
+//		{
+//			var p:ParagraphElement = this.getParagraph();
+//			
+//			// are we replacing the last element?
+//			var oldLastLeaf:FlowLeafElement = p ? p.getLastLeaf() : null;
+//				
+//			var applyParams:Array = [beginChildIndex, endChildIndex];
+//			super.replaceChildren.apply(this, applyParams.concat(rest));
+//			
 //			if (p)
-//				p.ensureTerminatorAfterReplace(oldLastLeaf, olderLastLeaf);
-			if (p)
-				p.ensureTerminatorAfterReplace(oldLastLeaf);
-		}
+//				p.ensureTerminatorAfterReplace(oldLastLeaf);
+//		}
 		
 		 /** @private
 		  * Returns the EventDispatcher associated with this SubParagraphGroupElement instance.  Use the functions
