@@ -355,25 +355,55 @@ package flashx.textLayout.operations
 			var returnedElements:Array = []; // FlowElement[]
 			var listItem:ListItemElementX;
 			var listItemChildren:Array;
-			var p:ParagraphElement;
+//			var p:ParagraphElement;
+//			
+//			while( listItems.length > 0 )
+//			{
+//				listItem = ListItemElementX(listItems.shift()); // as ListItemElementX;
+//				if( !listItem ) continue;
+//				listItemChildren = listItem.nonListRelatedContent;
+//				p = new ParagraphElement();
+//				p.format = listItem.format;
+//				p.original = true;
+//				p.paragraphStartIndent = Math.max(0, listItem.indent - 24);
+//				while( listItemChildren.length > 0 )
+//				{
+//					p.addChild( listItemChildren.shift() );
+//				}
+//				returnedElements.push( p );
+//				//group.addChildAt( index++, p );
+//			}
+//			return returnedElements;
 			
-			while( listItems.length > 0 )
+			var p:ParagraphElement = new ParagraphElement();
+			
+			if ( listItems.length > 0 )
 			{
-				listItem = ListItemElementX(listItems.shift()); // as ListItemElementX;
-				if( !listItem ) continue;
-				listItemChildren = listItem.nonListRelatedContent;
-				p = new ParagraphElement();
-				p.format = listItem.format;
+//				p.format = (listItems[0] as FlowElement).format;
 				p.original = true;
-				p.paragraphStartIndent = Math.max(0, listItem.indent - 24);
-				while( listItemChildren.length > 0 )
+				p.paragraphStartIndent = Math.max(0, (listItems[0] as ListItemElementX).indent-24);
+				
+				while ( listItems.length > 0 )
 				{
-					p.addChild( listItemChildren.shift() );
+					listItem = listItems.shift() as ListItemElementX;
+					if ( !listItem )
+						continue;
+					
+					listItemChildren = listItem.nonListRelatedContent;
+					while ( listItemChildren.length > 0 )
+					{
+						p.addChild( listItemChildren.shift() );
+					}
+					
+					p.addChild( new BreakElement() );
 				}
-				returnedElements.push( p );
-				//group.addChildAt( index++, p );
+				
+				returnedElements.push(p);
+				
+				return returnedElements;
 			}
-			return returnedElements;
+			else
+				return [];
 		}
 		
 		/**
