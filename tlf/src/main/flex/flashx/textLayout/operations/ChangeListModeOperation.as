@@ -254,7 +254,7 @@ package flashx.textLayout.operations
 							item.format = transferFormat;
 							item.mode = _mode;
 							item.indent = prevIndent;
-							item.text = (pchild as BreakElement).text.substring(0, (pchild as BreakElement).text.length-1);
+							item.text = (pchild as BreakElement).text.substring(1, (pchild as BreakElement).text.length-1);
 							p.removeChildAt(j);
 							
 							list.addChildAt( 0, item );
