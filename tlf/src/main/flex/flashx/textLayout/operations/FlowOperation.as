@@ -62,7 +62,16 @@ package flashx.textLayout.operations
 		private var _endGeneration:uint;
 		
 		private var _textFlow:TextFlow;		// target of the operation
-
+		
+		// [TA] 07-27-2010 :: Added flag of notification that this operation directly effectives the element mark up.
+		//						Such can be the case when a paragraph is split, image inserted, etc.
+		//						This is needed to reliable mark new elements as eligible for external css support.
+		public function get affectsFlowStructure():Boolean
+		{
+			return false;
+		}
+		// [END TA]
+		
 		/** 
 		 * Creates the FlowOperation object.
 		 * 

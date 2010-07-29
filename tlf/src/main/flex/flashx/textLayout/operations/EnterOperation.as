@@ -242,7 +242,7 @@ package flashx.textLayout.operations
 			{
 			removeListFromTextFlow( _listCreatedOnTextFlow );
 			}*/
-			return originalSelectionState; 
+			return originalSelectionState;
 		}
 		
 		/**
@@ -257,5 +257,11 @@ package flashx.textLayout.operations
 			return (absoluteStart == absoluteEnd);
 		}
 		
+		// [TA] 07-27-2010 :: See comment on FlowOperation.
+		override public function get affectsFlowStructure():Boolean
+		{
+			return true;
+		}
+		// [END TA]
 	}
 }

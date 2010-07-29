@@ -463,6 +463,12 @@ package flashx.textLayout.operations
 			var operationState:SelectionState = interactionManager.getSelectionState();
 			return (operationState.absoluteStart == operationState.absoluteEnd);
 		}
-					
+		
+		// [TA] 07-27-2010 :: See comment on FlowOperation.
+		override public function get affectsFlowStructure():Boolean
+		{
+			return !isCaretSelection();
+		}
+		// [END TA]
 	}
 }

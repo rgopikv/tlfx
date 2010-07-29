@@ -120,8 +120,10 @@ package flashx.textLayout.format
 		 * @param node XML
 		 * @param element FlowElement
 		 */
-		public function assignInlineStyle( node:XML, element:FlowElement ):void
+		public function assignInlineStyle( node:XML, element:FlowElement ):Boolean
 		{
+			if( ( node == null || node.name() == "" || node.name() == null ) ) return false;
+			
 			var userStyles:Object = ( element.userStyles ) ? element.userStyles : {};
 			var explicitStyle:Object = StyleAttributeUtil.parseStyles( node.@style );
 			// Create new.
@@ -150,6 +152,8 @@ package flashx.textLayout.format
 			
 			// Push to queue for pending.
 			_pendingStyledElements.push( new PendingStyleElement( node, element ) );
+			
+			return true;
 		}
 		
 		/**

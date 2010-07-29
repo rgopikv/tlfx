@@ -162,9 +162,9 @@ package flashx.textLayout.operations
 			_listModeCreateOnTextFlow = true;
 			_listCreatedOnTextFlow = list;
 			
-			var node:XML = _htmlExporter.getSimpleMarkupModelForElement( list );
-			_htmlImporter.importStyleHelper.assignInlineStyle( node, list );
-			_htmlImporter.importStyleHelper.apply();
+//			var node:XML = _htmlExporter.getSimpleMarkupModelForElement( list );
+//			_htmlImporter.importStyleHelper.assignInlineStyle( node, list );
+//			_htmlImporter.importStyleHelper.apply();
 			
 			// Weed out empty items
 			for ( var i:int = list.numChildren-1; i > -1; i-- )
@@ -510,16 +510,16 @@ package flashx.textLayout.operations
 			}
 			
 			// Apply style and assign managing container controller to returned elements.
-			var node:XML;
-			var element:FlowElement;
-			for( var j:int=0; j<returnedElements.length; j++)
-			{
-				element = returnedElements[j];
-				node = _htmlExporter.getSimpleMarkupModelForElement( element );
-				_htmlImporter.importStyleHelper.assignInlineStyle( node, element );
-			}
+//			var node:XML;
+//			var element:FlowElement;
+//			for( var j:int=0; j<returnedElements.length; j++)
+//			{
+//				element = returnedElements[j];
+//				node = _htmlExporter.getSimpleMarkupModelForElement( element );
+//				_htmlImporter.importStyleHelper.assignInlineStyle( node, element );
+//			}
 			textFlow.flowComposer.updateAllControllers();
-			_htmlImporter.importStyleHelper.apply();
+//			_htmlImporter.importStyleHelper.apply();
 			
 			return returnedElements;			
 		}
@@ -589,17 +589,6 @@ package flashx.textLayout.operations
 			startList.update();
 			endList.update();
 			
-			// Apply style and assign managing container controller to returned elements.
-			var node:XML;
-			var element:FlowElement;
-			while( returnedElements.length > 0 )
-			{
-				element = returnedElements.shift();
-				node = _htmlExporter.getSimpleMarkupModelForElement( element );
-				_htmlImporter.importStyleHelper.assignInlineStyle( node, element );
-			}
-			_htmlImporter.importStyleHelper.apply();
-			
 			return returnedElements;
 		}
 		
@@ -643,12 +632,6 @@ package flashx.textLayout.operations
 			{
 				newDiv.addChildAt( 0, div.removeChildAt(i) );
 			}
-			
-			// Add to lookup for styling.
-			var node:XML = _htmlExporter.getSimpleMarkupModelForElement( newDiv );
-			_htmlImporter.importStyleHelper.assignInlineStyle( node, newDiv );
-			_htmlImporter.importStyleHelper.apply();
-			
 			return parent.addChildAt( divIndex + 1, newDiv ) as DivElement;
 		}
 		
@@ -662,10 +645,6 @@ package flashx.textLayout.operations
 			{
 				newList.addChildAt( 0, list.removeChildAt( i ) );
 			}
-			
-			var node:XML = _htmlExporter.getSimpleMarkupModelForElement( newList );
-			_htmlImporter.importStyleHelper.assignInlineStyle( node, newList );
-			_htmlImporter.importStyleHelper.apply();
 			
 			return parent.addChildAt( listIndex + 1, newList ) as ListElementX;
 		}

@@ -219,5 +219,12 @@ package flashx.textLayout.operations
 		{
 			return _elementInsertIndex;
 		}
+		
+		// [TA] 07-27-2010 :: See comment on FlowOperation.
+		override public function get affectsFlowStructure():Boolean
+		{
+			return true;
+		}
+		// [END TA]
 	}
 }

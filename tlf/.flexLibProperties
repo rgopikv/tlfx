@@ -256,7 +256,6 @@
     <classEntry path="flashx.textLayout.operations.DeleteElementsOperation"/>
     <classEntry path="flashx.textLayout.operations.DeleteTextOperation"/>
     <classEntry path="flashx.textLayout.operations.ExtendedCopyOperation"/>
-    <classEntry path="flashx.textLayout.operations.ExtendedInsertFlowLeafElementOperation"/>
     <classEntry path="flashx.textLayout.operations.ExtendedInsertTextOperation"/>
     <classEntry path="flashx.textLayout.operations.FlowElementOperation"/>
     <classEntry path="flashx.textLayout.operations.FlowOperation"/>

@@ -203,12 +203,6 @@ package flashx.textLayout.operations
 				if( firstElement && textFlow.numChildren == 1 )
 				{
 					textFlow.replaceChildren( 0, 1, firstElement );
-					if( !node ) node = _htmlExporter.getSimpleMarkupModelForElement( firstElement );
-					if ( node )
-					{
-						_htmlImporter.importStyleHelper.assignInlineStyle( node, firstElement );
-						_htmlImporter.importStyleHelper.apply();
-					}
 				}
 			}
 		}
@@ -586,6 +580,11 @@ package flashx.textLayout.operations
 		public function get operationHasDeletedCells():Boolean
 		{
 			return _operationHasDeletedCells;
+		}
+		
+		override public function get affectsFlowStructure():Boolean
+		{
+			return true;
 		}
 	}
 }

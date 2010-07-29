@@ -116,5 +116,12 @@ package flashx.textLayout.operations
 		{ return _textScrap; }
 		public function set textScrap(val:TextScrap):void
 		{ _textScrap = val; }		
+		
+		// [TA] 07-27-2010 :: See comment on FlowOperation.
+		override public function get affectsFlowStructure():Boolean
+		{
+			return true;
+		}
+		// [END TA]
 	}
 }

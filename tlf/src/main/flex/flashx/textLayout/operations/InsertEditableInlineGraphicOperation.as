@@ -68,8 +68,7 @@ package flashx.textLayout.operations
 			{
 				( source as IManagedInlineGraphicSource ).inlineGraphicElement = imgElem;
 			} 
-			_htmlImporter.importStyleHelper.assignInlineStyle( _htmlExporter.getSimpleMarkupModelForElement( imgElem ), imgElem );
-				
+			
 			if (textFlow.interactionManager)
 				textFlow.interactionManager.notifyInsertOrDelete(absoluteStart, 1);
 			

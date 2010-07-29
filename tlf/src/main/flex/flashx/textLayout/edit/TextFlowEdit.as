@@ -288,7 +288,7 @@ package flashx.textLayout.edit
 				if( handleInsertionAsListInDiv( theFlow, pos, insertedTextFlow ) )
 				{
 					processedFirstFlowElement = true;
-					return pos + insertedTextFlow.textLength;
+					return pos + insertedTextFlow.textLength - 1;
 				}
 				// [END TA]
 				
@@ -440,6 +440,7 @@ package flashx.textLayout.edit
 					var insertIndex:int = ( parent.parent as TextFlow ).getChildIndex( parent ) + 1;
 					( parent as DivElement ).splitAtPosition( splitIndex );
 					( parent.parent as TextFlow ).addChildAt( insertIndex, insertedTextFlow );
+					( insertedTextFlow as ListElementX ).update();
 					return true;	
 				}
 			}
@@ -1344,11 +1345,11 @@ package flashx.textLayout.edit
 							while( content.length > 0 )
 							{
 								var element:FlowElement = sibParagraph.removeChildAt( sibParagraph.getChildIndex( content.shift() ) );
-								leaf = ( para.getLastLeaf() as SpanElement );
-								if( leaf )
-								{
-									leaf.format = TextLayoutFormatUtils.mergeFormats( sibParagraph.computedFormat, ( leaf.format ) ? leaf.format : new TextLayoutFormat() );
-								}
+//								leaf = ( para.getLastLeaf() as SpanElement );
+//								if( leaf )
+//								{
+//									leaf.format = TextLayoutFormatUtils.mergeFormats( sibParagraph.computedFormat, ( leaf.format ) ? leaf.format : new TextLayoutFormat() );
+//								}
 								para.replaceChildrenForJoin( para.numChildren, para.numChildren, element );
 							}
 							requiresListUpdate = ( para.parent is ListElementX );	
@@ -1365,11 +1366,11 @@ package flashx.textLayout.edit
 								//						Other wise, user-defined styles are wiped.
 								// [TA] 06-21-2010 :: Checking if first child of sibling paragraph is a SpanElement. If it is, the style is
 								//						attributed as that which previous paragraph holds. We need to merge with any inline styles.
-								leaf = curFlowElement as SpanElement;
-								if( leaf )
-								{
-									leaf.format = TextLayoutFormatUtils.mergeFormats( sibParagraph.computedFormat, ( leaf.format ) ? leaf.format : new TextLayoutFormat() );
-								}
+//								leaf = curFlowElement as SpanElement;
+//								if( leaf )
+//								{
+//									leaf.format = TextLayoutFormatUtils.mergeFormats( sibParagraph.computedFormat, ( leaf.format ) ? leaf.format : new TextLayoutFormat() );
+//								}
 								// [END TA]
 								sibParagraph.replaceChildren(0, 1, null);
 								// [TA] 07-27-2010 :: Usnig replaceChildrenForJoin which will not add terminators on replace.

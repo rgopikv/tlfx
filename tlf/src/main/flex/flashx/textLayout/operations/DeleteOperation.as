@@ -37,7 +37,7 @@ package flashx.textLayout.operations
 		private var interactionManager:ExtendedEditManager;
 				
 		protected var selectedLists:Array = new Array();
-								
+		
 		/**
 		 * 
 		 * @param operationState
@@ -106,5 +106,11 @@ package flashx.textLayout.operations
 			return (absoluteStart == absoluteEnd);
 		}
 		
+		// [TA] 07-27-2010 :: See comment on FlowOperation.
+		override public function get affectsFlowStructure():Boolean
+		{
+			return !isCaretSelection();
+		}
+		// [END TA]
 	}
 }

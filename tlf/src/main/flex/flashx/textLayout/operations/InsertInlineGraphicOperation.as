@@ -207,6 +207,12 @@ package flashx.textLayout.operations
 			doOperation();
 			return new SelectionState(textFlow,selPos+1,selPos+1,null);
 		}
-
+		
+		// [TA] 07-27-2010 :: See comment on FlowOperation.
+		override public function get affectsFlowStructure():Boolean
+		{
+			return true;
+		}
+		// [END TA]
 	}
 }

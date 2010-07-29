@@ -16,8 +16,9 @@ package flashx.textLayout.format
 		 * Marks element as pending style application based on inline @style attirbute from node XML. 
 		 * @param node XML
 		 * @param element FlowElement
+		 * @return Boolean Flag of valid assignment.
 		 */
-		function assignInlineStyle( node:XML, element:FlowElement ):void;
+		function assignInlineStyle( node:XML, element:FlowElement ):Boolean;
 		
 		/**
 		 * Marks the element as no longer requiring changes to styles. 

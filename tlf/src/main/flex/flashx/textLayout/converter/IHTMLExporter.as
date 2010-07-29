@@ -36,8 +36,6 @@ package flashx.textLayout.converter
 		 */
 		function getSimpleMarkupModelForElement( element:FlowElement ):XML;
 		
-		function getSimpleMarkupModelForListItemElement( element:ListItemElementX ):XML;
-		
 		/**
 		 * Returns the export style helper instanced used by the exporter. 
 		 * @return ExportStyleHelper
