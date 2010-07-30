@@ -236,16 +236,17 @@ package flashx.textLayout.elements.list
 		public function getParentingNodeCopy():XML
 		{
 			var inlineStyles:InlineStyles = getInlineStyles();
+			var nodeName:String = getNodeNameFromMode( _mode );
 			if( inlineStyles )
 			{
 				var node:XML = inlineStyles.node;
 				if( node )
 				{
 					var parentNode:XML = node.parent();
-					return FragmentAttributeUtil.copyWithAttributes( parentNode, getNodeNameFromMode( _mode ) );
+					return FragmentAttributeUtil.copyWithAttributes( parentNode, nodeName );
 				}
 			}
-			return null;
+			return <{nodeName}/>;
 		}
 	}
 }
