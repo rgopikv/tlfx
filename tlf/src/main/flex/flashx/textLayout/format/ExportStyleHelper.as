@@ -14,6 +14,7 @@ package flashx.textLayout.format
 	import flashx.textLayout.elements.TextFlow;
 	import flashx.textLayout.elements.VarElement;
 	import flashx.textLayout.elements.list.ListElementX;
+	import flashx.textLayout.elements.list.ListItemBaseElement;
 	import flashx.textLayout.elements.list.ListItemElementX;
 	import flashx.textLayout.elements.table.TableDataElement;
 	import flashx.textLayout.elements.table.TableElement;
@@ -102,6 +103,16 @@ package flashx.textLayout.format
 			return null;
 		}
 		
+		protected function getListItemParentStyleOfElement( element:ListItemBaseElement ):Object
+		{
+			var inline:InlineStyles = getInlineStyleOfElement( element );
+			if( inline )
+			{
+				return inline.listItemParentStyle;
+			}
+			return null;
+		}
+		
 		protected function mergeDifferingAndExplicitStyles( styles:Object, explicitStyles:Object ):Array /* StyleProperty[] */
 		{
 			var styleList:Array = []; /* StyleProperty[] */
@@ -165,7 +176,39 @@ package flashx.textLayout.format
 								parentPropertyValue = undefined;
 							}
 						}
-						
+						// Next we see if we are working with a ListITemBaseElement.
+						//	The way lists are created, nested list items' parents are not really the original node but he ListElementX.
+						//	As such, we need to cross check on parent node to see if property value are the same.
+						//	If they are, then we continue to the net style.
+						else if( element is ListItemBaseElement && ( childPropertyValue != parentPropertyValue ) )
+						{
+							var parentNode:XML = ( element as ListItemBaseElement ).getParentingNodeCopy();
+							if( FragmentAttributeUtil.exists( parentNode, "style" ) )
+							{
+								var parentExplicitStyle:Object = getListItemParentStyleOfElement( ( element as ListItemBaseElement ) );
+								if( parentExplicitStyle )
+								{
+									var formattedParentStyle:Object = {};
+									var parentStyleProperty:String;
+									// Create map of formatted styles.
+									for( parentStyleProperty in parentExplicitStyle )
+									{
+										styleProperty = StyleProperty.normalizeForFormat( parentStyleProperty, parentExplicitStyle[parentStyleProperty] );
+										formattedParentStyle[styleProperty.property] = styleProperty.value;
+									}
+									// See if we first have a style in the formatted styles that relate to the current style property.
+									if( formattedParentStyle.hasOwnProperty( property ) )
+									{
+										// If it is the same, continue to next style.
+										 if( formattedParentStyle[property] == childPropertyValue )
+										 {
+											 trace( "list item had same format value as parent node: " + property + ", " + childPropertyValue );
+											 continue;
+										 }
+									}
+								}
+							}
+						}
 						// Differing between child and parent || child and default, assumed a custom style.
 						// If a childPropertyVlaue is not undefined, than it is use specified and can be related to default formatting.
 						//	If it is undefined that the element is styled cascading and we techincally wouldn't reach here because of prior clause.

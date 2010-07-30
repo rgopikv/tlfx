@@ -53,5 +53,24 @@ package flashx.textLayout.utils
 			var attributes:XMLList = node.attributes();
 			return ( attributes && attributes.length() > 0 );
 		}
+		
+		static public function copyWithAttributes( node:XML, nodeName:String = null ):XML
+		{
+			var name:String = ( nodeName ) ? nodeName : node.name();
+			var copy:XML = <{name}/>
+			if( !FragmentAttributeUtil.hasAttributes( node ) ) return copy;
+			
+			var nodeAttributes:XMLList = node.attributes();
+			var propertyName:String;
+			var propertyValue:String;
+			var attribute:XML;
+			for each( attribute in nodeAttributes )
+			{
+				propertyName = attribute.name().localName;
+				propertyValue = attribute.toString();
+				copy["@" + propertyName] = propertyValue;
+			}
+			return copy;
+		}
 	}
 }

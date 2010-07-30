@@ -14,6 +14,7 @@ package flashx.textLayout.model.style
 
 	[Event(name="appliedStyleChange", type="flashx.textLayout.events.InlineStyleEvent")]
 	[Event(name="explicitStyleChange", type="flashx.textLayout.events.InlineStyleEvent")]
+	[Event(name="listItemParentStyleChange", type="flashx.textLayout.events.InlineStyleEvent")]
 	/**
 	 * InlineStyles is a basic model for holding attibutes related to a FlowElement as they pertain to id and class of style. 
 	 * An InlineStyles object is handed to a FlowElement through its userStyles property.
@@ -22,8 +23,9 @@ package flashx.textLayout.model.style
 	public class InlineStyles extends EventDispatcher
 	{
 		public var node:XML;
-		protected var _appliedStyle:*; 			/* Style applied from stylesheet */
-		protected var _explicitStyle:Object; 	/* Generic object fo key/value pairs for style properties. */
+		protected var _appliedStyle:*; 						/* Style applied from stylesheet */
+		protected var _explicitStyle:Object; 				/* Generic object fo key/value pairs for style properties. */
+		protected var _listItemParentStyle:Object;			/* Generic object fo key/value pairs for style properties for list items. */ 
 		
 		/**
 		 * Constructor. 
@@ -70,6 +72,16 @@ package flashx.textLayout.model.style
 			if( style && style.length > 0 ) explicitStyle = StyleAttributeUtil.parseStyles( style );
 		}
 		
+		public function clone():InlineStyles
+		{
+			var copy:InlineStyles = new InlineStyles();
+			copy.node = node;
+			copy.appliedStyle = _appliedStyle;
+			copy.explicitStyle = _explicitStyle;
+			copy.listItemParentStyle = _listItemParentStyle;
+			return copy;
+		}
+		
 		public function get styleId():String
 		{
 			if( !node ) return null;
@@ -111,5 +123,23 @@ package flashx.textLayout.model.style
 			_explicitStyle = value;
 			dispatchEvent( new InlineStyleEvent( InlineStyleEvent.EXPLICIT_STYLE_CHANGE, oldStyle, _explicitStyle ) );
 		}
+
+		/**
+		 * Accessor/Modifier for inheriting parent style for list item. The way list items are created in the flow, nested items share same parent
+		 * as non-nested. As such we need to track what styles were on the list item parent in order to track explicit and cascaded styles. 
+		 * @return 
+		 * 
+		 */
+		public function get listItemParentStyle():Object
+		{
+			return _listItemParentStyle;
+		}
+		public function set listItemParentStyle(value:Object):void
+		{
+			var oldStyle:Object = _listItemParentStyle;
+			_listItemParentStyle = value;
+			dispatchEvent( new InlineStyleEvent( InlineStyleEvent.LIST_ITEM_PARENT_STYLE_CHANGE, oldStyle, _listItemParentStyle ) );
+		}
+
 	}
 }

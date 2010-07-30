@@ -4,13 +4,20 @@ package flashx.textLayout.elements.list
 	
 	import flashx.textLayout.elements.FlowElement;
 	import flashx.textLayout.elements.ParagraphElement;
+	import flashx.textLayout.elements.TextFlow;
 	import flashx.textLayout.events.InlineStyleEvent;
+	import flashx.textLayout.events.list.ListElementEvent;
+	import flashx.textLayout.format.StyleProperty;
+	import flashx.textLayout.formats.ITextLayoutFormat;
+	import flashx.textLayout.formats.TextLayoutFormat;
 	import flashx.textLayout.model.style.IListStyle;
 	import flashx.textLayout.model.style.InlineStyles;
 	import flashx.textLayout.model.style.ListStyle;
 	import flashx.textLayout.tlf_internal;
+	import flashx.textLayout.utils.FragmentAttributeUtil;
 	import flashx.textLayout.utils.StyleAttributeUtil;
 	
+	use namespace tlf_internal;
 	public class ListItemBaseElement extends ParagraphElement
 	{
 		protected var _mode:int;
@@ -30,7 +37,7 @@ package flashx.textLayout.elements.list
 			use namespace tlf_internal;
 			var copy:ListItemBaseElement = super.shallowCopy( startPos, endPos ) as ListItemBaseElement;
 			copy.mode = _mode;
-			copy.setListStyle( _style );
+			copy.setListStyle( _style.clone() );
 			return copy;
 		}
 		// [END TA]
@@ -47,7 +54,7 @@ package flashx.textLayout.elements.list
 		
 		protected function getInlineStyles():InlineStyles
 		{
-			if( _userStyles )
+			if( userStyles )
 			{
 				if( _userStyles.inline as InlineStyles )
 				{
@@ -67,6 +74,13 @@ package flashx.textLayout.elements.list
 				inlineStyles.appliedStyle = null;
 			}
 			updateDisplayForListStyle();
+			
+			// Notify clients.
+			var tf:TextFlow = getTextFlow();
+			if( tf )
+			{
+				tf.dispatchEvent( new ListElementEvent( ListElementEvent.MODE_CHANGED, this, parent as ListElementX ) );
+			}
 		}
 		
 		protected function updateDisplayForListStyle():void
@@ -149,12 +163,25 @@ package flashx.textLayout.elements.list
 			var property:String;	
 			var styleProperty:String;
 			var requiresUpdate:Boolean;
+			var description:Object = TextLayoutFormat.description;
+			var formatStyle:StyleProperty;
+			var currentFormat:ITextLayoutFormat = ( format ) ? format : new TextLayoutFormat();
 			for( property in explicitStyle )
 			{
 				try 
 				{
-					styleProperty = StyleAttributeUtil.camelize(property);
-					_style[styleProperty] = explicitStyle[property];
+					formatStyle = StyleProperty.normalizeForFormat( property, explicitStyle[property] );
+					// First try and set it to the format.
+					if( description.hasOwnProperty( formatStyle.property ) )
+					{
+						currentFormat[formatStyle.property] = formatStyle.value;
+					}
+					// Then if not found on description, set it the list style.
+					else
+					{
+						styleProperty = StyleAttributeUtil.camelize(property);
+						_style[styleProperty] = explicitStyle[property];
+					}
 					requiresUpdate = true;
 				}
 				catch( e:Error )
@@ -182,6 +209,7 @@ package flashx.textLayout.elements.list
 				var inline:InlineStyles = ( hasPredefinedInlineStyle ) ? _userStyles.inline : new InlineStyles();
 				inline.addEventListener( InlineStyleEvent.APPLIED_STYLE_CHANGE, handleAppliedStyleChange );
 				inline.addEventListener( InlineStyleEvent.EXPLICIT_STYLE_CHANGE, handleExplicitStyleChange );
+				inline.addEventListener( InlineStyleEvent.LIST_ITEM_PARENT_STYLE_CHANGE, handleExplicitStyleChange );
 				if( !hasPredefinedInlineStyle ) _userStyles.inline = inline;
 				super.userStyles = _userStyles;
 			}
@@ -198,6 +226,26 @@ package flashx.textLayout.elements.list
 		public function get mode():int
 		{
 			return _mode;
+		}
+		
+		public function getNodeNameFromMode( mode:int ):String
+		{
+			return ( mode == ListItemModeEnum.ORDERED ) ? "ol" : "ul";
+		}
+		
+		public function getParentingNodeCopy():XML
+		{
+			var inlineStyles:InlineStyles = getInlineStyles();
+			if( inlineStyles )
+			{
+				var node:XML = inlineStyles.node;
+				if( node )
+				{
+					var parentNode:XML = node.parent();
+					return FragmentAttributeUtil.copyWithAttributes( parentNode, getNodeNameFromMode( _mode ) );
+				}
+			}
+			return null;
 		}
 	}
 }

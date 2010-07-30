@@ -21,9 +21,11 @@ package flashx.textLayout.elements
 	import flashx.textLayout.debug.assert;
 	import flashx.textLayout.events.ModelChange;
 	import flashx.textLayout.formats.FlowElementDisplayType;
+	import flashx.textLayout.formats.FormatValue;
 	import flashx.textLayout.formats.ITextLayoutFormat;
 	import flashx.textLayout.formats.TextLayoutFormat;
 	import flashx.textLayout.formats.TextLayoutFormatValueHolder;
+	import flashx.textLayout.model.style.InlineStyles;
 	import flashx.textLayout.property.Property;
 	import flashx.textLayout.tlf_internal;
 	
@@ -261,10 +263,26 @@ package flashx.textLayout.elements
 			// [TA] :: Passing original
 			retFlow.original = _original;
 			if (_formatValueHolder !=  null)
-				retFlow._formatValueHolder = new FlowValueHolder(_formatValueHolder);
+			{
+				retFlow._formatValueHolder = copyFormatValueHolder( _formatValueHolder );
+			}
 			return retFlow;
 		}
 
+		// [TA] 07-30-2010 :: Offloading copy of FlowValueHolder to own function in order to pass clone of InlineStyle.
+		protected function copyFormatValueHolder( valueHolder:FlowValueHolder ):FlowValueHolder
+		{
+			var copy:FlowValueHolder = new FlowValueHolder( valueHolder );
+			if( !copy.userStyles ) return copy;
+			
+			if( copy.userStyles.hasOwnProperty( "inline" ) )
+			{
+				copy.userStyles.inline = ( copy.userStyles.inline as InlineStyles ).clone();
+			}
+			return copy;
+		}
+		// [END TA]
+		
 		/**
 		 * Makes a deep copy of this FlowElement object, including any children, copying the content between the two specified
 		 * character positions and returning the copy as a FlowElement object.

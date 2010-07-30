@@ -5,6 +5,7 @@ package flashx.textLayout.model.style
 		function getComputedStyle():IListStyle;
 		function isUndefined( property:String ):Boolean;
 		function undefineStyleProperty( property:String ):void;
+		function clone():IListStyle;
 		function toString():String;
 		
 		function get listStyle():*;

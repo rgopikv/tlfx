@@ -8,6 +8,7 @@ package flashx.textLayout.events
 		public var newStyle:*;
 		public static const APPLIED_STYLE_CHANGE:String = "appliedStyleChange";
 		public static const EXPLICIT_STYLE_CHANGE:String = "explicitStyleChange";
+		public static const LIST_ITEM_PARENT_STYLE_CHANGE:String = "listItemParentStyleChange";
 		
 		public function InlineStyleEvent( type:String, oldStyle:*, newStyle:* )
 		{

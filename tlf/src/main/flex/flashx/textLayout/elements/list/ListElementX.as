@@ -579,79 +579,81 @@ package flashx.textLayout.elements.list
 			
 			var appendChild:int;
 			
+			var listNode:XML;
+			var itemParentNode:XML;
+			var wrapXML:XML;
+			
 			for ( var i:int = 0; i < items.length; i++ )
 			{
 				var item:ListItemElementX = items[i] as ListItemElementX;
 				var itemIndent:int = Math.max( 0, item.indent-24 );
-				
+				// If we have a previous item, we ned to either append or start nesting.
 				if ( prevItem )
 				{
 					var ind:int;
 					var prevItemIndent:int = Math.max( 0, prevItem.indent-24 );
 					if ( itemIndent > prevItemIndent )
 					{
-						ind = itemIndent;
-						while ( ind > prevItemIndent )
+						ind = itemIndent - 24;
+						var origParent:XML = item.getParentingNodeCopy();
+						if( ind == prevItemIndent ) wrapXML = origParent;
+						else
 						{
-							xmlStr += item.mode == ListItemModeEnum.UNORDERED ? '<ul>' : '<ol>';
-							ind -= 24;
+							var wrapParent:XML = origParent;
+							while ( ind > prevItemIndent )
+							{
+								xmlStr = item.mode == ListItemModeEnum.UNORDERED ? 'ul' : 'ol';
+								wrapXML = <{xmlStr}/>
+								wrapXML.appendChild(wrapParent);
+								wrapParent = wrapXML;
+								ind -= 24;
+							}
 						}
+						itemParentNode.appendChild( wrapXML );
+						itemParentNode = origParent;
 					}
 					else if ( itemIndent < prevItemIndent )
 					{
 						ind = prevItemIndent;
-						
-						var lastList:String = prevItem.mode == ListItemModeEnum.UNORDERED ? '<ul>' : '<ol>';
-						var lastListIndex:int = xmlStr.lastIndexOf(lastList);
 						while ( ind > itemIndent )
 						{
-							xmlStr += lastList == '<ul>' ? '</ul>' : '</ol>';
+							itemParentNode = itemParentNode.parent();
 							ind -= 24;
-							
-							var lastOL:int = xmlStr.substring(0, lastListIndex).lastIndexOf('<ol>', lastListIndex);
-							var lastUL:int = xmlStr.substring(0, lastListIndex).lastIndexOf('<ul>', lastListIndex);
-							
-							if ( lastOL > lastUL )
-							{
-								lastList = '<ol>';
-								lastListIndex = lastOL;
-							}
-							else if ( lastUL > lastOL )
-							{
-								lastList = '<ul>';
-								lastListIndex = lastUL;
-							}
-							else
-							{
-								//	BROKEN!
-								trace( '[KK] {' + getQualifiedClassName(this) + '} :: Exporting of a ListElement encountered a fatal error.' );
-							}
 						}
 					}
 					else if ( item.mode != prevItem.mode )
 					{
-						xmlStr += item.mode == ListItemModeEnum.UNORDERED ? '<ul>' : '<ol>';
+						var newNode:XML = item.getParentingNodeCopy();
+						itemParentNode.appendChild( newNode );
+						itemParentNode = newNode;
 					}
 				}
 				else
 				{
-					xmlStr += item.mode == ListItemModeEnum.UNORDERED ? '<ul>' : '<ol>';
+					// Start off with the parenting node for the item.
+					itemParentNode = item.getParentingNodeCopy();
+					// Copy for nesting if needed.
+					listNode = itemParentNode;
 					ind = itemIndent;
+					// Nest if needed.
 					while (ind > 0)
 					{
-						xmlStr = new String(item.mode == ListItemModeEnum.UNORDERED ? '<ul>' : '<ol>') + xmlStr;
+						xmlStr = item.mode == ListItemModeEnum.UNORDERED ? 'ul' : 'ol';
+						wrapXML = <{xmlStr}/>;
+						wrapXML.appendChild( listNode );
+						listNode = wrapXML;
 						ind-=24;
 					}
 				}
 				
 				var itemXML:XML = item.export( exporter, styleExporter );
-				xmlStr += itemXML ? itemXML.toXMLString() : '';
+				if( itemXML ) itemParentNode.appendChild( itemXML );
 				
 				prevItem = item;
 			}
 			
+			xmlStr = listNode.toXMLString();
 			xmlStr = xmlStr.replace( /\n/ig, '' );
-			xmlStr += ( items[0] as ListItemElementX ).mode == ListItemModeEnum.UNORDERED ? '</ul>' : '</ol>';
 			
 			//	Ensure that everything is properly closed
 			xmlStr = cleanExport( xmlStr );

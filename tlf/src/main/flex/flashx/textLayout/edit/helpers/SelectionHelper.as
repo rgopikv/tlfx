@@ -181,14 +181,12 @@ package flashx.textLayout.edit.helpers
 		 */
 		public static function cacheSelectedLists(textFlow:TextFlow, absoluteStart:int, absoluteEnd:int): void {
 			
+			// clear our current list of selectedListItemsCache
+			_selectedListItemsCache = new Array();
+			// get the selected list items
+			var selectedListItems:Array = SelectionHelper.getSelectedListItems(textFlow);
 			// check to see if any list items are selected for performance reasons
-			if(SelectionHelper.getSelectedListItems(textFlow).length > 0) {
-				
-				// clear our current list of selectedListItemsCache
-				_selectedListItemsCache = new Array();
-				
-				// get the selected list items
-				var selectedListItems:Array = SelectionHelper.getSelectedListItems(textFlow);
+			if(selectedListItems.length > 0) {
 				
 				// loop through the list items to see if they are fully selected
 				for(var i:String in selectedListItems) {

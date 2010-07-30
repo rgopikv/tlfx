@@ -82,6 +82,18 @@ package flashx.textLayout.model.style
 			this[property] = undefined;
 		}
 		
+		public function clone():IListStyle
+		{
+			var copy:IListStyle = new ListStyle(_mode);
+			var description:Vector.<String> = ListStyle.definition;
+			var property:String;
+			for each( property in description )
+			{
+				copy[property] = this[property];
+			}
+			return copy;
+		}
+		
 		public function get listStyle():*
 		{
 			return _listStyle;

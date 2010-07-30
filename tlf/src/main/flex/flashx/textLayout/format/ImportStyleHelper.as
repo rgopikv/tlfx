@@ -143,7 +143,7 @@ package flashx.textLayout.format
 				if( parentNode != null )
 				{
 					var parentStyle:Object = StyleAttributeUtil.parseStyles( parentNode.@style );
-					explicitStyle = StyleAttributeUtil.mergeStyles( explicitStyle, parentStyle );
+					userStyles.inline.listItemParentStyle = parentStyle;
 				}
 			}
 			userStyles.inline.explicitStyle = explicitStyle;
