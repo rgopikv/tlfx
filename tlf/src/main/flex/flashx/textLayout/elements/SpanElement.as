@@ -588,6 +588,7 @@ package flashx.textLayout.elements
 			// clone styling information
 			newSpan.id = this.id;
 			newSpan.styleName = this.styleName;			
+			newSpan.format = this.format;
 			
 			if (parent)
 			{
