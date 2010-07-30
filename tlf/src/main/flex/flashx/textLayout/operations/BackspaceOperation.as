@@ -291,7 +291,23 @@ package flashx.textLayout.operations
 					}
 				}
 			} else {
-				deleteText();
+				
+				// get the operation state
+				var operationState:SelectionState = interactionManager.getSelectionState();
+				var para:ParagraphElement = textFlow.findLeaf(operationState.absoluteStart).parent as ParagraphElement;
+				
+				if(para) {
+					if(isOperatingWithinSinglePara(para)) {
+						// we delete the text by default in a range deletion
+						deleteText();			
+					} else {
+						// loop through and add remaining children to the last item
+						// find the leaf at the current absolute position.
+						//if(startList) {
+							joinElements();
+						//}
+					}
+				}
 			}
 			
 		//	textFlow.flowComposer.updateAllControllers();
@@ -355,6 +371,33 @@ package flashx.textLayout.operations
 					
 					// we subtract 2 to account for the padding element and the 0 based index
 					operatingState.absoluteEnd < (list.getAbsoluteStart() + list.textLength-2)) {
+					
+					// we now know that we are operating within one list
+					return true;
+				}
+			}
+			
+			return false;
+		}
+		
+		private function isOperatingWithinSinglePara(para:ParagraphElement) : Boolean{
+			if(para) {
+				
+				// get the selection state
+				var operatingState:SelectionState = interactionManager.getSelectionState();
+				
+				// we now know that we have the top level list
+				// we need to find out if we are deleting within the list.
+				// If we are deleting within the list, we do not need to add
+				// remaining span elements to the last item.
+				trace(para.getAbsoluteStart());
+				trace((para.getAbsoluteStart() + para.textLength));
+				trace("absStart: " + operatingState.absoluteStart);
+				trace("absend: " + operatingState.absoluteEnd );
+				if(operatingState.absoluteStart > para.getAbsoluteStart()  && 
+					
+					// we subtract 2 to account for the padding element and the 0 based index
+					operatingState.absoluteEnd < (para.getAbsoluteStart() + para.textLength-1)) {
 					
 					// we now know that we are operating within one list
 					return true;

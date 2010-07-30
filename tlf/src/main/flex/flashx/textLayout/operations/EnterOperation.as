@@ -72,118 +72,77 @@ package flashx.textLayout.operations
 			var br:BreakElement;
 			var span:SpanElement;
 			
-			if(isCaretSelection()) {
-				leaf = textFlow.findLeaf(operationState.absoluteStart-1);
-				group = leaf.getParagraph();
-				//operationState.pointFormat = leaf.format;
-				
-				if ( group is ListItemElementX || !(group is ParagraphElement) )
-				{
-					interactionManager.splitParagraph(operationState);
-					interactionManager.setSelectionState( new SelectionState( textFlow, operationState.absoluteStart + 2, operationState.absoluteEnd + 2 ) );
-				}
-				//	[KK]	Handle normal ParagraphElement breaking
-				else if ( group is ParagraphElement )
-				{
-					//	Get actual leaf
-					leaf = textFlow.findLeaf( operationState.absoluteStart );
-					
-					//	Split leaf
-					leaf.splitAtPosition( operationState.absoluteStart - leaf.getAbsoluteStart() );
-					
-					//	Get leaf index in parent
-					idx = leaf.parent.getChildIndex(leaf);
-					
-					//	Add break element at next index in parent
-					br = new BreakElement();
-					leaf.parent.addChildAt(idx+1, br);
-					
-					//	reset selection state
-					interactionManager.setSelectionState( new SelectionState( textFlow, operationState.absoluteStart+1, operationState.absoluteStart+1 ) );
-				}
-				else
-				{
-					interactionManager.splitParagraph(operationState);
-					interactionManager.setSelectionState( new SelectionState( textFlow, operationState.absoluteStart + 2, operationState.absoluteEnd + 2 ) );
-				}
-				
-			} else {
+			if(!isCaretSelection()) {
 				
 				if( !operationState ) {
 					return true;
 				}
-				
-				leaf = textFlow.findLeaf(operationState.absoluteStart);
-				group = leaf.getParagraph();
-				//operationState.pointFormat = leaf.format;
-				
-				if ( group is ListItemElementX )
-				{
-					// do the specific operation passing in the listMode argument
-					interactionManager.doOperation( new BackspaceOperation( operationState, interactionManager ) );
-					
-					// get previous leaf format
-					interactionManager.splitParagraph(operationState);
-					
-					/// apply it
-					interactionManager.refreshSelection();
-					
-					interactionManager.setSelectionState( new SelectionState( textFlow, operationState.absoluteStart + 2, operationState.absoluteEnd + 2 ) );
-				}
-				else if ( group is ParagraphElement )
-				{
-					//	Split leaf
-					leaf.splitAtPosition( operationState.absoluteStart - leaf.getAbsoluteStart() );
-					
-					//	Get leaf index in parent
-					idx = leaf.parent.getChildIndex(leaf);
-					
-					//	Add break element at next index in parent
-					br = new BreakElement();
-					leaf.parent.addChildAt(idx+1, br);
-					
-					
-					
-					//	reset selection state
-					interactionManager.setSelectionState( new SelectionState( textFlow, operationState.absoluteStart+1, operationState.absoluteStart+1 ) );
-				}
-				else
-				{
-					// do the specific operation passing in the listMode argument
-					interactionManager.doOperation( new BackspaceOperation( operationState, interactionManager ) );
-					
-					interactionManager.splitParagraph(operationState);
-					
-					/// apply it
-					interactionManager.refreshSelection();
-					
-					interactionManager.setSelectionState( new SelectionState( textFlow, operationState.absoluteStart + 2, operationState.absoluteEnd + 2 ) );
-				}
-				
+
+				interactionManager.doOperation( new BackspaceOperation( operationState, interactionManager ) );
+												
 			}
 			
-			var nextLeaf:ListItemElementX = textFlow.findLeaf(absoluteEnd+1).parent as ListItemElementX;
-			var prevLeaf:ListItemElementX = textFlow.findLeaf(absoluteEnd).parent as ListItemElementX;
-			if(prevLeaf) {
-				// get the parent
-				// if the previous leaf has a modified text length of 0 we then have to check to see if the next
-				// leaf does not have a modifiedtextlength of 0. If the next leaf has a modified text length
-				// greater than 0 then we know we are moving the item down.  Without this logic, the list will close.o
-				var list:ListElementX = prevLeaf.parent as ListElementX;
-				if(prevLeaf.modifiedTextLength == 0 && nextLeaf.modifiedTextLength == 0 && list.listItems[list.listItems.length-1] == nextLeaf) {
-					closeList(nextLeaf);
-					return true;
+			leaf = textFlow.findLeaf(operationState.absoluteStart);
+			group = leaf.getParagraph();
+			
+			operationState = interactionManager.getSelectionState();
+
+			if ( group is ListItemElementX || !(group is ParagraphElement) )
+				{
+					interactionManager.splitParagraph(operationState);
+					interactionManager.setSelectionState( new SelectionState( textFlow, operationState.absoluteStart, operationState.absoluteEnd) );
 				}
+				//	[KK]	Handle normal ParagraphElement breaking
+			else {
+			
 				
-				if(nextLeaf) {
-					var parentList:ListElementX = nextLeaf.parent as ListElementX;
-					if( parentList ) parentList.update();
+				
+				//operationState.pointFormat = leaf.format;
+				
+				//	Get actual leaf
+				leaf = textFlow.findLeaf( operationState.absoluteStart );
+				
+				//	Split leaf
+				leaf.splitAtPosition( operationState.absoluteStart - leaf.getAbsoluteStart() );
+				
+				//	Get leaf index in parent
+				idx = leaf.parent.getChildIndex(leaf);
+				
+				//	Add break element at next index in parent
+				br = new BreakElement();
+				leaf.parent.addChildAt(idx+1, br);
+			}
+			
+			//	reset selection state
+			interactionManager.setSelectionState( new SelectionState( textFlow, operationState.absoluteStart+1, operationState.absoluteStart+1 ) );
+			
+			operationState = interactionManager.getSelectionState();
+			
+			if(textFlow.findLeaf(absoluteEnd+1) && textFlow.findLeaf(absoluteEnd+1).parent) {
+				
+				var nextLeaf:ListItemElementX = textFlow.findLeaf(absoluteEnd+1).parent as ListItemElementX;
+				var prevLeaf:ListItemElementX = textFlow.findLeaf(absoluteEnd).parent as ListItemElementX;
+				if(prevLeaf) {
+					// get the parent
+					// if the previous leaf has a modified text length of 0 we then have to check to see if the next
+					// leaf does not have a modifiedtextlength of 0. If the next leaf has a modified text length
+					// greater than 0 then we know we are moving the item down.  Without this logic, the list will close.o
+					var list:ListElementX = prevLeaf.parent as ListElementX;
+					if(prevLeaf.modifiedTextLength == 0 && nextLeaf.modifiedTextLength == 0 && list.listItems[list.listItems.length-1] == nextLeaf) {
+						closeList(nextLeaf);
+						return true;
+					}
 					
-					var ss:SelectionState = new SelectionState(textFlow, nextLeaf.actualStart-1, nextLeaf.actualStart-1);
-					interactionManager.setSelectionState(ss);
-					interactionManager.refreshSelection();
-				}
-			} 
+					if(nextLeaf) {
+						var parentList:ListElementX = nextLeaf.parent as ListElementX;
+						if( parentList ) parentList.update();
+						
+						var ss:SelectionState = new SelectionState(textFlow, nextLeaf.actualStart-1, nextLeaf.actualStart-1);
+						interactionManager.setSelectionState(ss);
+						interactionManager.refreshSelection();
+					}
+				} 
+			}
 			
 			return true;	
 		}
