@@ -161,7 +161,7 @@ package flashx.textLayout.operations
 			// and the user has removed the next sibling by deleting it we will need to create a new paragraph element.
 			var nextSibling:FlowElement = list.getNextSibling();
 			
-			if(!nextSibling) {
+			//if(!nextSibling) {
 				var containerController:AutosizableContainerController;
 				var newPara:ParagraphElement = new ParagraphElement();
 				var newSpan:SpanElement = new SpanElement();
@@ -171,7 +171,7 @@ package flashx.textLayout.operations
 				nextSibling = textFlow.addChildAt(textFlow.getChildIndex(list)+1, newPara);
 				//textFlow.flowComposer.updateAllControllers();
 				
-			}
+			//}
 						
 			// get the selection state
 			var operationState:SelectionState = interactionManager.getSelectionState();
