@@ -1,6 +1,7 @@
 package flashx.textLayout.operations
 {
 	import flash.events.KeyboardEvent;
+	import flash.text.engine.SpaceJustifier;
 	import flash.utils.getQualifiedClassName;
 	
 	import flashx.textLayout.container.AutosizableContainerController;
@@ -102,8 +103,23 @@ package flashx.textLayout.operations
 				//	Get actual leaf
 				leaf = textFlow.findLeaf( operationState.absoluteStart );
 				
+				if ( leaf is SpanElement )
+				{
+					span = leaf as SpanElement;
+					if ( span.hasParagraphTerminator )
+					{
+						span.removeParaTerminator();
+					}
+				}
+				
+				interactionManager.refreshSelection();
+				operationState = interactionManager.getSelectionState();
+				
+				var absStart:int = operationState.absoluteStart;
+				var leafAbsStart:int = leaf.getAbsoluteStart();
+				
 				//	Split leaf
-				leaf.splitAtPosition( operationState.absoluteStart - leaf.getAbsoluteStart() );
+				leaf.splitAtPosition( Math.min(leaf.textLength-1, operationState.absoluteStart - leaf.getAbsoluteStart()) );
 				
 				//	Get leaf index in parent
 				idx = leaf.parent.getChildIndex(leaf);
