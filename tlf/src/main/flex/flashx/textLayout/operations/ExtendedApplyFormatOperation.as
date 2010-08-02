@@ -30,16 +30,53 @@ package flashx.textLayout.operations
 			return null;	
 		}
 		
+		protected function limitApplyFormatOfListItems( listItems:Array ):void
+		{
+			// If we have selected list items that are not fully selected, inspect if they have their symbol as part of the selection.
+			//	If so, we cannot style just the symbol. Sumbols are only style when the whole list is selected.
+			//	As such, roll back on the formatting for the symbol.
+			var foundListItem:ListItemElementX;
+			var startIndex:int;
+			var endIndex:int;
+			var styleObj:Object;
+			searchIndex = 0;
+			if( listItems && listItems.length > 0 )
+			{
+				for each(styleObj in undoLeafArray)
+				{
+					foundListItem = findSelectedListItem( styleObj.begIdx, styleObj.endIdx, listItems );
+					if( foundListItem ) 
+					{
+						var seperatorLength:int = foundListItem.seperatorLength;
+						startIndex = foundListItem.getAbsoluteStart();
+						if( styleObj.begIdx == startIndex && styleObj.endIdx == ( startIndex + seperatorLength ) )
+						{
+							ParaEdit.setTextStyleChange( textFlow, styleObj.begIdx, styleObj.endIdx, styleObj.style );
+						}	
+						// Up index for finding next item.
+						searchIndex++;
+						// If we have reached the end of slots for fully selected list items, break out and continue.
+						if( searchIndex > listItems.length - 1 ) break;
+					}
+				}
+			}
+		}
+		
 		override protected function doInternal():SelectionState
 		{
 			var newState:SelectionState = super.doInternal();
-			// If we aren't concerned with list items, return right away.
-			if( fullySelectedListItems == null || fullySelectedListItems.length == 0 ) return newState;
-			
 			// Grab selected items. It is possible to have a not fully selected item, but the list item be selected up to symbol.
 			// In which case we have to go through and undo any possibly formatted symbols.
 			// Formatting symbols is only viable when a whole list item is selected.
 			var selectedListItems:Array = SelectionHelper.getSelectedListItems( textFlow ).slice();
+			
+			// If we aren't concerned with list items, check for partial selected list items and return right away.
+			if( fullySelectedListItems == null || fullySelectedListItems.length == 0 )
+			{
+				limitApplyFormatOfListItems( selectedListItems );
+				return newState;	
+			}
+			
 			// Strip out the fully selected ones, as we will handle those specially
 			var indexOfDupe:int;
 			for( var i:int = 0; i < fullySelectedListItems.length; i++ )
@@ -89,31 +126,8 @@ package flashx.textLayout.operations
 					}
 				}
 			}
-			
-			// If we have selected list items that are not fully selected, inspect if they have their symbol as part of the selection.
-			//	If so, we cannot style just the symbol. Sumbols are only style when the whole list is selected.
-			//	As such, roll back on the formatting for the symbol.
-			searchIndex = 0;
-			if( selectedListItems && selectedListItems.length > 0 )
-			{
-				for each(styleObj in undoLeafArray)
-				{
-					foundListItem = findSelectedListItem( styleObj.begIdx, styleObj.endIdx, selectedListItems );
-					if( foundListItem ) 
-					{
-						var seperatorLength:int = foundListItem.seperatorLength;
-						startIndex = foundListItem.getAbsoluteStart();
-						if( styleObj.begIdx == startIndex && styleObj.endIdx == ( startIndex + seperatorLength ) )
-						{
-							ParaEdit.setTextStyleChange( textFlow, styleObj.begIdx, styleObj.endIdx, styleObj.style );
-						}	
-						// Up index for finding next item.
-						searchIndex++;
-						// If we have reached the end of slots for fully selected list items, break out and continue.
-						if( searchIndex > selectedListItems.length - 1 ) break;
-					}
-				}
-			}
+			// Run check on partial selected list items.
+			limitApplyFormatOfListItems( selectedListItems );
 			
 			return newState;
 		}
