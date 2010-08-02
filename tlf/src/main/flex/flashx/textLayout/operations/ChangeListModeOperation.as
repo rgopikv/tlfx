@@ -222,6 +222,14 @@ package flashx.textLayout.operations
 					for ( j = p.numChildren-1; j > -1; j-- )
 					{
 						pchild = p.getChildAt(j);
+						// Merge format withoverwrite from child format on top of cascaded paragraph format.
+						if( pchild.format != null )
+						{
+							if( cascadeFormat != null )
+								cascadeFormat = TextLayoutFormatUtils.overwrite( cascadeFormat, pchild.format );
+							else
+								cascadeFormat = pchild.format;
+						}
 						//	Break on break element
 						if ( pchild is BreakElement )
 						{
@@ -236,6 +244,7 @@ package flashx.textLayout.operations
 							item = new ListItemElementX();
 							
 							item.mode = _mode;
+							item.format = cascadeFormat;
 							item.indent = prevIndent;
 							item.text = (pchild as BreakElement).text.substring(1, (pchild as BreakElement).text.length-1);
 							p.removeChildAt(j);
