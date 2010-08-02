@@ -32,6 +32,7 @@ package flashx.textLayout.operations
 	import flashx.textLayout.format.IImportStyleHelper;
 	import flashx.textLayout.formats.ITextLayoutFormat;
 	import flashx.textLayout.formats.TextLayoutFormat;
+	import flashx.textLayout.formats.TextLayoutFormatValueHolder;
 	import flashx.textLayout.tlf_internal;
 	import flashx.textLayout.utils.NavigationUtil;
 	import flashx.textLayout.utils.TextLayoutFormatUtils;
@@ -401,31 +402,12 @@ package flashx.textLayout.operations
 			var returnedElements:Array = []; // FlowElement[]
 			var listItem:ListItemElementX;
 			var listItemChildren:Array;
-//			var p:ParagraphElement;
-//			
-//			while( listItems.length > 0 )
-//			{
-//				listItem = ListItemElementX(listItems.shift()); // as ListItemElementX;
-//				if( !listItem ) continue;
-//				listItemChildren = listItem.nonListRelatedContent;
-//				p = new ParagraphElement();
-//				p.format = listItem.format;
-//				p.original = true;
-//				p.paragraphStartIndent = Math.max(0, listItem.indent - 24);
-//				while( listItemChildren.length > 0 )
-//				{
-//					p.addChild( listItemChildren.shift() );
-//				}
-//				returnedElements.push( p );
-//				//group.addChildAt( index++, p );
-//			}
-//			return returnedElements;
+			var listItemChild:FlowElement;
 			
 			var p:ParagraphElement = new ParagraphElement();
-			
+			var format:ITextLayoutFormat;
 			if ( listItems.length > 0 )
 			{
-//				p.format = (listItems[0] as FlowElement).format;
 				p.original = true;
 				p.paragraphStartIndent = Math.max(0, (listItems[0] as ListItemElementX).indent-24);
 				
@@ -435,10 +417,15 @@ package flashx.textLayout.operations
 					if ( !listItem )
 						continue;
 					
+					format = ( listItem.format ) ? listItem.format : new TextLayoutFormat();
 					listItemChildren = listItem.nonListRelatedContent;
 					while ( listItemChildren.length > 0 )
 					{
-						p.addChild( listItemChildren.shift() );
+						listItemChild = listItemChildren.shift();
+						format = ( listItemChild.format ) ? TextLayoutFormatUtils.mergeFormats( format, listItemChild.format, ["paragraphStartIndent"] ) : format;
+						limitIndentFormatOnReturn( listItem, format );
+						listItemChild.format = format;
+						p.addChild( listItemChild );
 					}
 					
 					p.addChild( new BreakElement() );
@@ -450,6 +437,31 @@ package flashx.textLayout.operations
 			}
 			else
 				return [];
+		}
+		
+		/**
+		 * Runs check on indent of list item and corrects the paragraphStartIndent format value based on the list item. If it is 0, it is flipped to undefined.
+		 * @param listItem ListItemElementX
+		 * @param format ITextLayoutFormat
+		 */
+		protected function limitIndentFormatOnReturn( listItem:ListItemElementX, format:ITextLayoutFormat ):void
+		{
+			if( format.paragraphStartIndent && format is TextLayoutFormat )
+			{
+				( format as TextLayoutFormat ).paragraphStartIndent -= listItem.indent;
+				if( ( format as TextLayoutFormat ).paragraphStartIndent <= 0 )
+				{
+					( format as TextLayoutFormat ).paragraphStartIndent = undefined;
+				}
+			}
+			else if( format.paragraphStartIndent && format is TextLayoutFormatValueHolder )
+			{
+				( format as TextLayoutFormatValueHolder ).paragraphStartIndent -= listItem.indent;
+				if( ( format as TextLayoutFormatValueHolder ).paragraphStartIndent <= 0 )
+				{
+					( format as TextLayoutFormatValueHolder ).paragraphStartIndent = undefined;
+				}
+			}
 		}
 		
 		/**

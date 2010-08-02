@@ -223,7 +223,8 @@ package flashx.textLayout.elements.list
 			var ix:uint = Math.min( numChildren-1, index+1 );
 			var idx:uint = Math.min( numChildren-1, index+2 );
 			
-			if ( ix == numChildren-1 )
+			// Added check for numChildren == 1, as only want to force append children if the only child is a bullet.
+			if ( numChildren == 1 && ix == numChildren-1 )
 				super.addChild(child);
 			else
 				super.addChildAt(ix, child);
@@ -352,7 +353,7 @@ package flashx.textLayout.elements.list
 			for ( i = 1; i < numChildren; i++ )
 			{
 				var child:FlowElement = getChildAt(i);
-				var childXML:XML;// = exporter.exportElementToFragment( child );
+				var childXML:XML;
 				
 				if ( child is SpanElement )
 				{
@@ -362,57 +363,7 @@ package flashx.textLayout.elements.list
 				}
 				else
 					childXML = exporter.exportElementToFragment( child );
-				
-				// [TA] 07-12-2010 :: REMOVED and used IHTMLExporter imeplementation to properly export child elements.
-//				switch ( Class( getDefinitionByName( getQualifiedClassName( child ) ) ) )
-//				{
-//					case VarElement:	//	Must come before SpanElement as VarElement extends SpanElement
-//						var vEl:VarElement = child as VarElement;
-//						childXML = <span class="cc-var" title="whatever">{vEl.textContent}</span>;
-//						styleExporter.applyStyleAttributesFromElement( childXML, vEl );
-//						if ( vEl.id && vEl.id.length > 0 )
-//							childXML.@id = vEl.id;
-//						break;
-//					case SpanElement:
-//						var span:SpanElement = child as SpanElement;
-//						childXML = <span>{span.text}</span>;
-//						var hasStyles:Boolean = styleExporter.applyStyleAttributesFromElement( childXML, span );
-//						if ( span.id && span.id.length > 0 )
-//							childXML.@id = span.id;
-//						
-//						if ( !hasStyles && (!span.id || !(span.id && span.id.length > 0)) )
-//							childXML = new XML(span.text);
-//						break;
-//					case InlineGraphicElement:
-//						var img:InlineGraphicElement = child as InlineGraphicElement;
-//						if ( img.source && img.source.hasOwnProperty( 'export' ) )	//	EditableImageElement or VariableElement
-//							childXML = img.source.export();	//	May not be an <img/> tag
-//						else
-//						{
-//							childXML = <img/>;
-//							childXML.@src = img.source.toString();
-//							if ( img.id && img.id.length > 0 )
-//								childXML.@id = childXML.@alt = img.id;
-//						}
-//						styleExporter.applyStyleAttributesFromElement( childXML, img );
-//						break;
-//					case ExtendedLinkElement:
-//					case LinkElement:
-//						var link:LinkElement = child as LinkElement;
-//						childXML = <a/>;
-//						childXML.@href = link.href;
-//						childXML.@target = link.target;
-//						if ( link.id && link.id.length > 0 )
-//							childXML.@id = link.id;
-//						childXML.appendChild( link.getText() );
-//						
-//						styleExporter.applyStyleAttributesFromElement( childXML, link );
-//						break;
-//					default:
-//						trace('Could not export:', child, 'from:', this);
-//						break;
-//				}
-				// [END TA]
+			
 				if ( childXML )
 					xml.appendChild( childXML );
 			}
@@ -424,7 +375,7 @@ package flashx.textLayout.elements.list
 			if ( xml.@style.toString().length < 1 )
 				delete xml.@style;
 			
-			return xml;//xml.toXMLString() != '<li/>' ? xml : null;
+			return xml;
 		}
 		
 		protected function getSeparator():String

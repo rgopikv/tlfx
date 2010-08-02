@@ -25,13 +25,18 @@ package flashx.textLayout.utils
 		 * @param overlayFormat ITextLayoutFormat The format from which to apply defined styles to the target format.
 		 * @return ITextLayoutFormat
 		 */
-		static public function mergeFormats( format:ITextLayoutFormat, overlayFormat:ITextLayoutFormat ):ITextLayoutFormat
+		static public function mergeFormats( format:ITextLayoutFormat, overlayFormat:ITextLayoutFormat, excludeProperties:Array = null ):ITextLayoutFormat
 		{	
 			var property:String;
 			for( property in TextLayoutFormat.description )
 			{
 				if( overlayFormat[property] == undefined && format[property] && format[property] != "inherit" )
+				{
+					// If we have marked the property as being excluded from merge, continue to next property.
+					if( excludeProperties && excludeProperties.indexOf( property ) != -1 ) continue;
+					// Else do merge.
 					overlayFormat[property] = format[property];
+				}
 			}
 			return overlayFormat;
 		}
