@@ -23,6 +23,7 @@ package flashx.textLayout.operations
 	import flashx.textLayout.elements.list.ListElementX;
 	import flashx.textLayout.elements.list.ListItemElementX;
 	import flashx.textLayout.elements.list.ListPaddingElement;
+	import flashx.textLayout.formats.TextLayoutFormat;
 	import flashx.textLayout.tlf_internal;
 	import flashx.textLayout.utils.ListUtil;
 	
@@ -126,6 +127,7 @@ package flashx.textLayout.operations
 				
 				//	Add break element at next index in parent
 				br = new BreakElement();
+				br.format = new TextLayoutFormat( leaf.format );
 				leaf.parent.addChildAt(idx+1, br);
 			}
 			

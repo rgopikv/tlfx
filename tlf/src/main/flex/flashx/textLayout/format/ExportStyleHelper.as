@@ -4,6 +4,7 @@ package flashx.textLayout.format
 	import flash.utils.getDefinitionByName;
 	import flash.utils.getQualifiedClassName;
 	
+	import flashx.textLayout.elements.BreakElement;
 	import flashx.textLayout.elements.DivElement;
 	import flashx.textLayout.elements.ExtendedLinkElement;
 	import flashx.textLayout.elements.FlowElement;
@@ -318,6 +319,7 @@ package flashx.textLayout.format
 				case SpanElement:
 				case VarElement:
 				case GreetingElement:
+				case BreakElement:
 					parentList = [LinkElement, ParagraphElement, DivElement, TextFlow];
 					break;
 				case LinkElement:

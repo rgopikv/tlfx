@@ -206,30 +206,14 @@ package flashx.textLayout.operations
 			var item:ListItemElementX;
 			var pchild:FlowElement;
 			var node:XML;
-			// Used to decipher the format to transfer to the list item if available.
-			var transferFormat:ITextLayoutFormat;
-			var isTransferFormatUndefined:Boolean;
+			var cascadeFormat:ITextLayoutFormat;
 			var undefinedFormat:ITextLayoutFormat = new TextLayoutFormat();
 			for ( i = paragraphs.length-1; i > -1; i-- )
 			{
 				item = new ListItemElementX();
 				p = paragraphs[i] as ParagraphElement;
-				
-				//	[KK] Get any inline styling for application to new item
-				// [TA] Removed style helper call. Style helper actions have been moved to intrnal working of list element to teack proper changes to items on the flow for styling.
-//				node = _htmlExporter.getSimpleMarkupModelForElement( p );
-				
-				//	[FORMATING]
-				// [TA] 06-30-2010 :: Change to smartly figure out cascading format.
-				transferFormat = ( p.findLeaf( 0 ) ) ? p.getFirstLeaf().format : null;
-				isTransferFormatUndefined = TextLayoutFormat.isEqual( transferFormat, undefinedFormat ); 
-				// If no format from first child, so grab the cascading format.
-				if( isTransferFormatUndefined )
-				{
-					transferFormat = getCascadingFormatForElement( p );
-				}
-				item.format = transferFormat;
-				// [END TA]
+				cascadeFormat = getCascadingFormatForElement( p );
+				item.format = cascadeFormat;
 				item.mode = _mode;
 				if ( p && !(p is ListItemElementX) )
 				{
@@ -238,7 +222,6 @@ package flashx.textLayout.operations
 					for ( j = p.numChildren-1; j > -1; j-- )
 					{
 						pchild = p.getChildAt(j);
-						
 						//	Break on break element
 						if ( pchild is BreakElement )
 						{
@@ -251,7 +234,7 @@ package flashx.textLayout.operations
 							var prevIndent:int = item.indent;
 							
 							item = new ListItemElementX();
-							item.format = transferFormat;
+							
 							item.mode = _mode;
 							item.indent = prevIndent;
 							item.text = (pchild as BreakElement).text.substring(1, (pchild as BreakElement).text.length-1);
@@ -261,9 +244,11 @@ package flashx.textLayout.operations
 							
 							//	Reset the item for the next time through
 							item = new ListItemElementX();
-							item.format = transferFormat;
+							item.format = cascadeFormat;
 							item.mode = _mode;
 							item.indent = prevIndent;
+							
+							trace( "Is valid cascade format: " + TextLayoutFormat.isEqual( cascadeFormat, undefinedFormat ) ); 
 							
 							continue;
 						}
@@ -294,22 +279,74 @@ package flashx.textLayout.operations
 				
 				if (item.numChildren < 1)
 					continue;
-				//	[FORMATING]
-				//	[KK] Apply inline styling from ParagraphElement to ListItemElementX
-				// [TA] Removed style helper call. Style helper actions have been moved to intrnal working of list element to teack proper changes to items on the flow for styling.
-//				_htmlImporter.importStyleHelper.assignInlineStyle( node, item );
+				
 				list.addChildAt( 0, item );
 				p.parent.removeChild(p);
 			}
+			
+			//	[FORMATING]
+			formatListItemsOnList( list );
 			//	[FORMATING]
 			//	[KK] Apply all styling
-			_htmlImporter.importStyleHelper.apply();
+			addListItemsToStyleHelper( list );
 			
 			//	[KK]	Mark list as not pending update
 			list.pendingUpdate = false;
 			//	[END KK]
 			
 			list.update();
+		}
+		
+		/**
+		 * @private
+		 * 
+		 * Go through each new list item and transfer the format from its first child to the actual list item if exists. 
+		 * @param list ListElementX
+		 */
+		protected function formatListItemsOnList( list:ListElementX ):void
+		{
+			var i:int;
+			var listItem:ListItemElementX;
+			var leaf:FlowElement;
+			var listItems:Array = list.listItems;
+			// Used to decipher the format to transfer to the list item if available.
+			var transferFormat:ITextLayoutFormat;
+			var isTransferFormatUndefined:Boolean;
+			var undefinedFormat:ITextLayoutFormat = new TextLayoutFormat();
+			for( i = 0; i < listItems.length; i++ )
+			{
+				listItem = listItems[i] as ListItemElementX;
+				leaf = listItem.nonListRelatedContent[0];
+				transferFormat = null;
+				if( leaf is SpanElement )
+				{
+					transferFormat = ( leaf ) ? leaf.format : null;
+					isTransferFormatUndefined = TextLayoutFormat.isEqual( transferFormat, undefinedFormat ); 
+					// If no format from first child, so grab the cascading format.
+					if( !isTransferFormatUndefined )
+					{
+						listItem.format = transferFormat;
+					}
+				}
+			}
+		}
+		
+		protected function addListItemsToStyleHelper( list:ListElementX ):void
+		{
+			var listItems:Array = list.listItems;
+			var length:int = listItems.length;
+			var i:int;
+			var node:XML;
+			var listItem:ListItemElementX;
+			for( i = 0; i < length; i++ )
+			{
+				listItem = listItems[i] as ListItemElementX;
+				node = _htmlExporter.getSimpleMarkupModelForElement( listItem );
+				_htmlImporter.importStyleHelper.assignInlineStyle( node, listItem );
+			}
+			node = _htmlExporter.getSimpleMarkupModelForElement( list );
+			_htmlImporter.importStyleHelper.assignInlineStyle( node, list );
+			_htmlImporter.importStyleHelper.apply();
 		}
 		
 		/**
@@ -828,6 +865,13 @@ package flashx.textLayout.operations
 			}
 			return originalSelectionState; 
 		}
+		
+		// [TA] 07-27-2010 :: See comment on FlowOperation.
+		override public function get affectsFlowStructure():Boolean
+		{
+			return true;
+		}
+		// [END TA]
 	}
 }
 
