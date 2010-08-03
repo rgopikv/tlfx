@@ -137,6 +137,8 @@ package flashx.textLayout.edit
 		override public function keyDownHandler(event:KeyboardEvent):void
 		{			
 			var operationState:SelectionState = defaultOperationState();
+			
+			var ss:SelectionState;
 			if( !operationState ) return;
 			
 			
@@ -169,13 +171,9 @@ package flashx.textLayout.edit
 					return;
 					break;
 				
-				case Keyboard.ENTER:	
-					if(absoluteStart != absoluteEnd) {
-						//	[KK]	Correct, because it was deleting one to many characters at start
-						
-					}
+				case Keyboard.ENTER:
 					//	[KK]	Changed to getSelectionState() from operationState
-					doOperation( new EnterOperation( getSelectionState(), this, _htmlImporter, _htmlExporter ) );
+					doOperation( new EnterOperation( operationState, this, _htmlImporter, _htmlExporter ) );
 					return;
 					break;
 				

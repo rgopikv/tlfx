@@ -17,6 +17,7 @@ package flashx.textLayout.operations
 	import flashx.textLayout.elements.FlowElement;
 	import flashx.textLayout.elements.FlowGroupElement;
 	import flashx.textLayout.elements.FlowLeafElement;
+	import flashx.textLayout.elements.LinkElement;
 	import flashx.textLayout.elements.ParagraphElement;
 	import flashx.textLayout.elements.SpanElement;
 	import flashx.textLayout.elements.TextFlow;
@@ -92,7 +93,7 @@ package flashx.textLayout.operations
 			if ( group is ListItemElementX || !(group is ParagraphElement) )
 				{
 					interactionManager.splitParagraph(operationState);
-					interactionManager.setSelectionState( new SelectionState( textFlow, operationState.absoluteStart, operationState.absoluteEnd) );
+					interactionManager.setSelectionState( new SelectionState( textFlow, operationState.absoluteStart, operationState.absoluteStart) );
 				}
 				//	[KK]	Handle normal ParagraphElement breaking
 			else {
@@ -104,23 +105,12 @@ package flashx.textLayout.operations
 				//	Get actual leaf
 				leaf = textFlow.findLeaf( operationState.absoluteStart );
 				
-				if ( leaf is SpanElement )
-				{
-					span = leaf as SpanElement;
-					if ( span.hasParagraphTerminator )
-					{
-						span.removeParaTerminator();
-					}
-				}
-				
-				interactionManager.refreshSelection();
-				operationState = interactionManager.getSelectionState();
-				
-				var absStart:int = operationState.absoluteStart;
-				var leafAbsStart:int = leaf.getAbsoluteStart();
-				
 				//	Split leaf
-				leaf.splitAtPosition( Math.min(leaf.textLength-1, operationState.absoluteStart - leaf.getAbsoluteStart()) );
+				try {
+					leaf.splitAtPosition( operationState.absoluteStart - leaf.getAbsoluteStart() );
+				} catch ( e:* ) {
+					leaf.splitAtPosition( leaf.textLength-1 );
+				}
 				
 				//	Get leaf index in parent
 				idx = leaf.parent.getChildIndex(leaf);

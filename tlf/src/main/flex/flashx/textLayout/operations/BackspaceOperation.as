@@ -141,7 +141,6 @@ package flashx.textLayout.operations
 						if(fle.parent.getPreviousSibling() != null) {
 							var para:ParagraphElement = new ParagraphElement();
 							fle.removeChildAt(0);
-
 							var initialChildren:int = (fle.mxmlChildren) ? fle.mxmlChildren.length : 0;
 							
 							var spanExists:Boolean = (fle.getChildAt(0) as SpanElement);
@@ -415,7 +414,6 @@ package flashx.textLayout.operations
 		 * 
 		 */
 		private function deleteListByRange() : Boolean {
-			
 			var operationState:SelectionState = interactionManager.getSelectionState();
 			var selectedListItems:Array = SelectionHelper.getSelectedListItems( textFlow, true );
 			// We use the helper class SelectionHelper to get the selected list items.
@@ -569,6 +567,25 @@ package flashx.textLayout.operations
 				trace( '[KK] {' + getQualifiedClassName(this) + '} :: Could not delete from position ' + deleteFrom + ' to position ' + deleteTo + ' on ' + textFlow + ' because:\n\t' + e);
 				textFlow.flowComposer.updateAllControllers();
 			}
+		}
+		
+		protected function findContainerControllerForElement( element:FlowElement ):AutosizableContainerController
+		{
+			/*var tf:TextFlow = element.getTextFlow();
+			var i:int;
+			var cc:ContainerController;
+			var acc:AutosizableContainerController;
+			for ( i = 0; i < tf.flowComposer.numControllers; i++ )
+			{
+				cc = tf.flowComposer.getControllerAt(i);
+				if ( cc is AutosizableContainerController )
+				{
+					acc = cc as AutosizableContainerController;
+					if ( acc.containsMonitoredElement( element ) )
+						return acc;
+				}
+			}*/
+			return null;
 		}
 		
 		/**
