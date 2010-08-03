@@ -384,7 +384,7 @@ package flashx.textLayout.edit
 						{
 							terminatorOffset = 0;
 							var prevSibling:ParagraphElement = insertedTextFlow.getPreviousSibling() as ParagraphElement;
-							if (prevSibling && joinNextParagraph(prevSibling))
+							if (prevSibling && joinNextParagraphOnInsert(prevSibling))
 								nextInsertionPosition -= terminatorOffset;
 						}
 						else
@@ -1312,6 +1312,62 @@ package flashx.textLayout.edit
 					++subParaIter;//go to next child
 			}
 		}
+		
+		/** Joins this paragraph's next sibling to this if it is a paragraph */
+		static public function joinNextParagraph(para:ParagraphElement):Boolean
+		{
+			if (para && para.parent)
+			{
+				var myidx:int = para.parent.getChildIndex(para);
+				if (myidx != para.parent.numChildren-1)
+				{
+					// right now, you can only merge with other paragraphs
+					var sibParagraph:ParagraphElement = para.parent.getChildAt(myidx+1) as ParagraphElement;
+					if (sibParagraph)
+					{						
+						while (sibParagraph.numChildren > 0)
+						{
+							var curFlowElement:FlowElement = sibParagraph.getChildAt(0);
+							sibParagraph.replaceChildren(0, 1, null);
+							para.replaceChildren(para.numChildren, para.numChildren, curFlowElement);
+						}
+						para.parent.replaceChildren(myidx+1, myidx+2, null);
+						return true;
+					}
+				}
+			} 
+			return false;
+		}
+		
+		/** Joins this paragraph's next sibling to this if it is a paragraph */
+		static public function joinToNextParagraph(para:ParagraphElement):Boolean
+		{		
+			if (para && para.parent)
+			{
+				var myidx:int = para.parent.getChildIndex(para);
+				if (myidx != para.parent.numChildren-1)
+				{
+					// right now, you can only merge with other paragraphs
+					var sibParagraph:ParagraphElement = para.parent.getChildAt(myidx+1) as ParagraphElement;
+					if (sibParagraph)
+					{			
+						// Add the first paragraph's children to the front of the next paragraph's child list
+						var addAtIndex:int = 0;
+						while (para.numChildren > 0)
+						{
+							var curFlowElement:FlowElement = para.getChildAt(0);
+							para.replaceChildren(0, 1, null);
+							sibParagraph.replaceChildren(addAtIndex, addAtIndex, curFlowElement);
+							++addAtIndex;
+						}
+						para.parent.replaceChildren(myidx, myidx+1, null);
+						return true;
+					}
+				}
+			} 
+			return false;
+		}
+		
 		/** Joins this paragraph's next sibling to this if it is a paragraph */
 		static public function joinNextParagraphOnInsert(para:ParagraphElement):Boolean
 		{
@@ -1389,61 +1445,6 @@ package flashx.textLayout.edit
 		}
 		
 		/** Joins this paragraph's next sibling to this if it is a paragraph */
-		static public function joinNextParagraph(para:ParagraphElement):Boolean
-		{		
-			if (para && para.parent)
-			{
-				var myidx:int = para.parent.getChildIndex(para);
-				if (myidx != para.parent.numChildren-1)
-				{
-					// right now, you can only merge with other paragraphs
-					var sibParagraph:ParagraphElement = para.parent.getChildAt(myidx+1) as ParagraphElement;
-					if (sibParagraph)
-					{						
-						while (sibParagraph.numChildren > 0)
-						{
-							var curFlowElement:FlowElement = sibParagraph.getChildAt(0);
-							sibParagraph.replaceChildren(0, 1, null);
-							para.replaceChildren(para.numChildren, para.numChildren, curFlowElement);
-						}
-						para.parent.replaceChildren(myidx+1, myidx+2, null);
-						return true;
-					}
-				}
-			} 
-			return false;
-		}
-		
-		/** Joins this paragraph's next sibling to this if it is a paragraph */
-		static public function joinToNextParagraph(para:ParagraphElement):Boolean
-		{		
-			if (para && para.parent)
-			{
-				var myidx:int = para.parent.getChildIndex(para);
-				if (myidx != para.parent.numChildren-1)
-				{
-					// right now, you can only merge with other paragraphs
-					var sibParagraph:ParagraphElement = para.parent.getChildAt(myidx+1) as ParagraphElement;
-					if (sibParagraph)
-					{			
-						// Add the first paragraph's children to the front of the next paragraph's child list
-						var addAtIndex:int = 0;
-						while (para.numChildren > 0)
-						{
-							var curFlowElement:FlowElement = para.getChildAt(0);
-							para.replaceChildren(0, 1, null);
-							sibParagraph.replaceChildren(addAtIndex, addAtIndex, curFlowElement);
-							++addAtIndex;
-						}
-						para.parent.replaceChildren(myidx, myidx+1, null);
-						return true;
-					}
-				}
-			} 
-			return false;
-		}
-		
-		/** Joins this paragraph's next sibling to this if it is a paragraph */
 		static public function joinToNextParagraphOnInsert(para:ParagraphElement):Boolean
 		{		
 			if (para && para.parent)
@@ -1486,7 +1487,5 @@ package flashx.textLayout.edit
 			} 
 			return false;
 		}
-		
-		
 	}
 }
