@@ -109,10 +109,6 @@ package flashx.textLayout.elements
 			if (leafElEndPos == textLength && hasParagraphTerminator)
 				--leafElEndPos;
 			
-			//	[KK]	Do not return secondary end line char if one exists
-			if ( leafElEndPos == textLength && hasSecondaryParagraphTerminator )
-				--leafElEndPos;
-				
 			if (leafElStartPos > leafElEndPos)
 				throw RangeError(GlobalSettings.resourceStringFunction("badShallowCopyRange"));
 			
@@ -141,12 +137,6 @@ package flashx.textLayout.elements
 			// test textLength cause this is a property and the debugger may run this calculation in intermediate states
 			if (textLength && hasParagraphTerminator)
 			{
-				//	Commented out to prevent premature line endings.
-//				//	[KK]	Do not return secondary end line char if one exists
-//				if ( hasSecondaryParagraphTerminator )
-//				{
-//					return textValue.substr(0, textLength-2);
-//				}
 				return textValue.substr(0,textLength-1);
 			}
 				
@@ -196,9 +186,6 @@ package flashx.textLayout.elements
 			if (textLength && relativeEnd == textLength && hasParagraphTerminator)
 				--relativeEnd;		// don't include terminator
 			
-			//	[KK]	Do not return secondary end line char if one exists
-			if (textLength && relativeEnd == textLength && hasSecondaryParagraphTerminator)
-				--relativeEnd;		// don't include second terminator
 			return textValue ? textValue.substring(relativeStart, relativeEnd) : "";
 		}
 
@@ -272,35 +259,7 @@ package flashx.textLayout.elements
 			}
 			return false;
 		}
-		
-		//	[KK]
-		/** 
-		 * Specifies whether this SpanElement object terminates the paragraph. The SpanElement object that terminates a 
-		 * paragraph has an extra, hidden character at the end. This character is added automatically by the component and is
-		 * included in the value of the <code>textLength</code> property.
-		 * 
-		 * @private */
-		
-		tlf_internal function get hasSecondaryParagraphTerminator():Boolean
-		{
-			//	WAS
-			//			var p:ParagraphElement = getParagraph();
-			//			return (p && p.getLastLeaf() == this);
-			
-			//	KK	-	5/6/2010
-			//	Changed to allow for the paragraph terminator being ONLY the last character in any span
-			//	This allows elements based off of ParagraphElement without paragraph terminators to return the correct text length
-			var p:ParagraphElement = getParagraph();
-			var textValue:String = _blockElement ? _blockElement.rawText : _text;
-			if ( textValue )
-			{
-				var secondToLastChar:String = textValue.substring( textValue.length-2, textValue.length-1 );
-				return (p && p.getLastLeaf() == this && secondToLastChar == kParagraphTerminator);
-			}
-			return false;
-		}
-		//	[END KK]
-		
+				
 		/** @private */
 		CONFIG::debug tlf_internal function verifyParagraphTerminator():void
 		{
@@ -412,14 +371,6 @@ package flashx.textLayout.elements
 				if (relativeEndPosition == textLength)
 					relativeEndPosition--;
 				
-//				//	[KK]	Do not return secondary end line char if one exists
-//				if ( hasSecondaryParagraphTerminator )
-//				{
-//					if ( relativeStartPosition == textLength)
-//						relativeStartPosition--;
-//					if ( relativeEndPosition == textLength)
-//						relativeEndPosition--;
-//				}
 			}
 			
 			if (relativeEndPosition != relativeStartPosition)
@@ -507,49 +458,7 @@ package flashx.textLayout.elements
 			}
 			// [END TA]
 		}
-		
-		//	[KK]
-		/** @private */
-		tlf_internal function addSecondaryParaTerminator():void
-		{
-			CONFIG::debug 
-			{ 
-				// TODO: Is this assert valid? Do we prevent users from adding para terminators themselves? 
-				if (_blockElement && _blockElement.rawText && _blockElement.rawText.length)
-					assert(_blockElement.rawText.charAt(_blockElement.rawText.length-1) != SpanElement.kParagraphTerminator,"adding para terminator twice");
-			}
-			
-			replaceTextInternal(textLength,textLength,SpanElement.kParagraphTerminator);
-			
-			CONFIG::debug 
-			{ 
-				// TODO: Is this assert valid? Do we prevent users from adding para terminators themselves? 
-				if (_blockElement)
-					assert(_blockElement.rawText.charAt(_blockElement.rawText.length-1) == SpanElement.kParagraphTerminator,"adding para terminator failed");
-			}			
-			
-			modelChanged(ModelChange.TEXT_INSERTED,textLength-1,1);
-		}
-		/** @private */
-		tlf_internal function removeSecondaryParaTerminator():void
-		{
-			CONFIG::debug 
-			{ 
-				var str:String = _blockElement ? _blockElement.rawText : _text;
-				assert(str && str.length && str.charAt(str.length-1) == SpanElement.kParagraphTerminator,
-					"attempting to remove para terminator when it doesn't exist");
-			}
-			// [TA] 06.23.2010 :: Check for textLength in order to avoid a range error which can occur.
-			if( textLength > 0 )
-			{
-				replaceTextInternal(textLength-1,textLength,"");
-				modelChanged(ModelChange.TEXT_DELETED,textLength > 0 ? textLength-1 : 0,1);	
-			}
-			// [END TA]
-		}
-		//	[END KK]
-		
-		
+				
 		// **************************************** 
 		// Begin tree modification support code
 		// ****************************************
@@ -672,6 +581,11 @@ package flashx.textLayout.elements
 			}
 			super.normalizeRange(normalizeStart,normalizeEnd);
 		}
+		
+		public override function set fontSize(fontSizeValue:*):void {
+			super.fontSize = fontSizeValue;
+			super.paragraphSpaceAfter = fontSizeValue;
+		}
 
 		/** @private */
 		tlf_internal override function mergeToPreviousIfPossible():Boolean
@@ -684,7 +598,7 @@ package flashx.textLayout.elements
 				{
 					var sib:SpanElement = parent.getChildAt(myidx-1) as SpanElement;
 					if (sib != null && sib.canReleaseContentElement() && 
-						(equalStylesForMerge(sib) || ((this.textLength == 1 && this.hasParagraphTerminator) || (this.textLength == 2 && this.hasSecondaryParagraphTerminator))))	//	[KK]
+						(equalStylesForMerge(sib) || (this.textLength == 1 && this.hasParagraphTerminator)))	//	[KK]
 					{
 						CONFIG::debug { assert(this.parent == sib.parent, "Should never merge two spans with different parents!"); }
 						CONFIG::debug { assert(TextLayoutFormat.isEqual(this.formatForCascade,sib.formatForCascade) || (this.textLength == 1 && this.hasParagraphTerminator), "Bad merge!"); }

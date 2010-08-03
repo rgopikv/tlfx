@@ -64,37 +64,7 @@ package flashx.textLayout.elements.list
 			addChild( _bulletSpan );
 		}
 		// [END TA]
-		
-		/** @private */
-		override tlf_internal function ensureTerminatorAfterReplace(oldLastLeaf:FlowLeafElement):void
-		{
-			var newLastLeaf:FlowLeafElement = getLastLeaf();
-			
-			if (oldLastLeaf != newLastLeaf)
-			{
-				if (oldLastLeaf && oldLastLeaf is SpanElement)
-				{
-					oldLastLeaf.removeParaTerminator();
-				}
 				
-				if (newLastLeaf)
-				{
-					if (newLastLeaf is SpanElement)
-					{
-						newLastLeaf.addParaTerminator();
-					}
-					else
-					{
-						var s:SpanElement = new SpanElement();
-						
-						super.replaceChildren(numChildren,numChildren,s);
-						s.format = newLastLeaf.format;
-						s.addParaTerminator();
-					}
-				}
-			}
-		}
-		
 		public function updateBulletFormat():void
 		{
 			// [TA] 07-13-2010 :: Removed appropriating computed format for the bullet. Should cascade down to element since it resides on the flow.
@@ -219,51 +189,7 @@ package flashx.textLayout.elements.list
 		}
 		
 		public override function addChildAt(index:uint, child:FlowElement):FlowElement
-		{
-//			var ix:uint = Math.min( numChildren-1, index+1 );
-//			var idx:uint = Math.min( numChildren-1, index+2 );
-//			
-//			if ( ix >= numChildren-1 && index == 0 )
-//				super.addChild(child);
-//			else
-//			{
-//				try {
-//					super.addChildAt(ix, child);
-//				} catch ( e:* ) {
-//					trace('[KK] {' + getQualifiedClassName(this) + '} :: Child, ' + child + ', is out of bounds with index ' + ix + ' (original of ' + index + ')');
-//					super.addChild(child);
-//				}
-//			}
-//			
-//			//	If the new element is not a SpanElement
-//			if ( !(child is SpanElement) )
-//			{
-//				var hasSpan:Boolean = false;
-//				for ( var i:int = idx; i < numChildren; i++ )
-//				{
-//					if ( getChildAt(i) is SpanElement )
-//					{
-//						hasSpan = true;
-//						break;
-//					}
-//				}
-//				
-//				//	If no SpanElement after new element, add a new SpanElement directly after it
-//				if ( !hasSpan )
-//				{
-//					if ( idx == numChildren-1 )
-//					{
-//						super.addChild(new SpanElement());
-//						getChildAt( numChildren-1 ).format = computedFormat ? TextLayoutFormat(computedFormat) : format ? TextLayoutFormat(format) : new TextLayoutFormat();
-//					}
-//					else
-//					{
-//						super.addChildAt(idx, new SpanElement());
-//						getChildAt( idx ).format = computedFormat ? TextLayoutFormat(computedFormat) : format ? TextLayoutFormat(format) : new TextLayoutFormat();
-//					}
-//				}
-//			}
-			
+		{			
 			if ( index < numChildren-1 )
 			{
 				super.addChildAt( index, child );
@@ -592,14 +518,12 @@ package flashx.textLayout.elements.list
 			var copy:ListItemElementX = super.shallowCopy( startPos, endPos ) as ListItemElementX;
 			copy.indent = indent;
 			copy.number = number;
-			copy.extraBreak = false;	//	[KK]	Extra break
 			return copy;
 		}
 		override public function deepCopy(startPos:int=0, endPos:int=-1):FlowElement
 		{
 			var copy:FlowElement = super.deepCopy(startPos, endPos);
 			copy.original = true;
-			(copy as ListItemElementX).extraBreak = false;	//	[KK]	Extra break
 			return copy;
 		}
 		// [END TA]

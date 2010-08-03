@@ -70,10 +70,6 @@ package flashx.textLayout.elements
 	{
 		private var _textBlock:TextBlock;
 		
-		//	[KK]	Added to force paragraphs to keep HTML like padding
-		public var extraBreak:Boolean;
-		//	[END KK]
-		
 		/** Constructor - represents a paragraph in a text flow. 
 		*
 		* @playerversion Flash 10
@@ -84,14 +80,12 @@ package flashx.textLayout.elements
 		public function ParagraphElement()
 		{
 			super();
-			extraBreak = false;	//	[KK]
 		}
 		
 		/** @private */
 		public override function shallowCopy(startPos:int = 0, endPos:int = -1):FlowElement
 		{
 			var retFlow:ParagraphElement = super.shallowCopy(startPos, endPos) as ParagraphElement;
-			retFlow.extraBreak = extraBreak;
 			if (_textBlock)
 				retFlow.createTextBlock();
 			return retFlow;
@@ -315,7 +309,7 @@ package flashx.textLayout.elements
 		{
 			// are we replacing the last element?
 			var oldLastLeaf:FlowLeafElement = getLastLeaf();
-			
+						
 			CONFIG::debug 
 			{ 
 				if (oldLastLeaf && (oldLastLeaf is SpanElement))
@@ -336,37 +330,8 @@ package flashx.textLayout.elements
 			super.replaceChildren.apply(this, applyParams);
 			
 			ensureTerminatorAfterReplace(oldLastLeaf);
-			
-			ensureProperNumberOfTerminators();
 		}
-		
-		// [TA] 07-27-2010 :: Need a custom replace of children as we don't need to keep ensuring terminators when doing a join.
-		tlf_internal function replaceChildrenForJoin( beginChildIndex:int, endChildIndex:int, ...rest ):void
-		{
-			// are we replacing the last element?
-			var oldLastLeaf:FlowLeafElement = getLastLeaf();
-			
-			CONFIG::debug 
-			{ 
-				if (oldLastLeaf && (oldLastLeaf is SpanElement))
-					SpanElement(oldLastLeaf).verifyParagraphTerminator();
-				
-			}
-			var applyParams:Array;
-			
-			// makes a measurable difference - rest.length zero and one are the common cases
-			if (rest.length == 1)
-				applyParams = [beginChildIndex, endChildIndex, rest[0]];
-			else
-			{
-				applyParams = [beginChildIndex, endChildIndex];
-				if (rest.length != 0)
-					applyParams = applyParams.concat.apply(applyParams, rest);
-			}
-			super.replaceChildren.apply(this, applyParams);
-		}
-		// [END TA]
-		
+
 		/** @private */
 		tlf_internal function ensureTerminatorAfterReplace(oldLastLeaf:FlowLeafElement):void
 		{
@@ -375,23 +340,13 @@ package flashx.textLayout.elements
 			if (oldLastLeaf != newLastLeaf)
 			{
 				if (oldLastLeaf && oldLastLeaf is SpanElement)
-				{
 					oldLastLeaf.removeParaTerminator();
-					
-					//	[KK]	Extra break
-					if ( extraBreak )
-						(oldLastLeaf as SpanElement).removeSecondaryParaTerminator();
-				}
 				
 				if (newLastLeaf)
 				{
 					if (newLastLeaf is SpanElement)
 					{
 						newLastLeaf.addParaTerminator();
-						
-						//	[KK]	Extra break
-						if ( extraBreak )
-							(newLastLeaf as SpanElement).addSecondaryParaTerminator();
 					}
 					else
 					{
@@ -400,42 +355,6 @@ package flashx.textLayout.elements
 						super.replaceChildren(numChildren,numChildren,s);
 						s.format = newLastLeaf.format;
 						s.addParaTerminator();
-						
-						//	[KK]	Extra break
-						if ( extraBreak )
-							s.addSecondaryParaTerminator();
-					}
-				}
-			}
-		}
-		
-		protected function ensureProperNumberOfTerminators():void
-		{
-			var lastLeaf:FlowLeafElement = getLastLeaf();
-			var secondToLastLeaf:FlowLeafElement;
-			
-//			if ( secondToLastLeaf is BreakElement )
-//			{
-//				if ( lastLeaf is SpanElement )
-//				{
-//					var span:SpanElement = lastLeaf as SpanElement;
-//					if ( span.hasSecondaryParagraphTerminator )
-//						span.removeSecondaryParaTerminator();
-//				}
-//			}
-			
-			if ( lastLeaf && lastLeaf is SpanElement )
-			{
-				secondToLastLeaf = lastLeaf.getPreviousLeaf(this);
-				if ( secondToLastLeaf && secondToLastLeaf is BreakElement )
-				{
-					if ( (lastLeaf as SpanElement).hasParagraphTerminator )
-					{
-						(lastLeaf as SpanElement).removeParaTerminator();
-						if ( (lastLeaf as SpanElement).hasSecondaryParagraphTerminator == false )
-						{
-							(lastLeaf as SpanElement).addParaTerminator();
-						}
 					}
 				}
 			}
@@ -471,13 +390,10 @@ package flashx.textLayout.elements
 					throw new TypeError(GlobalSettings.resourceStringFunction("badMXMLChildrenArgument",[ getQualifiedClassName(child) ]));
 			}
 			
-//			//	[KK]
-//			// Now ensure para terminator
-//			ensureTerminatorAfterReplace(null, null);
 			// Now ensure para terminator
 			ensureTerminatorAfterReplace(null);
 		}
-		
+				
 		/** @private
  		 */
 		public override function getText(relativeStart:int=0, relativeEnd:int=-1, paragraphSeparator:String="\n"):String
@@ -918,14 +834,5 @@ package flashx.textLayout.elements
 					return false;
 			}
 		}
-		
-		// [TA]
-//		override public function deepCopy(startPos:int=0, endPos:int=-1):FlowElement
-//		{
-//			var copy:FlowElement = super.deepCopy( startPos, endPos );
-//			copy.original = _original;
-//			return copy;
-//		}
-		// [END TA]
 	}
 }
