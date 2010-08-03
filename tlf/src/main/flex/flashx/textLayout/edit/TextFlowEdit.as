@@ -30,13 +30,13 @@ package flashx.textLayout.edit
 	import flashx.textLayout.formats.TextLayoutFormat;
 	import flashx.textLayout.tlf_internal;
 	import flashx.textLayout.utils.TextLayoutFormatUtils;
-
+	
 	use namespace tlf_internal;
 	
 	[ExcludeClass]
 	/**
 	 * Encapsulates all methods necessary for dynamic editing of a text.  The methods are all static member functions of this class.
-     * @private - because we can't make it tlf_internal. Used by the operations package 
+	 * @private - because we can't make it tlf_internal. Used by the operations package 
 	 */	
 	public class TextFlowEdit
 	{
@@ -60,7 +60,7 @@ package flashx.textLayout.edit
 				relStart = startPos - curFlowElement.parentRelativeStart;
 				if (relStart < 0) relStart = 0;
 				relEnd = endPos - curFlowElement.parentRelativeStart;
-							
+				
 				if ((relStart < curFlowElement.textLength) && (relEnd > 0))
 				{
 					//at least partially selected
@@ -82,7 +82,7 @@ package flashx.textLayout.edit
 							
 							if(relEnd > s.textLength) 
 								relEnd = s.textLength;	
-								
+							
 							s.replaceText(relStart, relEnd, "");
 							curNumDeleted = (relEnd - relStart);
 							totalItemsDeleted += curNumDeleted;
@@ -158,7 +158,7 @@ package flashx.textLayout.edit
 			}
 			return false;
 		}
-				
+		
 		private static function getContainer(flEl:FlowElement):ContainerFormattedElement
 		{
 			while (!(flEl.parent is ContainerFormattedElement))
@@ -171,8 +171,8 @@ package flashx.textLayout.edit
 		private static function isInsertableItem(flItem:FlowElement, missingBeginElements:Array, missingEndElements:Array):Boolean
 		{
 			return ((flItem is ParagraphElement) || /* [TA] 07-24-2010 :: Added ListElement as exclusive to the club */ (flItem is ListElementX) || /* [END TA] */
-					(!TextFlowEdit.isFlowElementInArray(missingBeginElements, flItem) &&
-					 !TextFlowEdit.isFlowElementInArray(missingEndElements, flItem)));
+				(!TextFlowEdit.isFlowElementInArray(missingBeginElements, flItem) &&
+					!TextFlowEdit.isFlowElementInArray(missingEndElements, flItem)));
 		}
 		
 		private static function putDivAtEndOfContainer(container:ContainerFormattedElement):DivElement
@@ -238,7 +238,7 @@ package flashx.textLayout.edit
 		private static function insertTextFlow(theFlow:TextFlow, pos:int, insertedTextFlow:FlowGroupElement, missingBeginElementsInFlow:Array = null, missingEndElementsInFlow:Array = null, separatorArray:Array = null):int
 		{
 			var nextInsertionPosition:int = pos;
-						
+			
 			if (!TextFlowEdit.isInsertableItem(insertedTextFlow, missingBeginElementsInFlow, missingEndElementsInFlow) ||
 				(insertedTextFlow is TextFlow))
 			{
@@ -275,7 +275,7 @@ package flashx.textLayout.edit
 				//if you are inserting at the very end of a paragraph, bump up the position
 				//by one.  Otherwise, if you are not at the end of the paragraph, split at
 				//the position, and then move up by 1.
-										
+				
 				var leafEl:FlowLeafElement = null;
 				if (pos > 0) leafEl = theFlow.findLeaf(pos - 1);
 				var para:ParagraphElement = theFlow.findAbsoluteParagraph(pos);
@@ -308,7 +308,7 @@ package flashx.textLayout.edit
 						} else {
 							
 							para.splitAtPosition(paraSplitIndex);
-									
+							
 						}
 					} else {
 						okToMergeWithAfter = false;
@@ -317,7 +317,7 @@ package flashx.textLayout.edit
 				} else { //no split done. So we want to insert after the previous paragraph.
 					flowElIndex = flowElIndex - 1;
 				}
-			
+				
 				//insert the insertedTextFlow after the paragraph at paragraphIndex
 				var paragraphContainer:FlowGroupElement = para.parent;
 				
@@ -352,7 +352,7 @@ package flashx.textLayout.edit
 				}
 				// [END TA]
 				nextInsertionPosition = pos + insertedTextFlow.textLength;
-
+				
 				if (insertedTextFlow is ParagraphElement)
 				{	
 					// [TA] 07-27-2010 :: Updating insert position based on terminators being removed on join.
@@ -371,13 +371,13 @@ package flashx.textLayout.edit
 						// the inserted paragraph into the next paragraph, so that the original host paragraph maintains its format settings.
 						if (paraSplitIndex == 0)
 						{
-							if (joinToNextParagraph(ParagraphElement(insertedTextFlow)))
+							if (joinToNextParagraphOnInsert(ParagraphElement(insertedTextFlow)))
 								nextInsertionPosition -= terminatorOffset;
 						}
-						else if (joinNextParagraph(ParagraphElement(insertedTextFlow)))
+						else if (joinNextParagraphOnInsert(ParagraphElement(insertedTextFlow)))
 							nextInsertionPosition -= terminatorOffset;
 					}
-
+					
 					if (!processedFirstFlowElement)
 					{
 						if (paraSplitIndex > 0)
@@ -403,7 +403,7 @@ package flashx.textLayout.edit
 						}
 					}
 				}
-				// [TA] 07-24-2010 :: Check to see if inserted element is a List. IF so run an update.
+					// [TA] 07-24-2010 :: Check to see if inserted element is a List. IF so run an update.
 				else if( insertedTextFlow is ListElementX )
 				{
 					if( para is ListItemElementX )
@@ -480,7 +480,7 @@ package flashx.textLayout.edit
 			}
 			return nextInsertPosition;
 		}
-
+		
 		/**
 		 * Creates a copy of the TextFlow in between two positions and returns the TextFlow
 		 * within a TextScrap object.  See TextScrap for more information.
@@ -498,7 +498,7 @@ package flashx.textLayout.edit
 			if (newTextFlow.textLength > 0)
 			{
 				var fl:FlowElement = newTextFlow.getLastLeaf();
-			
+				
 				var srcElem:FlowElement = theFlow.findLeaf(startPos);
 				var copyElem:FlowElement = newTextFlow.getFirstLeaf();
 				while (copyElem && srcElem)
@@ -510,7 +510,7 @@ package flashx.textLayout.edit
 					copyElem = copyElem.parent;
 					srcElem = srcElem.parent;
 				}
-			
+				
 				srcElem = theFlow.findLeaf(endPos - 1);
 				copyElem = newTextFlow.getLastLeaf();
 				if ((copyElem is SpanElement) && (!(srcElem is SpanElement)))
@@ -590,7 +590,7 @@ package flashx.textLayout.edit
 			var curPara:ParagraphElement = theFlow.findAbsoluteParagraph(startPos);
 			if(!curPara)
 				return false;
-				
+			
 			while(curPara)
 			{
 				var paraEnd:int = curPara.getAbsoluteStart() + curPara.textLength;
@@ -603,11 +603,11 @@ package flashx.textLayout.edit
 					{
 						return false;
 					}
-				
+					
 					var newLinkElement:LinkElement = new LinkElement();
 					newLinkElement.href = urlString;
 					newLinkElement.target = target;
-				
+					
 					//don't hide an error!
 					if(madeLink)
 						madeLink = insertNewSPBlock(theFlow, startPos, linkEndPos, newLinkElement, LinkElement);
@@ -740,8 +740,8 @@ package flashx.textLayout.edit
 			//	2) <a><span>ghij</span><b><span>k</span></b><b></b><b><span>lm</span></b><span>nop</span></a>
 			//	3) <a><span>ghijk</span><b></b><c><span>lmn</span></c><span>op</span></a> - no change
 			//
-		//	we need another use case here where selection is entire sbp and selection runs from the head of a spg to
-		//	part way through it - so that a) does into parent and b) goes into spg
+			//	we need another use case here where selection is entire sbp and selection runs from the head of a spg to
+			//	part way through it - so that a) does into parent and b) goes into spg
 			
 			// if this is case 2, then the new element must go into the parent...
 			if(curFBE is spgClass)
@@ -908,10 +908,10 @@ package flashx.textLayout.edit
 				
 				//I think this can be safely removed from here as ownership of contents is handled below.
 				//leaving in commented out code in case we need to revert - gak 05.01.08
-			/*	if(curFlowEl is spgClass && curPos == curFlowEl.getAbsoluteStart() && curFlowEl.getAbsoluteStart() + curFlowEl.textLength <= endPos)
+				/*	if(curFlowEl is spgClass && curPos == curFlowEl.getAbsoluteStart() && curFlowEl.getAbsoluteStart() + curFlowEl.textLength <= endPos)
 				{
-					curPos = parentFBE.getAbsoluteStart() + parentFBE.textLength;
-					continue;
+				curPos = parentFBE.getAbsoluteStart() + parentFBE.textLength;
+				continue;
 				}*/
 				
 				//if the endPos is less than the length of the curFlowEl, then we need to split it.
@@ -996,7 +996,7 @@ package flashx.textLayout.edit
 						if(childSPGE.textLength == newSPB.textLength && (curPos >= endPos))
 						{
 							CONFIG::debug { assert(childSPGE.precedence != newSPB.precedence, "normalizeRange found two equal SPGEs"); }
-	
+							
 							//if the child's precedence is higher than mine, I need to swap
 							if(childSPGE.precedence > newSPB.precedence)
 							{
@@ -1029,7 +1029,7 @@ package flashx.textLayout.edit
 				}
 				
 			}
-	
+			
 			return curPos;
 		}
 		
@@ -1082,7 +1082,7 @@ package flashx.textLayout.edit
 				//perform the removal
 				if(containerFBE is fbeClass)
 					containerFBE = containerFBE.parent;
-					
+				
 				//before processing this any further, we need to make sure that we are not
 				//splitting a spg which is contained within the same type of spg as the curFBE's parent.
 				//for example, if we had a tcyElement inside a linkElement, then we cannot allow a link element
@@ -1103,7 +1103,7 @@ package flashx.textLayout.edit
 				var containerFBEStart:int = containerFBE.getAbsoluteStart();
 				if(ancestorOfFBE is fbeClass && (containerFBEStart >= curPos && containerFBEStart + containerFBE.textLength <= endPos))
 					containerFBE = ancestorOfFBE.parent;
-					
+				
 				var childIdx:int = containerFBE.findChildIndexAtPosition(curPos - containerFBEStart);
 				curEl = containerFBE.getChildAt(childIdx);
 				if(curEl is fbeClass)
@@ -1129,7 +1129,7 @@ package flashx.textLayout.edit
 					{
 						splitElement(curFBE, endPos - curFBE.getAbsoluteStart(), false);
 					}
-				
+					
 					//apply the length of the curFBE to the curPos tracker.  Do this before 
 					//removing the contents or it will be 0!
 					curPos = curFBE.getAbsoluteStart() + curFBE.textLength;
@@ -1225,11 +1225,11 @@ package flashx.textLayout.edit
 		{
 			if(endPos <= startPos)
 				return false;
-				
+			
 			var anchorFBE:FlowGroupElement = theFlow.findAbsoluteFlowGroupElement(startPos);
 			if(anchorFBE.getParentByType(blockClass))
 				anchorFBE = anchorFBE.getParentByType(blockClass) as FlowGroupElement;
-				
+			
 			var tailFBE:FlowGroupElement = theFlow.findAbsoluteFlowGroupElement(endPos - 1);
 			if(tailFBE.getParentByType(blockClass))
 				tailFBE = tailFBE.getParentByType(blockClass) as FlowGroupElement;
@@ -1237,7 +1237,7 @@ package flashx.textLayout.edit
 			//if these are the same FBEs then we are safe to insert a SubParagraphGroupElement
 			if(anchorFBE == tailFBE)
 				return true;
-			//make sure that the two FBEs belong to the same paragraph!
+				//make sure that the two FBEs belong to the same paragraph!
 			else if(anchorFBE.getParagraph() != tailFBE.getParagraph())
 				return false;
 			else if(anchorFBE is blockClass && tailFBE is blockClass)//they're the same class, OK to merge, split, etc...
@@ -1276,7 +1276,7 @@ package flashx.textLayout.edit
 		tlf_internal static function flushSPBlock(subPB:SubParagraphGroupElement, spgClass:Class):void
 		{
 			var subParaIter:int = 0;
-	
+			
 			//example, subPB has 2 elements, <span>bar</span> and <a><span>other</span></a>
 			while(subParaIter < subPB.numChildren)
 			{
@@ -1313,8 +1313,8 @@ package flashx.textLayout.edit
 			}
 		}
 		/** Joins this paragraph's next sibling to this if it is a paragraph */
-		static public function joinNextParagraph(para:ParagraphElement):Boolean
-		{		
+		static public function joinNextParagraphOnInsert(para:ParagraphElement):Boolean
+		{
 			if (para && para.parent)
 			{
 				var myidx:int = para.parent.getChildIndex(para);
@@ -1345,16 +1345,16 @@ package flashx.textLayout.edit
 							while( content.length > 0 )
 							{
 								var element:FlowElement = sibParagraph.removeChildAt( sibParagraph.getChildIndex( content.shift() ) );
-//								leaf = ( para.getLastLeaf() as SpanElement );
-//								if( leaf )
-//								{
-//									leaf.format = TextLayoutFormatUtils.mergeFormats( sibParagraph.computedFormat, ( leaf.format ) ? leaf.format : new TextLayoutFormat() );
-//								}
+								//								leaf = ( para.getLastLeaf() as SpanElement );
+								//								if( leaf )
+								//								{
+								//									leaf.format = TextLayoutFormatUtils.mergeFormats( sibParagraph.computedFormat, ( leaf.format ) ? leaf.format : new TextLayoutFormat() );
+								//								}
 								para.replaceChildrenForJoin( para.numChildren, para.numChildren, element );
 							}
 							requiresListUpdate = ( para.parent is ListElementX );	
 						}
-						// [END TA]
+							// [END TA]
 						else
 						{
 							while (sibParagraph.numChildren > 0)
@@ -1366,11 +1366,11 @@ package flashx.textLayout.edit
 								//						Other wise, user-defined styles are wiped.
 								// [TA] 06-21-2010 :: Checking if first child of sibling paragraph is a SpanElement. If it is, the style is
 								//						attributed as that which previous paragraph holds. We need to merge with any inline styles.
-//								leaf = curFlowElement as SpanElement;
-//								if( leaf )
-//								{
-//									leaf.format = TextLayoutFormatUtils.mergeFormats( sibParagraph.computedFormat, ( leaf.format ) ? leaf.format : new TextLayoutFormat() );
-//								}
+								//								leaf = curFlowElement as SpanElement;
+								//								if( leaf )
+								//								{
+								//									leaf.format = TextLayoutFormatUtils.mergeFormats( sibParagraph.computedFormat, ( leaf.format ) ? leaf.format : new TextLayoutFormat() );
+								//								}
 								// [END TA]
 								sibParagraph.replaceChildren(0, 1, null);
 								// [TA] 07-27-2010 :: Usnig replaceChildrenForJoin which will not add terminators on replace.
@@ -1387,9 +1387,64 @@ package flashx.textLayout.edit
 			} 
 			return false;
 		}
-
+		
+		/** Joins this paragraph's next sibling to this if it is a paragraph */
+		static public function joinNextParagraph(para:ParagraphElement):Boolean
+		{		
+			if (para && para.parent)
+			{
+				var myidx:int = para.parent.getChildIndex(para);
+				if (myidx != para.parent.numChildren-1)
+				{
+					// right now, you can only merge with other paragraphs
+					var sibParagraph:ParagraphElement = para.parent.getChildAt(myidx+1) as ParagraphElement;
+					if (sibParagraph)
+					{						
+						while (sibParagraph.numChildren > 0)
+						{
+							var curFlowElement:FlowElement = sibParagraph.getChildAt(0);
+							sibParagraph.replaceChildren(0, 1, null);
+							para.replaceChildren(para.numChildren, para.numChildren, curFlowElement);
+						}
+						para.parent.replaceChildren(myidx+1, myidx+2, null);
+						return true;
+					}
+				}
+			} 
+			return false;
+		}
+		
 		/** Joins this paragraph's next sibling to this if it is a paragraph */
 		static public function joinToNextParagraph(para:ParagraphElement):Boolean
+		{		
+			if (para && para.parent)
+			{
+				var myidx:int = para.parent.getChildIndex(para);
+				if (myidx != para.parent.numChildren-1)
+				{
+					// right now, you can only merge with other paragraphs
+					var sibParagraph:ParagraphElement = para.parent.getChildAt(myidx+1) as ParagraphElement;
+					if (sibParagraph)
+					{			
+						// Add the first paragraph's children to the front of the next paragraph's child list
+						var addAtIndex:int = 0;
+						while (para.numChildren > 0)
+						{
+							var curFlowElement:FlowElement = para.getChildAt(0);
+							para.replaceChildren(0, 1, null);
+							sibParagraph.replaceChildren(addAtIndex, addAtIndex, curFlowElement);
+							++addAtIndex;
+						}
+						para.parent.replaceChildren(myidx, myidx+1, null);
+						return true;
+					}
+				}
+			} 
+			return false;
+		}
+		
+		/** Joins this paragraph's next sibling to this if it is a paragraph */
+		static public function joinToNextParagraphOnInsert(para:ParagraphElement):Boolean
 		{		
 			if (para && para.parent)
 			{
@@ -1431,7 +1486,7 @@ package flashx.textLayout.edit
 			} 
 			return false;
 		}
-
-								
+		
+		
 	}
 }
