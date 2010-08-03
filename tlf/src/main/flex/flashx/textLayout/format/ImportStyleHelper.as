@@ -43,7 +43,7 @@ package flashx.textLayout.format
 			try
 			{
 				var styleProperty:StyleProperty = StyleProperty.normalizeForFormat( property, value );
-				format[styleProperty.property] = styleProperty.value;
+				if( !format[styleProperty.property] ) format[styleProperty.property] = styleProperty.value;
 			}
 			catch( e:Error )
 			{
