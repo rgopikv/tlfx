@@ -220,42 +220,63 @@ package flashx.textLayout.elements.list
 		
 		public override function addChildAt(index:uint, child:FlowElement):FlowElement
 		{
-			var ix:uint = Math.min( numChildren-1, index+1 );
-			var idx:uint = Math.min( numChildren-1, index+2 );
+//			var ix:uint = Math.min( numChildren-1, index+1 );
+//			var idx:uint = Math.min( numChildren-1, index+2 );
+//			
+//			if ( ix >= numChildren-1 && index == 0 )
+//				super.addChild(child);
+//			else
+//			{
+//				try {
+//					super.addChildAt(ix, child);
+//				} catch ( e:* ) {
+//					trace('[KK] {' + getQualifiedClassName(this) + '} :: Child, ' + child + ', is out of bounds with index ' + ix + ' (original of ' + index + ')');
+//					super.addChild(child);
+//				}
+//			}
+//			
+//			//	If the new element is not a SpanElement
+//			if ( !(child is SpanElement) )
+//			{
+//				var hasSpan:Boolean = false;
+//				for ( var i:int = idx; i < numChildren; i++ )
+//				{
+//					if ( getChildAt(i) is SpanElement )
+//					{
+//						hasSpan = true;
+//						break;
+//					}
+//				}
+//				
+//				//	If no SpanElement after new element, add a new SpanElement directly after it
+//				if ( !hasSpan )
+//				{
+//					if ( idx == numChildren-1 )
+//					{
+//						super.addChild(new SpanElement());
+//						getChildAt( numChildren-1 ).format = computedFormat ? TextLayoutFormat(computedFormat) : format ? TextLayoutFormat(format) : new TextLayoutFormat();
+//					}
+//					else
+//					{
+//						super.addChildAt(idx, new SpanElement());
+//						getChildAt( idx ).format = computedFormat ? TextLayoutFormat(computedFormat) : format ? TextLayoutFormat(format) : new TextLayoutFormat();
+//					}
+//				}
+//			}
 			
-			// Added check for numChildren == 1, as only want to force append children if the only child is a bullet.
-			if ( numChildren == 1 && ix == numChildren-1 )
-				super.addChild(child);
-			else
-				super.addChildAt(ix, child);
-			
-			//	If the new element is not a SpanElement
-			if ( !(child is SpanElement) )
+			if ( index < numChildren-1 )
 			{
-				var hasSpan:Boolean = false;
-				for ( var i:int = idx; i < numChildren; i++ )
-				{
-					if ( getChildAt(i) is SpanElement )
-					{
-						hasSpan = true;
-						break;
-					}
-				}
-				
-				//	If no SpanElement after new element, add a new SpanElement directly after it
-				if ( !hasSpan )
-				{
-					if ( idx == numChildren-1 )
-					{
-						super.addChild(new SpanElement());
-						getChildAt( numChildren-1 ).format = computedFormat ? TextLayoutFormat(computedFormat) : format ? TextLayoutFormat(format) : new TextLayoutFormat();
-					}
-					else
-					{
-						super.addChildAt(idx, new SpanElement());
-						getChildAt( idx ).format = computedFormat ? TextLayoutFormat(computedFormat) : format ? TextLayoutFormat(format) : new TextLayoutFormat();
-					}
-				}
+				super.addChildAt( index, child );
+			}
+			else
+			{
+				super.addChild( child );
+			}
+			correctChildren();
+			if ( !( getChildAt( numChildren-1 ) is SpanElement ) )
+			{
+				super.addChild( new SpanElement() );
+				getChildAt( numChildren-1 ).format = computedFormat ? TextLayoutFormat(computedFormat) : format ? TextLayoutFormat(format) : new TextLayoutFormat();
 			}
 			return child;
 		}
@@ -358,7 +379,7 @@ package flashx.textLayout.elements.list
 				if ( child is SpanElement )
 				{
 					var span:SpanElement = child as SpanElement;
-					span.text = span.text.replace( /\u2028/g, '' );
+					span.text = span.text.replace( /[\u2028\n\r\u2029]/g, '' );
 					childXML = exporter.exportElementToFragment( child );
 				}
 				else

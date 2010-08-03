@@ -1,35 +1,22 @@
 package flashx.textLayout.operations
 {
-	import flash.events.Event;
-	import flash.events.KeyboardEvent;
-	import flash.ui.Keyboard;
-	
-	import flashx.textLayout.compose.FlowDamageType;
-	import flashx.textLayout.compose.TextFlowLine;
 	import flashx.textLayout.container.AutosizableContainerController;
-	import flashx.textLayout.container.ContainerController;
 	import flashx.textLayout.converter.IHTMLExporter;
 	import flashx.textLayout.converter.IHTMLImporter;
-	import flashx.textLayout.edit.EditManager;
-	import flashx.textLayout.edit.ExtendedEditManager;
 	import flashx.textLayout.edit.SelectionState;
 	import flashx.textLayout.edit.helpers.SelectionHelper;
 	import flashx.textLayout.elements.BreakElement;
 	import flashx.textLayout.elements.DivElement;
 	import flashx.textLayout.elements.FlowElement;
 	import flashx.textLayout.elements.FlowGroupElement;
-	import flashx.textLayout.elements.FlowLeafElement;
 	import flashx.textLayout.elements.LinkElement;
 	import flashx.textLayout.elements.ParagraphElement;
 	import flashx.textLayout.elements.SpanElement;
 	import flashx.textLayout.elements.TextFlow;
-	import flashx.textLayout.elements.TextRange;
 	import flashx.textLayout.elements.list.ListElementX;
 	import flashx.textLayout.elements.list.ListItemElementX;
 	import flashx.textLayout.elements.list.ListItemModeEnum;
-	import flashx.textLayout.events.DamageEvent;
-	import flashx.textLayout.events.variable.VariableEditEvent;
-	import flashx.textLayout.format.IImportStyleHelper;
+	import flashx.textLayout.events.TextLayoutEvent;
 	import flashx.textLayout.formats.ITextLayoutFormat;
 	import flashx.textLayout.formats.TextLayoutFormat;
 	import flashx.textLayout.formats.TextLayoutFormatValueHolder;
@@ -148,9 +135,10 @@ package flashx.textLayout.operations
 		 * @param paragraphs Array Array of ParagraphElements to convert to list items.
 		 * @param index int
 		 */
-		protected function addListDirectlyToTextFlow( tf:TextFlow, paragraphs:Array /* ParagraphElement[] */, index:int ):ListElementX
+		protected function addListDirectlyToTextFlow( tf:TextFlow, spans:Array /* SpanElement[] */, index:int ):ListElementX//paragraphs:Array /* ParagraphElement[] */, index:int ):ListElementX
 		{
-			var firstParagraph:ParagraphElement = paragraphs[0];
+//			var firstParagraph:ParagraphElement = paragraphs[0];
+			var span:SpanElement = spans[0] as SpanElement;
 			
 			var list:ListElementX = new ListElementX();
 			
@@ -158,7 +146,8 @@ package flashx.textLayout.operations
 			list.pendingUpdate = true;
 			//	[END KK]
 			
-			addParagraphElementsAsItemsToList( paragraphs, list );
+//			addParagraphElementsAsItemsToList( paragraphs, list );
+			addSpanElementsAsItemsToList( spans, list );
 			
 			_listModeCreateOnTextFlow = true;
 			_listCreatedOnTextFlow = list;
@@ -186,6 +175,121 @@ package flashx.textLayout.operations
 			list.update();
 			
 			return tf.addChildAt( index, list ) as ListElementX;
+		}
+		
+		
+		protected function addSpanElementsAsItemsToList( spans:Array /* SpanElement[] */, list:ListElementX ):void
+		{
+			//	Make sure the list doesn't update prematurely
+			list.pendingUpdate = true;
+			
+			var br:BreakElement;
+			var cascadeFormat:ITextLayoutFormat;
+			var i:int;
+			var j:int;
+			var item:ListItemElementX;
+			var resetItem:Boolean = true;
+			var span:SpanElement;
+			var undefinedFormat:ITextLayoutFormat = new TextLayoutFormat();
+			
+			for ( i = spans.length-1; i > -1; i-- )
+			{
+				span = spans[i] as SpanElement;
+				
+				if ( span )
+				{
+					if (resetItem)
+					{
+						item = new ListItemElementX();
+						try {
+							cascadeFormat = getCascadingFormatForElement( span );
+						} catch ( e:* ) {
+							//	Nothing
+						}
+						item.format = cascadeFormat ? cascadeFormat : undefinedFormat;
+						cascadeFormat = null;
+						item.indent = int(span.paragraphStartIndent) > 0 ? int( 24 * (span.paragraphStartIndent % 24) ) : 0;
+						item.mode = _mode;
+						resetItem = false;
+					}
+					
+					if ( span is BreakElement )
+					{
+						br = span as BreakElement;
+						
+						span = new SpanElement();
+						try {
+							cascadeFormat = getCascadingFormatForElement( br );
+						} catch ( e:* ) {
+							//	Nothing
+						}
+						span.format = cascadeFormat ? cascadeFormat : undefinedFormat;
+						cascadeFormat = null;
+						span.text = br.text.replace(/[\u2028\n\r\u2029]/g, '');
+						
+						br.parent.removeChild(br);
+						
+						if ( span.text.match( /\w/g ).length > 0 )
+						{
+							item.addChildAt(0, span);
+						}
+						resetItem = true;
+					}
+					else if ( span is SpanElement )
+					{
+						if ( span.parent is LinkElement )
+						{
+							var link:LinkElement = span.parent as LinkElement;
+							testLinkChildren:for ( j = link.numChildren-1; j > -1; j-- )
+							{
+								if ( link.getChildAt(j) is SpanElement )
+								{
+									if ( link.getChildAt(j) is SpanElement )
+									{
+										if ((link.getChildAt(j) as SpanElement).text.match( /\w/g ).length > 0 )
+										{
+											if ( item.getChildIndex( link ) < 0 )
+												item.addChildAt(0, link);
+											break testLinkChildren;
+										}
+									}
+									else
+									{
+										if ( item.getChildIndex( link ) < 0 )
+											item.addChildAt(0, link);
+										break testLinkChildren;
+									}
+								}
+							}
+						}
+						else if ( span.text.match( /\w/g ).length > 0 )
+						{
+							if ( item.getChildIndex( span ) < 0 )
+								item.addChildAt(0, span);
+						}
+					}
+					else
+					{
+						if ( item.getChildIndex( span ) < 0 )
+							item.addChildAt(0, span);
+					}
+					
+					if ( list.getChildIndex(item) < 0 )
+						list.addChildAt(0, item);
+				}
+			}
+			
+			//	[FORMATING]
+			formatListItemsOnList( list );
+			//	[FORMATING]
+			//	[KK] Apply all styling
+			addListItemsToStyleHelper( list );
+			
+			//	Okay list to update
+			list.pendingUpdate = false;
+			
+			//	Update
+			list.update();
 		}
 		
 		/**
@@ -247,7 +351,8 @@ package flashx.textLayout.operations
 							item.mode = _mode;
 							item.format = cascadeFormat;
 							item.indent = prevIndent;
-							item.text = (pchild as BreakElement).text.substring(1, (pchild as BreakElement).text.length-1);
+							item.text = (pchild as BreakElement).text.replace(/[\u2028\n\r\u2029]/g, '');
+							
 							p.removeChildAt(j);
 							
 							list.addChildAt( 0, item );
@@ -386,7 +491,7 @@ package flashx.textLayout.operations
 			{
 				items.push( list.removeChild( listItems.shift() ) );
 			}
-			returnListItemsAsParagraphElements( parent, items, listIndex );
+			returnListItemsAsParagraphElements( parent, items, listIndex, (items[0] as ListItemElementX).format );
 		}
 		
 		/**
@@ -397,7 +502,7 @@ package flashx.textLayout.operations
 		 * @param index
 		 * 
 		 */
-		protected function returnListItemsAsParagraphElements( group:FlowGroupElement, listItems:Array /*ListItemElementX[]*/, index:int ):Array
+		protected function returnListItemsAsParagraphElements( group:FlowGroupElement, listItems:Array /*ListItemElementX[]*/, index:int, formatToPass:ITextLayoutFormat = null ):Array
 		{
 			var returnedElements:Array = []; // FlowElement[]
 			var listItem:ListItemElementX;
@@ -408,6 +513,8 @@ package flashx.textLayout.operations
 			var format:ITextLayoutFormat;
 			if ( listItems.length > 0 )
 			{
+				//	[KK]	Commented out because it wasn't in newest revision, ask Todd about it
+//				p.format = new TextLayoutFormat( formatToPass );
 				p.original = true;
 				p.paragraphStartIndent = Math.max(0, (listItems[0] as ListItemElementX).indent-24);
 				
@@ -471,7 +578,7 @@ package flashx.textLayout.operations
 		 * @param parent FlowGroupElement The first level parent of selection at paragraph to start splitting.
 		 * @param paragraphs Array An Array of ParagraphElement
 		 */
-		protected function splitAndAddListToTextFlow( groupParent:FlowGroupElement, paragraphs:Array /*ParagraphElement[]*/ ):ListElementX
+		protected function splitAndAddListToTextFlow( groupParent:FlowGroupElement, spans:Array /* SpanElement[] */ ):ListElementX//paragraphs:Array /*ParagraphElement[]*/ ):ListElementX
 		{
 			var list:ListElementX;
 			
@@ -485,8 +592,9 @@ package flashx.textLayout.operations
 			parent = groupParent;
 			if( (parent is DivElement) )
 			{
-				var firstParagraph:ParagraphElement = paragraphs[0] as ParagraphElement;
-				var index:int = parent.getChildIndex( firstParagraph );
+//				var firstParagraph:ParagraphElement = paragraphs[0] as ParagraphElement;
+				var firstSpan:SpanElement = spans[0] as SpanElement;
+				var index:int = parent.getChildIndex( firstSpan.parent );//firstParagraph );
 				//	Will go through this loop at least once
 				//	Splits the div at the specified index (starting at the ParagraphElement)
 				while ( !(parent is TextFlow) )
@@ -502,7 +610,7 @@ package flashx.textLayout.operations
 				var tf:TextFlow = parent as TextFlow;
 				if( tf != null )
 				{
-					list = addListDirectlyToTextFlow( tf, paragraphs, index + 1 );
+					list = addListDirectlyToTextFlow( tf, spans, index+1 );//paragraphs, index + 1 );
 					
 //					//	[KK]	Attempt to remove last (empty) paragraph added through the creation process
 //					var lastItem:ListItemElementX;
@@ -565,7 +673,7 @@ package flashx.textLayout.operations
 			{
 				newList = splitListInTwo( list, start );	
 				listItems = removeItemsFromList( newList, 0, length );
-				returnedElements = returnListItemsAsParagraphElements( newList.parent, listItems, start );
+				returnedElements = returnListItemsAsParagraphElements( newList.parent, listItems, start, list.format );
 				
 				tmpIdx = list.parent.getChildIndex(list);
 				
@@ -586,7 +694,7 @@ package flashx.textLayout.operations
 
 				tmpIdx = list.parent.getChildIndex(list);
 				// get the returned paragraphs
-				returnedElements = returnListItemsAsParagraphElements( list.parent, listItems, list.parent.getChildIndex( list ) );
+				returnedElements = returnListItemsAsParagraphElements( list.parent, listItems, list.parent.getChildIndex( list ), list.format );
 				
 				// loop through each paragraph and add to the autosizable container.
 				for(w=0; w<returnedElements.length; w++) {
@@ -644,7 +752,7 @@ package flashx.textLayout.operations
 			
 			listItems = removeItemsFromList( startList, start, length );
 			removedItemLength = listItems.length;
-			returnedElements = returnListItemsAsParagraphElements( startList.parent, listItems, startList.parent.getChildIndex( startList ) + 1 );
+			returnedElements = returnListItemsAsParagraphElements( startList.parent, listItems, startList.parent.getChildIndex( startList ) + 1, startList.format );
 			if( listItemLength == removedItemLength )
 			{
 				startList.parent.removeChild( startList );	
@@ -655,7 +763,7 @@ package flashx.textLayout.operations
 			{
 				list = lists[i];
 				listItems = removeItemsFromList( list, 0, list.listItems.length );
-				returnedElements = returnedElements.concat( returnListItemsAsParagraphElements( list.parent, listItems, list.parent.getChildIndex( list ) ) );
+				returnedElements = returnedElements.concat( returnListItemsAsParagraphElements( list.parent, listItems, list.parent.getChildIndex( list ), list.format ) );
 				list.parent.removeChild( list );
 			}
 			
@@ -668,7 +776,7 @@ package flashx.textLayout.operations
 			
 			listItems = removeItemsFromList( endList, 0, length );
 			removedItemLength = listItems.length;
-			returnedElements = returnedElements.concat( returnListItemsAsParagraphElements( endList.parent, listItems, endList.parent.getChildIndex( endList ) ) );
+			returnedElements = returnedElements.concat( returnListItemsAsParagraphElements( endList.parent, listItems, endList.parent.getChildIndex( endList ), endList.format ) );
 			if( listItemLength == removedItemLength )
 			{
 				endList.parent.removeChild( endList );	
@@ -716,7 +824,7 @@ package flashx.textLayout.operations
 			var newDiv:DivElement = div.shallowCopy() as DivElement;
 			
 			//	Take all children from end to index and place in new DivElement
-			for ( var i:int = div.numChildren-1; i >= index; i-- )
+			for ( var i:int = div.numChildren-1; i > index; i-- )//i >= index; i-- )
 			{
 				newDiv.addChildAt( 0, div.removeChildAt(i) );
 			}
@@ -743,6 +851,7 @@ package flashx.textLayout.operations
 			var selectedListItems:Array = SelectionHelper.getSelectedListItems( textFlow );
 			var lists:Array = SelectionHelper.getSelectedLists( textFlow );
 			var paragraphs:Array = SelectionHelper.getSelectedParagraphs( textFlow );
+			var spans:Array = SelectionHelper.getSelectedElements( textFlow, null, [SpanElement, BreakElement], true );
 			
 			var p:ParagraphElement;
 			var item:ListItemElementX;
@@ -783,7 +892,7 @@ package flashx.textLayout.operations
 					//	Owner is a TextFlow, just add at same position as first ParagraphElement
 					if ( prnt is TextFlow )
 					{
-						list = addListDirectlyToTextFlow( prnt as TextFlow, paragraphs, prnt.getChildIndex( p ) );
+						list = addListDirectlyToTextFlow( prnt as TextFlow, spans /* [KK] Changed from paragraphs */, prnt.getChildIndex( p ) );
 						
 						//	[KK]	Attempt to remove last (empty) paragraph added through the creation process
 /*						var lastItem:ListItemElementX;
@@ -821,7 +930,7 @@ package flashx.textLayout.operations
 					}
 					else
 					{
-						list = splitAndAddListToTextFlow( prnt, paragraphs );
+						list = splitAndAddListToTextFlow( prnt, spans );//paragraphs );
 						newPara = new ParagraphElement();
 						newPara.format = lastParaFormat;
 						/*var newSpan:SpanElement = new SpanElement();
