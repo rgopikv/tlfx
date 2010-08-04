@@ -77,7 +77,7 @@ package flashx.textLayout.format
 					break;
 				case "letterSpacing":
 					property = "trackingRight";
-					value = DimensionTokenUtil.normalize( value );
+					value = ( value == "normal" || value == "inherit" ) ? 0 : DimensionTokenUtil.normalize( value );
 					break;
 				case "lineHeight":
 					//	[KK]	Return null, as lineHeight causes lines to wrap in on themselves
