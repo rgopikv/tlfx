@@ -1406,7 +1406,7 @@ package flashx.textLayout.edit
 								//								{
 								//									leaf.format = TextLayoutFormatUtils.mergeFormats( sibParagraph.computedFormat, ( leaf.format ) ? leaf.format : new TextLayoutFormat() );
 								//								}
-								para.replaceChildren( para.numChildren, para.numChildren, element );
+								para.replaceChildrenForJoin( para.numChildren, para.numChildren, element );
 							}
 							requiresListUpdate = ( para.parent is ListElementX );	
 						}
@@ -1430,7 +1430,7 @@ package flashx.textLayout.edit
 								// [END TA]
 								sibParagraph.replaceChildren(0, 1, null);
 								// [TA] 07-27-2010 :: Usnig replaceChildrenForJoin which will not add terminators on replace.
-								para.replaceChildren(para.numChildren, para.numChildren, curFlowElement);
+								para.replaceChildrenForJoin(para.numChildren, para.numChildren, curFlowElement);
 							}
 							para.ensureTerminatorAfterReplace(null);
 							// [END TA]
@@ -1475,8 +1475,8 @@ package flashx.textLayout.edit
 						{
 							var curFlowElement:FlowElement = para.getChildAt(0);
 							// [TA] 07-27-2010 :: Usnig replaceChildrenForJoin which will not add terminators on replace.
-							para.replaceChildren(0, 1, null);
-							sibParagraph.replaceChildren(addAtIndex, addAtIndex, curFlowElement);
+							para.replaceChildrenForJoin(0, 1, null);
+							sibParagraph.replaceChildrenForJoin(addAtIndex, addAtIndex, curFlowElement);
 							// [END TA]
 							++addAtIndex;
 						}

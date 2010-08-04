@@ -359,6 +359,33 @@ package flashx.textLayout.elements
 				}
 			}
 		}
+		
+		// [TA] 07-27-2010 :: Need a custom replace of children as we don't need to keep ensuring terminators when doing a join.
+		tlf_internal function replaceChildrenForJoin( beginChildIndex:int, endChildIndex:int, ...rest ):void
+		{
+			// are we replacing the last element?
+			var oldLastLeaf:FlowLeafElement = getLastLeaf();
+			
+			CONFIG::debug 
+			{ 
+				if (oldLastLeaf && (oldLastLeaf is SpanElement))
+					SpanElement(oldLastLeaf).verifyParagraphTerminator();
+				
+			}
+			var applyParams:Array;
+			
+			// makes a measurable difference - rest.length zero and one are the common cases
+			if (rest.length == 1)
+				applyParams = [beginChildIndex, endChildIndex, rest[0]];
+			else
+			{
+				applyParams = [beginChildIndex, endChildIndex];
+				if (rest.length != 0)
+					applyParams = applyParams.concat.apply(applyParams, rest);
+			}
+			super.replaceChildren.apply(this, applyParams);
+		}
+		// [END TA]
 
 		[RichTextContent]
 		/** @private NOTE: all FlowElement implementers and overrides of mxmlChildren must specify [RichTextContent] metadata */
