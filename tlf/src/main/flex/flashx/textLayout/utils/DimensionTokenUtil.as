@@ -1,5 +1,7 @@
 package flashx.textLayout.utils
 {
+	import flash.utils.Dictionary;
+
 	public class DimensionTokenUtil
 	{
 		public static const TOKEN_PT:String = "pt";
@@ -10,6 +12,27 @@ package flashx.textLayout.utils
 		public static const TOKEN_PC:String = "pc";
 		public static const TOKEN_PERCENT:String = "%";
 		public static const TOKEN_EM:String = "em";
+		public static var ABSOLUTE_FONT_MAP:Dictionary;
+		
+		static private function getAbsoluteFontMap():Dictionary
+		{
+			if( DimensionTokenUtil.ABSOLUTE_FONT_MAP == null )
+			{
+				// Based on 12pt, 16px standard web browser font size.
+				var map:Dictionary = new Dictionary( true );
+				map["xx-small"] = 9;
+				map["x-small"] = 10;
+				map["small"] = 13;
+				map["smaller"] = 13;
+				map["medium"] = 16;
+				map["large"] = 18;
+				map["larger"] = 18;
+				map["x-large"] = 24;
+				map["xx-large"] = 32;
+				DimensionTokenUtil.ABSOLUTE_FONT_MAP = map;
+			}
+			return DimensionTokenUtil.ABSOLUTE_FONT_MAP;
+		}
 		
 		static public function convertPixelToPoint( value:* ):Number
 		{
@@ -77,6 +100,17 @@ package flashx.textLayout.utils
 			return number < 1 ? 16 : number / 100 * 16;
 		}
 		
+		static public function convertAbsoluteSizeToPixel( value:* ):Number
+		{
+			var map:Dictionary = DimensionTokenUtil.getAbsoluteFontMap();
+			if( map.hasOwnProperty( value ) )
+			{
+				// Values stored in map relate to pixel sizes.
+				return map[value];
+			}
+			return 16;
+		}
+		
 		static public function normalize( token:String ):Number
 		{
 			// Find token.
@@ -110,7 +144,7 @@ package flashx.textLayout.utils
 					break;
 				case DimensionTokenUtil.TOKEN_PX:
 				default:
-					return Number( token );
+					return ( token.length == 0 ) ? convertAbsoluteSizeToPixel( unit ) : Number( token );
 					break;
 					
 			}
