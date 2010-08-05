@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <flexLibProperties includeAllClasses="false" version="3">
   <includeClasses>
     <classEntry path="flash.text.ime.CompositionAttributeRange"/>
@@ -59,6 +59,7 @@
     <classEntry path="flashx.textLayout.conversion.TextLayoutImporter"/>
     <classEntry path="flashx.textLayout.converter.IHTMLExporter"/>
     <classEntry path="flashx.textLayout.converter.IHTMLImporter"/>
+    <classEntry path="flashx.textLayout.converter.IHtmlCleaner"/>
     <classEntry path="flashx.textLayout.converter.ITagAssembler"/>
     <classEntry path="flashx.textLayout.converter.ITagCleaner"/>
     <classEntry path="flashx.textLayout.converter.ITagParser"/>
@@ -78,6 +79,7 @@
     <classEntry path="flashx.textLayout.edit.ElementRange"/>
     <classEntry path="flashx.textLayout.edit.ExtendedEditManager"/>
     <classEntry path="flashx.textLayout.edit.ExtendedTextClipboard"/>
+    <classEntry path="flashx.textLayout.edit.ExtendedTextScrap"/>
     <classEntry path="flashx.textLayout.edit.IEditManager"/>
     <classEntry path="flashx.textLayout.edit.IInteractionEventHandler"/>
     <classEntry path="flashx.textLayout.edit.IMEClient"/>
@@ -96,6 +98,7 @@
     <classEntry path="flashx.textLayout.edit.helpers.SelectionHelper"/>
     <classEntry path="flashx.textLayout.elements.BackgroundManager"/>
     <classEntry path="flashx.textLayout.elements.BreakElement"/>
+    <classEntry path="flashx.textLayout.elements.BulletSpanElement"/>
     <classEntry path="flashx.textLayout.elements.Configuration"/>
     <classEntry path="flashx.textLayout.elements.ContainerFormattedElement"/>
     <classEntry path="flashx.textLayout.elements.DecoratingParagraphElement"/>
@@ -160,6 +163,7 @@
     <classEntry path="flashx.textLayout.events.TextLayoutEvent"/>
     <classEntry path="flashx.textLayout.events.UpdateCompleteEvent"/>
     <classEntry path="flashx.textLayout.events.UpdateEvent"/>
+    <classEntry path="flashx.textLayout.events.list.ListElementEvent"/>
     <classEntry path="flashx.textLayout.events.table.TableCellContainerEvent"/>
     <classEntry path="flashx.textLayout.events.table.TableCellFocusEvent"/>
     <classEntry path="flashx.textLayout.events.table.TableStyleEvent"/>
@@ -205,12 +209,15 @@
     <classEntry path="flashx.textLayout.model.attribute.TableDataAttribute"/>
     <classEntry path="flashx.textLayout.model.attribute.TableHeadingAttribute"/>
     <classEntry path="flashx.textLayout.model.attribute.TableRowAttribute"/>
+    <classEntry path="flashx.textLayout.model.style.BackgroundShorthand"/>
     <classEntry path="flashx.textLayout.model.style.BorderStyle"/>
     <classEntry path="flashx.textLayout.model.style.BorderStyleEnum"/>
     <classEntry path="flashx.textLayout.model.style.BoxModelShorthand"/>
     <classEntry path="flashx.textLayout.model.style.BoxModelUnitStyle"/>
+    <classEntry path="flashx.textLayout.model.style.HeaderStyle"/>
     <classEntry path="flashx.textLayout.model.style.IBorderStyle"/>
     <classEntry path="flashx.textLayout.model.style.IBoxModelUnitStyle"/>
+    <classEntry path="flashx.textLayout.model.style.IHeaderStyle"/>
     <classEntry path="flashx.textLayout.model.style.IListStyle"/>
     <classEntry path="flashx.textLayout.model.style.IPaddingStyle"/>
     <classEntry path="flashx.textLayout.model.style.ITableStyle"/>
@@ -246,15 +253,25 @@
     <classEntry path="flashx.textLayout.operations.ApplyFormatToElementOperation"/>
     <classEntry path="flashx.textLayout.operations.ApplyLinkOperation"/>
     <classEntry path="flashx.textLayout.operations.ApplyTCYOperation"/>
+    <classEntry path="flashx.textLayout.operations.BackspaceElementIntoDivOperation"/>
+    <classEntry path="flashx.textLayout.operations.BackspaceOperation"/>
     <classEntry path="flashx.textLayout.operations.ChangeListModeOperation"/>
     <classEntry path="flashx.textLayout.operations.ClearFormatOnElementOperation"/>
     <classEntry path="flashx.textLayout.operations.ClearFormatOperation"/>
+    <classEntry path="flashx.textLayout.operations.ClearOperation"/>
+    <classEntry path="flashx.textLayout.operations.CloseListOperation"/>
     <classEntry path="flashx.textLayout.operations.CompositeOperation"/>
     <classEntry path="flashx.textLayout.operations.CopyOperation"/>
     <classEntry path="flashx.textLayout.operations.CutOperation"/>
     <classEntry path="flashx.textLayout.operations.DeleteAndInsertTextOperation"/>
+    <classEntry path="flashx.textLayout.operations.DeleteElementIntoDivOperation"/>
     <classEntry path="flashx.textLayout.operations.DeleteElementsOperation"/>
+    <classEntry path="flashx.textLayout.operations.DeleteOperation"/>
     <classEntry path="flashx.textLayout.operations.DeleteTextOperation"/>
+    <classEntry path="flashx.textLayout.operations.DownArrowOperation"/>
+    <classEntry path="flashx.textLayout.operations.DummyOperation"/>
+    <classEntry path="flashx.textLayout.operations.EnterOperation"/>
+    <classEntry path="flashx.textLayout.operations.ExtendedApplyFormatOperation"/>
     <classEntry path="flashx.textLayout.operations.ExtendedCopyOperation"/>
     <classEntry path="flashx.textLayout.operations.ExtendedInsertTextOperation"/>
     <classEntry path="flashx.textLayout.operations.FlowElementOperation"/>
@@ -269,6 +286,7 @@
     <classEntry path="flashx.textLayout.operations.PasteOperation"/>
     <classEntry path="flashx.textLayout.operations.RedoOperation"/>
     <classEntry path="flashx.textLayout.operations.SplitParagraphOperation"/>
+    <classEntry path="flashx.textLayout.operations.TabOperation"/>
     <classEntry path="flashx.textLayout.operations.UndoOperation"/>
     <classEntry path="flashx.textLayout.property.ArrayProperty"/>
     <classEntry path="flashx.textLayout.property.BooleanProperty"/>
@@ -286,6 +304,7 @@
     <classEntry path="flashx.textLayout.property.UintWithEnumProperty"/>
     <classEntry path="flashx.textLayout.tlf_internal"/>
     <classEntry path="flashx.textLayout.utils.AttributeUtil"/>
+    <classEntry path="flashx.textLayout.utils.BackgroundShorthandUtil"/>
     <classEntry path="flashx.textLayout.utils.BoxModelStyleUtil"/>
     <classEntry path="flashx.textLayout.utils.BoxModelUnitShorthandUtil"/>
     <classEntry path="flashx.textLayout.utils.CharacterUtil"/>
@@ -295,6 +314,7 @@
     <classEntry path="flashx.textLayout.utils.GeometryUtil"/>
     <classEntry path="flashx.textLayout.utils.ListStyleConversionUtil"/>
     <classEntry path="flashx.textLayout.utils.ListStyleShorthandUtil"/>
+    <classEntry path="flashx.textLayout.utils.ListUtil"/>
     <classEntry path="flashx.textLayout.utils.LocaleUtil"/>
     <classEntry path="flashx.textLayout.utils.NavigationUtil"/>
     <classEntry path="flashx.textLayout.utils.StyleAttributeUtil"/>
@@ -302,16 +322,6 @@
     <classEntry path="flashx.undo.IOperation"/>
     <classEntry path="flashx.undo.IUndoManager"/>
     <classEntry path="flashx.undo.UndoManager"/>
-    <classEntry path="flashx.textLayout.operations.BackspaceElementIntoDivOperation"/>
-    <classEntry path="flashx.textLayout.operations.DeleteElementIntoDivOperation"/>
-    <classEntry path="flashx.textLayout.model.style.BackgroundShorthand"/>
-    <classEntry path="flashx.textLayout.utils.BackgroundShorthandUtil"/>
-    <classEntry path="flashx.textLayout.events.list.ListElementEvent"/>
-    <classEntry path="flashx.textLayout.model.style.IHeaderStyle"/>
-    <classEntry path="flashx.textLayout.model.style.HeaderStyle"/>
-    <classEntry path="flashx.textLayout.operations.ExtendedApplyFormatOperation"/>
-    <classEntry path="flashx.textLayout.elements.BulletSpanElement"/>
-    <classEntry path="flashx.textLayout.edit.ExtendedTextScrap"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests>
