@@ -83,6 +83,11 @@ package flashx.textLayout.elements.list
 			}
 		}
 		
+		/*override public function set paragraphSpaceAfter(paragraphSpaceAfterValue:*):void
+		{
+			super.paragraphSpaceAfter = 0;
+		}*/
+		
 		public function update():void
 		{
 			_computedStyle = _style.getComputedStyle();

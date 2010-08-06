@@ -9,6 +9,7 @@ package flashx.textLayout.elements.list
 	import flashx.textLayout.elements.DivElement;
 	import flashx.textLayout.elements.FlowElement;
 	import flashx.textLayout.elements.FlowGroupElement;
+	import flashx.textLayout.elements.FlowLeafElement;
 	import flashx.textLayout.elements.ListElement;
 	import flashx.textLayout.elements.ListItemElement;
 	import flashx.textLayout.elements.ParagraphElement;
@@ -34,11 +35,12 @@ package flashx.textLayout.elements.list
 			super();
 			_pendingChildElements = new Vector.<PendingNotifyingElement>();
 			_pendingUpdate = false;
+		//	paragraphSpaceAfter = 100;
 			
-			_paddingItems = new Vector.<ListPaddingElement>();
-			_paddingItems.push( new ListPaddingElement(), new ListPaddingElement() );
+			/*_paddingItems = new Vector.<ListPaddingElement>();
+			_paddingItems.push( new ListPaddingElement(), new ListPaddingElement() );*/
 		}
-		
+						
 		// [TA] 06-30-2010 :: Override of replace children to notify clients of change to list. ATM the most accurate way to track a change to children in list
 		//						which is needed to properly track list item elements of the text flow for external CSS styling purposes.
 		override public function replaceChildren(beginChildIndex:int, endChildIndex:int, ...rest):void
@@ -141,13 +143,13 @@ package flashx.textLayout.elements.list
 		}
 		// [END TA]
 		
-		public function removePadding():void
+		/*public function removePadding():void
 		{
 			attemptRemoveChild( _paddingItems[0] );
 			attemptRemoveChild( _paddingItems[1] );
-		}
+		}*/
 		
-		public function correctPadding():void
+		/*public function correctPadding():void
 		{
 			removePadding();
 			
@@ -156,50 +158,14 @@ package flashx.textLayout.elements.list
 			var listElem:ListElementX = this.getPreviousSibling() as ListElementX;
 			
 			// if the previous item is not a ListElementX then we can add the padding.
-			if(!listElem) {
+			/*if(!listElem) {
 				super.addChildAt( 0, _paddingItems[0] );
-			}
-			
-			super.addChild( _paddingItems[1] );
-			
-		}
-		
-		public var bottomPadding:Boolean;
-		public var topPadding:Boolean;
-		
-		public function correctPadding1() : void {
-			// start clean
-			removePadding();
-			
-			// correct the padding of lists above and below you
-			var prevSibling:ListElementX = this.getPreviousSibling() as ListElementX;
-			var nextSibling:ListElementX = this.getNextSibling() as ListElementX;
-			
-			/*if(prevSibling) {
-				// adjust previous sibling bottom padding
-				if(prevSibling.bottomPadding) { 
-					topPadding = false
-					//prevSibling.correctPadding();
-				}
-			} else {
-				topPadding = true;
-				super.addChildAt(0, _paddingItems[0] );
 			}*/
 			
+			//super.addChild( _paddingItems[1] );
 			
-			
-			if(nextSibling) {
-				if(!nextSibling.topPadding) {
-					bottomPadding = false
-					nextSibling.correctPadding();
-				}
-			} else {
-				bottomPadding = true;
-				super.addChild( _paddingItems[1] );
-			}
-			
-		}
-		
+		/*}*/
+				
 		protected function attemptRemoveChild( child:FlowElement ):Boolean
 		{
 			try {
@@ -274,7 +240,7 @@ package flashx.textLayout.elements.list
 		{
 			if ( numChildren > 0 && !pendingUpdate )
 			{
-				removePadding();
+				//removePadding();
 				
 				var items:Array = listItems;
 				
@@ -337,11 +303,42 @@ package flashx.textLayout.elements.list
 				
 				ensureIndentation();
 				
-				correctPadding();
+				//correctPadding();
+				correctParagraphSpacing();
 				
-//				if ( getTextFlow() )
-//					getTextFlow().flowComposer.updateAllControllers();
+				if ( getTextFlow() )
+					getTextFlow().flowComposer.updateAllControllers();
 			}
+		}
+		
+		private function correctParagraphSpacing() : void {
+			
+			// we loop through the ListItems so that there paragraph spacing is correct
+			for(var i:int=0; i<= listItems.length-2; i++) {
+				trace(listItems[i]);
+				var item:ListItemElementX = listItems[i] as ListItemElementX;
+				item.paragraphSpaceAfter = 0;
+			}
+			
+			
+			// get font size of last leaf
+			var lastItem:ListItemElementX = listItems[listItems.length-1] as ListItemElementX;
+			if(lastItem.fontSize != undefined) {
+				lastItem.paragraphSpaceAfter = lastItem.fontSize;
+			} else {
+				lastItem.paragraphSpaceAfter = 16;
+			}
+		
+			if(getTextFlow()) {
+				getTextFlow().flowComposer.updateAllControllers();
+			}
+			//paragraphSpaceAfter = fs;
+			
+			
+			/*var fle:FlowLeafElement = getLastLeaf();
+			fle.parent.paragraphSpaceAfter = 100;*/
+			
+			//this.paragraphSpaceAfter = 100;
 		}
 		
 		protected function ensureIndentation():void

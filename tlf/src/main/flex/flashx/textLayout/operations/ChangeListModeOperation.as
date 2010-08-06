@@ -16,6 +16,7 @@ package flashx.textLayout.operations
 	import flashx.textLayout.elements.list.ListElementX;
 	import flashx.textLayout.elements.list.ListItemElementX;
 	import flashx.textLayout.elements.list.ListItemModeEnum;
+	import flashx.textLayout.elements.list.ListPaddingElement;
 	import flashx.textLayout.events.TextLayoutEvent;
 	import flashx.textLayout.formats.ITextLayoutFormat;
 	import flashx.textLayout.formats.TextLayoutFormat;
@@ -884,7 +885,7 @@ package flashx.textLayout.operations
 				}
 				else
 				{
-					var newPara:ParagraphElement;
+//					/var newPara:ParagraphElement;
 					var lastParaFormat:ITextLayoutFormat = getCascadingFormatForElement( paragraphs[paragraphs.length - 1] as ParagraphElement );
 					//	Add ListElementX at position of first element
 					p = paragraphs[0] as ParagraphElement;
@@ -926,23 +927,33 @@ package flashx.textLayout.operations
 						/*var newSpan:SpanElement = new SpanElement();
 						newSpan.text = "";
 						newPara.addChild(newSpan);*/
-						textFlow.addChildAt(textFlow.getChildIndex(list)+1, newPara);
+						//textFlow.addChildAt(textFlow.getChildIndex(list)+1, newPara);
 					}
 					else
 					{
 						list = splitAndAddListToTextFlow( prnt, spans );//paragraphs );
-						newPara = new ParagraphElement();
-						newPara.format = lastParaFormat;
+//						newPara = new ParagraphElement();
+//						newPara.format = lastParaFormat;
 						/*var newSpan:SpanElement = new SpanElement();
 						newSpan.text = "";
 						newPara.addChild(newSpan);*/
-						textFlow.addChildAt(textFlow.getChildIndex(list)+1, newPara);
+//						textFlow.addChildAt(textFlow.getChildIndex(list)+1, newPara);
 					}
 					
 					// we should select the entire list
 					absoluteStart = list.getAbsoluteStart() + (list.getChildAt(1) as ListItemElementX).seperatorLength;
 					absoluteEnd   = list.getAbsoluteStart() + list.textLength-2;
 				}
+				
+				
+				
+				
+				
+				//list.paragraphSpaceAfter = 350;
+			//	(list.mxmlChildren[list.mxmlChildren.length-1] as ListItemElementX).paragraphSpaceAfter = 100;
+				
+				//(list.mxmlChildren[0] as ListPaddingElement).paragraphSpaceAfter = 0;
+				//(list.mxmlChildren[list.mxmlChildren.length-1] as ListPaddingElement).paragraphSpaceAfter = 0;
 			}
 			else
 			{
@@ -979,6 +990,10 @@ package flashx.textLayout.operations
 		//	textFlow.interactionManager.focusInHandler(null);
 			textFlow.interactionManager.refreshSelection();
 		
+			//var li:ListItemElementX = list.mxmlChildren[list.mxmlChildren.length-1] as ListItemElementX;
+			//li.paragraphSpaceAfter = 200;
+			//if(list) 
+			textFlow.flowComposer.updateAllControllers();
 			return true;	
 		}
 		

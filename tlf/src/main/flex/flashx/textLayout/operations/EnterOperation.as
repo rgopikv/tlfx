@@ -136,7 +136,7 @@ package flashx.textLayout.operations
 					// leaf does not have a modifiedtextlength of 0. If the next leaf has a modified text length
 					// greater than 0 then we know we are moving the item down.  Without this logic, the list will close.o
 					var list:ListElementX = prevLeaf.parent as ListElementX;
-					if(prevLeaf.modifiedTextLength == 0 && nextLeaf.modifiedTextLength == 0 && list.listItems[list.listItems.length-1] == nextLeaf) {
+					if(prevLeaf.modifiedTextLength == 0 && nextLeaf.modifiedTextLength == 0 && list.listItems[list.listItems.length-1] == nextLeaf) {					
 						closeList(nextLeaf);
 						return true;
 					}
@@ -164,7 +164,7 @@ package flashx.textLayout.operations
 			list.removeChild(leaf);
 			list.removeChild(list.listItems.pop()); // use the same index since they shift
 			list.update();
-			
+						
 			// we want to move to the next sibling of the list. however if we are in a blank editor
 			// and the user has removed the next sibling by deleting it we will need to create a new paragraph element.
 			var nextSibling:FlowElement = list.getNextSibling();
@@ -173,7 +173,7 @@ package flashx.textLayout.operations
 				var containerController:AutosizableContainerController;
 				var newPara:ParagraphElement = new ParagraphElement();
 				var newSpan:SpanElement = new SpanElement();
-				newSpan.text = "";
+				newSpan.text = " ";
 				newPara.addChild(newSpan);
 				//newPara.format = leaf.computedFormat;
 				nextSibling = textFlow.addChildAt(textFlow.getChildIndex(list)+1, newPara);

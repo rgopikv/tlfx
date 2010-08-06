@@ -133,12 +133,13 @@ package flashx.textLayout.operations
 					
 					// retrieve the separator length
 					operationState.anchorPosition = fle.getAbsoluteStart() - 1;
-					operationState.activePosition = fle.getAbsoluteStart() + (fle as ListItemElementX).seperatorLength - 1;
+					operationState.activePosition = fle.getAbsoluteStart() + (fle as ListItemElementX).seperatorLength-1;
+					interactionManager.setSelectionState(operationState);
 					
 					// if this is the first child, we just need to pop it off
-					if(fle.parent.getChildIndex(fle) == 1) {
+					if(fle.parent.getChildIndex(fle) == 0) {
 						
-						if(fle.parent.getPreviousSibling() != null) {
+					//	if(fle.parent.getPreviousSibling() != null) {
 							var para:ParagraphElement = new ParagraphElement();
 							fle.removeChildAt(0);
 							var initialChildren:int = (fle.mxmlChildren) ? fle.mxmlChildren.length : 0;
@@ -154,7 +155,7 @@ package flashx.textLayout.operations
 								//if(i==0) continue;
 								para.addChild(fle.getChildAt(0));
 							}
-														
+							
 							fle.parent.removeChild(fle);
 							if(initialChildren == 0) {
 								para.addChild(new SpanElement());
@@ -166,7 +167,11 @@ package flashx.textLayout.operations
 							
 							operationState.activePosition = paraAbsEnd;
 							operationState.anchorPosition = paraAbsEnd;
-						}
+							
+							//operationState.activePosition = operationState.anchorPosition;
+							interactionManager.setSelectionState(operationState);
+							interactionManager.refreshSelection();
+					//	}
 						
 						return;
 					}
@@ -174,7 +179,8 @@ package flashx.textLayout.operations
 					// now we can handle the range deletion like so
 					handleRangeDeletion();
 					
-					paraAbsEnd = para.getAbsoluteStart() + para.textLength-1;
+					//paraAbsEnd = para.getAbsoluteStart() + para.textLength-1;
+					operationState.activePosition = operationState.anchorPosition;
 					interactionManager.setSelectionState(operationState);
 					interactionManager.refreshSelection();
 				}
@@ -183,13 +189,19 @@ package flashx.textLayout.operations
 				// we can now deduce that we are in a non ListItemElementX. it may be possible that
 				// we have entered into the ListPaddingElementX. in fact, this probably the case. so 
 				// check to see if we are in a padding element.
-				var padding:ListPaddingElement = (fle as ListPaddingElement);
 				
-				if(padding) {
-					
-				} else {
-					handleDefaultDeletion();
+				var flePreviousSibling:ListElementX = fle.getPreviousSibling() as ListElementX;
+				
+				if(flePreviousSibling) {
+					flePreviousSibling.update();
 				}
+				//					var newPos:int = flePreviousSibling.getAbsoluteStart() + flePreviousSibling.textLength;
+				//					operationState.activePosition = newPos;
+				//					interactionManager.refreshSelection();
+				//					//handleRangeDeletion();
+				//				} else {
+				this.deleteText();	
+				//				}
 			}
 			
 			
@@ -290,7 +302,7 @@ package flashx.textLayout.operations
 				if(operatingState.absoluteStart > list.getAbsoluteStart()  && 
 					
 					// we subtract 2 to account for the padding element and the 0 based index
-					operatingState.absoluteEnd < (list.getAbsoluteStart() + list.textLength-2)) {
+					operatingState.absoluteEnd < (list.getAbsoluteStart() + list.textLength)) {
 					
 					// we now know that we are operating within one list
 					return true;
@@ -376,7 +388,7 @@ package flashx.textLayout.operations
 				}
 			}
 			
-							
+			
 			if(absoluteStart <= currentElement.getAbsoluteStart()) {
 				if(previousSibling is ListElementX) {
 					// since the previousSibling is a ListElementX we know that
@@ -396,7 +408,7 @@ package flashx.textLayout.operations
 			} else {
 				//interactionManager.deletePreviousCharacter(interactionManager.getSelectionState());
 			}
-						
+			
 			//var operationState:SelectionState = interactionManager.getSelectionState();
 			deleteText();
 			//var deleteOperation:DeleteTextOperation = new DeleteTextOperation(operationState, operationState, true);
@@ -551,7 +563,7 @@ package flashx.textLayout.operations
 			
 			return true;
 		}
-
+		
 		/**
 		 * 
 		 * 
@@ -577,13 +589,13 @@ package flashx.textLayout.operations
 			var acc:AutosizableContainerController;
 			for ( i = 0; i < tf.flowComposer.numControllers; i++ )
 			{
-				cc = tf.flowComposer.getControllerAt(i);
-				if ( cc is AutosizableContainerController )
-				{
-					acc = cc as AutosizableContainerController;
-					if ( acc.containsMonitoredElement( element ) )
-						return acc;
-				}
+			cc = tf.flowComposer.getControllerAt(i);
+			if ( cc is AutosizableContainerController )
+			{
+			acc = cc as AutosizableContainerController;
+			if ( acc.containsMonitoredElement( element ) )
+			return acc;
+			}
 			}*/
 			return null;
 		}
