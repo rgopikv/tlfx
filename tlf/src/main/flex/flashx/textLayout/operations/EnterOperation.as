@@ -157,6 +157,10 @@ package flashx.textLayout.operations
 		
 		private function closeList(leaf:ListItemElementX) : void {
 
+//			var span = leaf.getChildAt(1) as SpanElement;
+			//var newPara1:ParagraphElement =	leaf.splitAtIndex(0) as ParagraphElement;
+			//var newPara1:FlowElement = leaf.splitAtPosition(operationState.absoluteStart - leaf.getAbsoluteStart());
+			
 			var item:ListItemElementX = leaf.parent as ListItemElementX;
 			
 			var list:ListElementX = leaf.parent as ListElementX;
@@ -173,10 +177,20 @@ package flashx.textLayout.operations
 				var containerController:AutosizableContainerController;
 				var newPara:ParagraphElement = new ParagraphElement();
 				var newSpan:SpanElement = new SpanElement();
-				newSpan.text = " ";
+				newSpan.text = "";
+				//(newPara1 as ParagraphElement).addChild(newSpan);
 				newPara.addChild(newSpan);
-				//newPara.format = leaf.computedFormat;
+				
+				var tf:TextLayoutFormat = new TextLayoutFormat(leaf.format);
+				tf.paragraphStartIndent = 0;
+				
+				newSpan.format = tf;
+				//newSpan.format.paragraphStartIndent = 0;
+				newSpan.original = true;
+				//newPara.format = new TextLayoutFormat(leaf.format);
+				//newPara.original = true;
 				nextSibling = textFlow.addChildAt(textFlow.getChildIndex(list)+1, newPara);
+				//nextSibling.format = new TextLayoutFormat(leaf.format);
 				//textFlow.flowComposer.updateAllControllers();
 				
 			//}
