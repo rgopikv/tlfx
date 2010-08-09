@@ -136,9 +136,18 @@ package flashx.textLayout.operations
 					operationState.activePosition = fle.getAbsoluteStart() + (fle as ListItemElementX).seperatorLength-1;
 					interactionManager.setSelectionState(operationState);
 					
-					// if this is the first child, we just need to pop it off
+					// if this is the first child, we just need to pop it off. however there is the use case 
+					// where two lists join if they are above and below.
 					if(fle.parent.getChildIndex(fle) == 0) {
 						
+						if(fle.parent is ListElementX) {
+							var currentList:ListElementX = fle.parent as ListElementX;
+							
+							if(canJoinList(currentList)) {
+								joinLists(currentList);
+								return;
+							}
+						}
 					//	if(fle.parent.getPreviousSibling() != null) {
 							var para:ParagraphElement = new ParagraphElement();
 							fle.removeChildAt(0);
@@ -732,6 +741,9 @@ package flashx.textLayout.operations
 			// remove the current list as we are now merged and do not
 			// need it anymore.
 			currentList.parent.removeChild( currentList );
+			
+			// update previuos list
+			previousList.update();
 			
 			// FIXME: should move the selection stuff out of this function
 			item = previousList.getChildAt(listInsertIdx-1) as ListItemElementX;
