@@ -691,7 +691,7 @@ package flashx.textLayout.operations
 			{
 				textFlow.flowComposer.updateAllControllers();
 				listItems = removeItemsFromList( list, 0, length );
-				textFlow.flowComposer.updateAllControllers();
+			//	textFlow.flowComposer.updateAllControllers();
 
 				tmpIdx = list.parent.getChildIndex(list);
 				// get the returned paragraphs

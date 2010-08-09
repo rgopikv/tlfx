@@ -192,16 +192,38 @@ package flashx.textLayout.operations
 				
 				var flePreviousSibling:ListElementX = fle.getPreviousSibling() as ListElementX;
 				
-				if(flePreviousSibling) {
-					flePreviousSibling.update();
+				if(!flePreviousSibling) {
+					if(fle.parent is DivElement) {
+						flePreviousSibling = fle.parent.getPreviousSibling() as ListElementX;
+					}
 				}
-				//					var newPos:int = flePreviousSibling.getAbsoluteStart() + flePreviousSibling.textLength;
-				//					operationState.activePosition = newPos;
-				//					interactionManager.refreshSelection();
-				//					//handleRangeDeletion();
-				//				} else {
-				this.deleteText();	
-				//				}
+			//	var tmp:* = fle.getPreviousSibling();
+				//var areWeAtEnd:Boolean = fle.getAbsoluteStart()
+				trace("operationState.absoluteStart: " + operationState.absoluteStart);
+				trace("fle.getAbsoluteStart(): " + fle.getAbsoluteStart());
+				
+				//*******************'
+				// *******************
+				// This may be due to the fact that it's in a div
+				// if that's the case then it will be null
+				// we need to look at it's parent
+				if(flePreviousSibling && operationState.absoluteStart <= fle.getAbsoluteStart()) {
+					// if the previous sibling is a list, just set it to the absolute end
+					operationState.absoluteStart = flePreviousSibling.getAbsoluteStart() + flePreviousSibling.textLength - 1;
+					operationState.absoluteEnd = flePreviousSibling.getAbsoluteStart() + flePreviousSibling.textLength - 1;
+					interactionManager.setSelectionState(operationState);
+					interactionManager.refreshSelection();
+					
+					//flePreviousSibling.update();
+				} else {
+					//					var newPos:int = flePreviousSibling.getAbsoluteStart() + flePreviousSibling.textLength;
+					//					operationState.activePosition = newPos;
+					//					interactionManager.refreshSelection();
+					//					//handleRangeDeletion();
+					//				} else {
+					this.deleteText();	
+					//				}
+				}
 			}
 			
 			
