@@ -320,6 +320,27 @@ package flashx.textLayout.container.table
 			return parsedElements;
 		}
 		
+		/**
+		 * @private
+		 * 
+		 * If the element, presumed to be the last used to construct the flow, has paragraphSpaceAfter assigned as a style, we want to strip it as table cells don't have space below its content on last lines.
+		 * This is needed in order to ensure proper flow in replication and also the editor.
+		 * @param element FlowElement
+		 */
+		protected function ensureLastElementHeight( element:FlowElement ):void
+		{
+			if( element is ParagraphElement )
+			{
+				if( element.format ) 
+					( element.format as FlowValueHolder ).paragraphSpaceAfter = 0;	
+			}
+			else if( element is FlowGroupElement )
+			{
+				var group:FlowGroupElement = element as FlowGroupElement;
+				ensureLastElementHeight( group.getChildAt( group.numChildren - 1 ) );
+			}
+		}
+		
 		
 		/**
 		 * Composes cell to defined width. 
@@ -372,6 +393,10 @@ package flashx.textLayout.container.table
 			while( elements.length > 0 )
 			{
 				element = ( elements.shift() as FlowElement );
+				if( elements.length == 0 )
+				{
+					ensureLastElementHeight( element );
+				}
 				previousFormat = new FlowValueHolder( ( element.format as FlowValueHolder ) );
 				computedFormat = _data.computedFormat;
 				element.format = ( element.format ) ? TextLayoutFormatUtils.mergeFormats( computedFormat, element.format ) : computedFormat;
@@ -384,7 +409,7 @@ package flashx.textLayout.container.table
 			
 			// Run textFlow through factry to determine the actual size of the cell container.
 			var factory:TextFlowTextLineFactory = new TextFlowTextLineFactory();
-			factory.compositionBounds = new Rectangle( 0, 0, fixedWidth, 1000000 );
+			factory.compositionBounds = new Rectangle( 0, 0, fixedWidth, Number.NaN );
 			factory.createTextLines( updateActualBounds, _textFlow );
 			
 			var elementLength:int = elementList.length;

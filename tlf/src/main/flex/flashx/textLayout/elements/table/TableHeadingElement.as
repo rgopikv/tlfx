@@ -33,7 +33,7 @@ package flashx.textLayout.elements.table
 		 * Returns the ITextLayoutFormat for this element by selecting any defaults from configuration. 
 		 * @return ITextLayoutFormat
 		 */
-		protected function computeFormat():ITextLayoutFormat
+		override protected function computeFormat():ITextLayoutFormat
 		{
 			var style:Object = getStyle( TableHeadingElement.DEFAULT_FORMAT_PROPERTY );
 			if( style == null )
@@ -54,30 +54,30 @@ package flashx.textLayout.elements.table
 			return ca;
 		}
 		
-		/**
-		 * @private
-		 * 
-		 * Override to due proper merge of default format from Configuration of link with any user defined styles perviously applied to the format. 
-		 * @return ITextLayoutFormat
-		 */
-		tlf_internal override function get formatForCascade():ITextLayoutFormat
-		{
-			var superFormat:ITextLayoutFormat = format;
-			var effectiveFormat:ITextLayoutFormat = computeFormat();
-			if (effectiveFormat || superFormat)
-			{
-				if (effectiveFormat && superFormat)
-				{
-					var resultingTextLayoutFormat:TextLayoutFormatValueHolder = new TextLayoutFormatValueHolder(effectiveFormat);
-					if (superFormat)
-					{
-						TextLayoutFormatUtils.apply( resultingTextLayoutFormat, superFormat );
-					}
-					return resultingTextLayoutFormat;
-				}
-				return superFormat ? superFormat : effectiveFormat;
-			}
-			return null;
-		}
+//		/**
+//		 * @private
+//		 * 
+//		 * Override to due proper merge of default format from Configuration of link with any user defined styles perviously applied to the format. 
+//		 * @return ITextLayoutFormat
+//		 */
+//		tlf_internal override function get formatForCascade():ITextLayoutFormat
+//		{
+//			var superFormat:ITextLayoutFormat = format;
+//			var effectiveFormat:ITextLayoutFormat = computeFormat();
+//			if (effectiveFormat || superFormat)
+//			{
+//				if (effectiveFormat && superFormat)
+//				{
+//					var resultingTextLayoutFormat:TextLayoutFormatValueHolder = new TextLayoutFormatValueHolder(effectiveFormat);
+//					if (superFormat)
+//					{
+//						TextLayoutFormatUtils.apply( resultingTextLayoutFormat, superFormat );
+//					}
+//					return resultingTextLayoutFormat;
+//				}
+//				return superFormat ? superFormat : effectiveFormat;
+//			}
+//			return null;
+//		}
 	}
 }

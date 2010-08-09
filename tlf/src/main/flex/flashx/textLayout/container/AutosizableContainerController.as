@@ -50,6 +50,9 @@ package flashx.textLayout.container
 		protected var _background:Sprite;
 		protected var _lineHolder:Sprite;
 		
+		protected var _cachedOffsetElement:FlowElement;
+		protected var _cachedOffset:Number;
+		
 		protected var _processedElements:Vector.<MonitoredElementContent>;
 		
 		protected var _topElementAscent:Number = 0;
@@ -108,9 +111,27 @@ package flashx.textLayout.container
 			{
 				removeInitialMonitoredElements();
 				
-				var startIndex:int = textFlow.getChildIndex( findTopLevel( absoluteStart ) );
-				var endIndex:int = textFlow.getChildIndex( findTopLevel( Math.max(absoluteStart + textLength - 1, 0) ) );
-				for( i = startIndex; i <= endIndex; i++ )
+				var startIndex:int = 0;
+				var index:int = flowComposer.getControllerIndex( this );
+				if( index != 0 )
+				{
+					var flowIndex:int = 0;
+					for( i = 0; i < textFlow.numChildren; i++ )
+					{
+						element = textFlow.getChildAt( i );
+						if( element is TableElement )
+						{
+							flowIndex += ( element as TableElement ).getTableModel().cellAmount + 1;
+						}
+						if( flowIndex == index )
+						{
+							startIndex = i + 1;
+							break;
+						}
+					}
+				}
+				
+				for( i = startIndex; i < textFlow.numChildren; i++ )
 				{
 					element = textFlow.mxmlChildren[i] as FlowElement;
 					// This container does not monitor tables. They have their own container controller monitoring system.
@@ -136,6 +157,37 @@ package flashx.textLayout.container
 				}
 			}
 			return elements;
+		}
+		
+		/**
+		 * @private
+		 * 
+		 * Returns all elements from the flow that relate to this container based on uid. 
+		 * @return Vector.<MonitoredElementContent>
+		 */
+		protected function getLastMonitoredElement():FlowElement
+		{
+			if( textFlow == null || textFlow.mxmlChildren == null ) return null
+			
+			var i:int;
+			var element:FlowElement;
+			if( textLength > 0 )
+			{
+				var startIndex:int = textFlow.getChildIndex( findTopLevel( absoluteStart ) );
+				var endIndex:int = textFlow.getChildIndex( findTopLevel( Math.max(absoluteStart + textLength - 1, 0) ) );
+				for( i = startIndex; i <= endIndex; i++ )
+				{
+					element = textFlow.mxmlChildren[i] as FlowElement;
+					// This container does not monitor tables. They have their own container controller monitoring system.
+					// We could reach this from endIndex if the operation was a delete and the flow has not completed updating this contoller with final textlength.
+					if( ( element is TableElement ) )
+					{
+						element = textFlow.mxmlChildren[i-1] as FlowElement;
+						break;
+					}
+				}
+			}
+			return element;
 		}
 		
 		protected function findTopLevel( position:int ):FlowElement
@@ -177,7 +229,52 @@ package flashx.textLayout.container
 			if( _initialMonitoredElements.length > 0 )
 				_initialMonitoredElements = new Vector.<FlowElement>();
 		}
-	
+		
+		/**
+		 * @private
+		 * 
+		 * Returns the offset in height based on the last element that is used to construct the internal flow.
+		 * This is needed to find if the last element was a paragraph element, and if so, if it had space after.
+		 * When constructing flows, if the last element is a paragraph the space after is disregarded as their is no other content below. 
+		 * @param element FlowElement
+		 * @return Number
+		 */
+		protected function ensureProperSpaceAfterController( element:FlowElement ):Number
+		{
+			// If we are the last container contrller, don't have to fake spacing between table elements.
+			if( textFlow.flowComposer.getControllerAt(textFlow.flowComposer.numControllers - 1) != this )
+			{
+				return 0;
+			}
+			// Else try and find the last element and if paragraph, start caching.
+			if( _cachedOffsetElement )
+			{
+				_cachedOffsetElement.paragraphSpaceAfter = _cachedOffset;
+				_cachedOffset = 0;
+			}
+			var offset:Number = 0;
+			if( element is ParagraphElement ) 
+			{
+				offset = Number( element.paragraphSpaceAfter );
+				offset = ( isNaN(offset) ) ? 0 : offset;
+				if( offset > 0 && _cachedOffsetElement != element ) 
+				{
+					element.paragraphSpaceAfter = 0;
+					_cachedOffsetElement = element;
+					_cachedOffset = offset;
+				}
+			}
+			else
+			{
+				if( element is FlowGroupElement )
+				{
+					var group:FlowGroupElement = ( element as FlowGroupElement );
+					return ensureProperSpaceAfterController( group.getChildAt( group.numChildren - 1 ) );
+				}
+			}
+			return offset;
+		}
+		
 		/**
 		 * Adds an initial element to the monitored elements list. these are used on start up, afterward once absolute start and textlength are update, it instictively knows what elements reside in the container. 
 		 * @param element FlowElement
@@ -196,36 +293,42 @@ package flashx.textLayout.container
 		{	
 			_previousHeight = ( isNaN(_actualHeight) ) ? compositionHeight : _actualHeight;
 			
+			var generation:int = textFlow.generation;
 			while( _containerFlow.numChildren > 0 )
 			{
 				_containerFlow.removeChildAt( 0 );
 			}
-			var generation:int = textFlow.generation;
 			// Get monitored elements and add to internal text flow for TextLine creation.
 			var i:int = 0;
 			_processedElements = getMonitoredElements();
 			var element:FlowElement;
+			var lastElement:FlowElement;
 			for( i = 0 ;i < _processedElements.length; i++ )
 			{
 				element = _processedElements[i].element;
+				if( i == _processedElements.length - 1 )
+					lastElement = element;
+				
 				_containerFlow.addChild( element );
 			}
 			
 			// Pump elements through creation factory to determine the size of this container.
 			_numLines = 0;
 			
-			var bounds:Rectangle = new Rectangle( 0, 0, compositionWidth, 1000000 );
+			var bounds:Rectangle = new Rectangle( 0, 0, compositionWidth, Number.NaN );
 			var factory:TextFlowTextLineFactory = new TextFlowTextLineFactory();
 			factory.compositionBounds = bounds;
 			factory.createTextLines( handleLineCreation, _containerFlow );
 		
+			// Grab offset based on last element to ensure proper sizing of container controller as it corresponds to the flow.
+			var heightOffset:Number = ensureProperSpaceAfterController( lastElement );
+			_actualHeight += ( isNaN(heightOffset) ) ? 0 : heightOffset;
+			
 			// Return the elements and resize.
 			returnMonitoredElements();
-			
 			setCompositionSize( compositionWidth, _actualHeight );
 			
 			textFlow.setGeneration( generation );
-			
 			// Notify of change in size if applicable.
 			var offset:Number = _actualHeight - _previousHeight;
 			if( offset != 0 )
@@ -300,6 +403,15 @@ package flashx.textLayout.container
 		public function get actualHeight():Number
 		{
 			return _actualHeight;
+		}
+		
+		/**
+		 * Returns the offset along the y axis supposed after the container, which can be the case wehn stripping paragraphSpaceAfter form the last element. 
+		 * @return Number
+		 */
+		public function get controllerOffsetAfter():Number
+		{
+			return isNaN( _cachedOffset ) ? 0 : _cachedOffset;
 		}
 		
 		/**

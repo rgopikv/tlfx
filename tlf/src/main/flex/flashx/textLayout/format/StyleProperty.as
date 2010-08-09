@@ -140,6 +140,10 @@ package flashx.textLayout.format
 				case "trackingRight":
 					property = "letterSpacing";
 					break;
+				case "paragraphSpaceAfter":
+				case "paragraphSpaceBefore":
+					return null;
+					break;
 			}	
 			return new StyleProperty( StyleAttributeUtil.dasherize(property), value )
 		}

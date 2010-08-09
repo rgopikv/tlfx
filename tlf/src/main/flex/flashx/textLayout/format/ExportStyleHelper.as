@@ -218,7 +218,9 @@ package flashx.textLayout.format
 						{
 							// Actually, Check if differing between explicit style and defined child style. That should be enough.
 							styleProperty = StyleProperty.normalizePropertyForCSS( property, childPropertyValue, childFormat );
-							
+							// If it is determined from export, that the style has no relevance to html/css formatting, we will just continue to the next one.
+							if( styleProperty == null ) continue;
+							// Else cross reference against held inline styles.
 							if( explicitStyle && explicitStyle[StyleAttributeUtil.dasherize( styleProperty.property )] != null )
 							{
 								// Run a check that if new style is actually equal to the declard explicit style on import.

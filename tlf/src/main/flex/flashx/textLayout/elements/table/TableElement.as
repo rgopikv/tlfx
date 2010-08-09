@@ -21,6 +21,9 @@ package flashx.textLayout.elements.table
 	import flashx.textLayout.events.TableElementStatusEvent;
 	import flashx.textLayout.events.TagParserCleanCompleteEvent;
 	import flashx.textLayout.events.TagParserCleanProgressEvent;
+	import flashx.textLayout.formats.ITextLayoutFormat;
+	import flashx.textLayout.formats.TextLayoutFormat;
+	import flashx.textLayout.formats.TextLayoutFormatValueHolder;
 	import flashx.textLayout.model.attribute.IAttribute;
 	import flashx.textLayout.model.style.ITableStyle;
 	import flashx.textLayout.model.style.InlineStyles;
@@ -31,6 +34,7 @@ package flashx.textLayout.elements.table
 	import flashx.textLayout.model.table.TableRow;
 	import flashx.textLayout.tlf_internal;
 	import flashx.textLayout.utils.StyleAttributeUtil;
+	import flashx.textLayout.utils.TextLayoutFormatUtils;
 	
 	use namespace tlf_internal;
 	/**
@@ -56,6 +60,7 @@ package flashx.textLayout.elements.table
 		protected var _cleaner:IHtmlCleaner;
 		
 		public static const LINE_BREAK_IDENTIFIER:String = "|tlf_table_paste_break|";
+		public static const DEFAULT_FORMAT_PROPERTY:String = "defaultTableFormat";
 		
 		/**
 		 * Constrcutor.
@@ -77,6 +82,59 @@ package flashx.textLayout.elements.table
 		override tlf_internal function canReleaseContentElement() : Boolean
 		{
 			return false;
+		}
+		
+		/**
+		 * @private
+		 * 
+		 * Returns the ITextLayoutFormat for this element by selecting any defaults from configuration. 
+		 * @return ITextLayoutFormat
+		 */
+		protected function computeFormat():ITextLayoutFormat
+		{
+			var style:Object = getStyle( TableElement.DEFAULT_FORMAT_PROPERTY );
+			if( style == null )
+			{
+				var tf:TextFlow = getTextFlow();
+				return tf == null ? null : tf.configuration[TableElement.DEFAULT_FORMAT_PROPERTY];
+			}
+			else if( style is ITextLayoutFormat )
+				return ITextLayoutFormat(style);
+			
+			var ca:TextLayoutFormatValueHolder = new TextLayoutFormatValueHolder();
+			var desc:Object = TextLayoutFormat.description;
+			for (var prop:String in desc)
+			{
+				if (style[prop] != undefined)
+					ca[prop] = style[prop];
+			}
+			return ca;
+		}
+		
+		/**
+		 * @private
+		 * 
+		 * Override to due proper merge of default format from Configuration of link with any user defined styles perviously applied to the format. 
+		 * @return ITextLayoutFormat
+		 */
+		tlf_internal override function get formatForCascade():ITextLayoutFormat
+		{
+			var superFormat:ITextLayoutFormat = format;
+			var effectiveFormat:ITextLayoutFormat = computeFormat();
+			if (effectiveFormat || superFormat)
+			{
+				if (effectiveFormat && superFormat)
+				{
+					var resultingTextLayoutFormat:TextLayoutFormatValueHolder = new TextLayoutFormatValueHolder(effectiveFormat);
+					if (superFormat)
+					{
+						TextLayoutFormatUtils.apply( resultingTextLayoutFormat, superFormat );
+					}
+					return resultingTextLayoutFormat;
+				}
+				return superFormat ? superFormat : effectiveFormat;
+			}
+			return null;
 		}
 		
 		/**

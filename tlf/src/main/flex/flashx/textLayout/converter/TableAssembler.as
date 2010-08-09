@@ -86,6 +86,9 @@ package flashx.textLayout.converter
 		 */
 		public function createFragment( value:* ):String
 		{
+			var settings:Object = XML.settings();
+			XML.ignoreWhitespace = true;
+			XML.prettyPrinting = false;
 			var fragment:XML = <table />;
 			var tableElement:TableElement = value as TableElement;
 			var table:Table = tableElement.getTableModel();
@@ -115,7 +118,9 @@ package flashx.textLayout.converter
 			{
 				fragment.appendChild( XML( rowAssembler.createFragment( assembledRows[i] as TableRowElement ) ) );
 			}
-			return fragment.toXMLString();
+			var payload:String = fragment.toXMLString();
+			XML.setSettings( settings );
+			return payload;
 		}
 	}
 }

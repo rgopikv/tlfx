@@ -861,5 +861,11 @@ package flashx.textLayout.elements
 					return false;
 			}
 		}
+		
+		override public function set original(value:Boolean):void
+		{
+			super.original = value;
+			paragraphSpaceAfter = ( value ) ? 16 : undefined;
+		}
 	}
 }

@@ -19,11 +19,13 @@ package flashx.textLayout.elements.table
 	import flashx.textLayout.model.table.TableData;
 	import flashx.textLayout.tlf_internal;
 	import flashx.textLayout.utils.AttributeUtil;
+	import flashx.textLayout.utils.TextLayoutFormatUtils;
 	
 	use namespace tlf_internal;
 	public class TableDataElement extends TableBaseElement
 	{
 		protected var _tableData:TableData;
+		public static const DEFAULT_FORMAT_PROPERTY:String = "defaultTableDataFormat";
 		
 		public function TableDataElement()
 		{
@@ -50,6 +52,59 @@ package flashx.textLayout.elements.table
 			var copy:TableDataElement = super.shallowCopy(startPos, endPos) as TableDataElement;
 			copy.tableDataModel = _tableData;
 			return copy;						
+		}
+		
+		/**
+		 * @private
+		 * 
+		 * Returns the ITextLayoutFormat for this element by selecting any defaults from configuration. 
+		 * @return ITextLayoutFormat
+		 */
+		protected function computeFormat():ITextLayoutFormat
+		{
+			var style:Object = getStyle( TableDataElement.DEFAULT_FORMAT_PROPERTY );
+			if( style == null )
+			{
+				var tf:TextFlow = getTextFlow();
+				return tf == null ? null : tf.configuration[TableDataElement.DEFAULT_FORMAT_PROPERTY];
+			}
+			else if( style is ITextLayoutFormat )
+				return ITextLayoutFormat(style);
+			
+			var ca:TextLayoutFormatValueHolder = new TextLayoutFormatValueHolder();
+			var desc:Object = TextLayoutFormat.description;
+			for (var prop:String in desc)
+			{
+				if (style[prop] != undefined)
+					ca[prop] = style[prop];
+			}
+			return ca;
+		}
+		
+		/**
+		 * @private
+		 * 
+		 * Override to due proper merge of default format from Configuration of link with any user defined styles perviously applied to the format. 
+		 * @return ITextLayoutFormat
+		 */
+		tlf_internal override function get formatForCascade():ITextLayoutFormat
+		{
+			var superFormat:ITextLayoutFormat = format;
+			var effectiveFormat:ITextLayoutFormat = computeFormat();
+			if (effectiveFormat || superFormat)
+			{
+				if (effectiveFormat && superFormat)
+				{
+					var resultingTextLayoutFormat:TextLayoutFormatValueHolder = new TextLayoutFormatValueHolder(effectiveFormat);
+					if (superFormat)
+					{
+						TextLayoutFormatUtils.apply( resultingTextLayoutFormat, superFormat );
+					}
+					return resultingTextLayoutFormat;
+				}
+				return superFormat ? superFormat : effectiveFormat;
+			}
+			return null;
 		}
 		
 		/**

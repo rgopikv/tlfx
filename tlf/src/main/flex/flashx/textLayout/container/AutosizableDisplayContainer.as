@@ -59,5 +59,14 @@ package flashx.textLayout.container
 		{
 			return _controller.topElementAscent;
 		}
+		
+		/**
+		 * Returns the offset along the y axis supposed after the container, which can be the case wehn stripping paragraphSpaceAfter form the last element. 
+		 * @return Number
+		 */
+		public function get containerSpaceAfter():Number
+		{
+			return _controller.controllerOffsetAfter;
+		}
 	}
 }

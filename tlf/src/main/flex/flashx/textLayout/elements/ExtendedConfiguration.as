@@ -17,6 +17,7 @@ package flashx.textLayout.elements
 	public class ExtendedConfiguration extends Configuration
 	{
 		protected var _defaultTableFormat:ITextLayoutFormat;
+		protected var _defaultTableDataFormat:ITextLayoutFormat;
 		protected var _defaultTableHeaderFormat:ITextLayoutFormat;
 		protected var _defaultHeaderFormat:ITextLayoutFormat;
 		
@@ -31,12 +32,18 @@ package flashx.textLayout.elements
 		protected function initialize():void
 		{
 			var format:TextLayoutFormatValueHolder = new TextLayoutFormatValueHolder();
+			format.paragraphSpaceAfter = 0;
 			_defaultTableFormat = format;
 			
 			var thFormat:TextLayoutFormatValueHolder = new TextLayoutFormatValueHolder();
 			thFormat.fontWeight = FontWeight.BOLD;
 			thFormat.textAlign = TextAlign.CENTER;
+			thFormat.paragraphSpaceAfter = 0;
 			_defaultTableHeaderFormat = thFormat;
+			
+			var tdFormat:TextLayoutFormatValueHolder = new TextLayoutFormatValueHolder();
+			tdFormat.paragraphSpaceAfter = 0;
+			_defaultTableDataFormat = tdFormat;
 			
 			var hFormat:TextLayoutFormatValueHolder = new TextLayoutFormatValueHolder();
 			hFormat.fontWeight = FontWeight.BOLD;
@@ -86,6 +93,15 @@ package flashx.textLayout.elements
 			_defaultTableFormat = value;
 		}
 		
+		public function get defaultTableDataFormat():ITextLayoutFormat
+		{
+			return _defaultTableDataFormat;
+		}
+		public function set defaultTableDataFormat( value:ITextLayoutFormat ):void
+		{
+			_defaultTableDataFormat = value;
+		}
+		
 		public function get defaultTableHeaderFormat():ITextLayoutFormat
 		{
 			return _defaultTableHeaderFormat;
@@ -103,6 +119,5 @@ package flashx.textLayout.elements
 		{
 			_defaultHeaderFormat = value;
 		}
-
 	}
 }
