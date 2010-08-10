@@ -595,14 +595,24 @@ package flashx.textLayout.operations
 			{
 //				var firstParagraph:ParagraphElement = paragraphs[0] as ParagraphElement;
 				var firstSpan:SpanElement = spans[0] as SpanElement;
+				var lastSpan:SpanElement = spans[spans.length-1] as SpanElement;
 				var index:int = parent.getChildIndex( firstSpan.parent );//firstParagraph );
+				var lastIdx:int = lastSpan.parent.getChildIndex( lastSpan );
 				//	Will go through this loop at least once
 				//	Splits the div at the specified index (starting at the ParagraphElement)
 				while ( !(parent is TextFlow) )
 				{
-					var newDiv:DivElement = splitDivInTwo( parent as DivElement, index );
-					//	Get the index of the current DivElement from it's parent
-					index = parent.parent.getChildIndex(parent);
+					var parentPara:ParagraphElement = firstSpan.parent as ParagraphElement;
+					
+					if(spans.length < firstSpan.parent.mxmlChildren.length) {
+						var newPara:ParagraphElement = splitParaInTwo( parentPara, lastIdx);
+					
+						var newDiv:DivElement = splitDivInTwo( parent as DivElement, index );
+						//	Get the index of the current DivElement from it's parent
+						index = newDiv.parent.getChildIndex(newDiv);
+					} else {
+						index = parent.parent.getChildIndex(parent);
+					}
 					//	Assign the DivElement's parent to be the prnt variable
 					parent = parent.parent;
 				}
@@ -611,7 +621,7 @@ package flashx.textLayout.operations
 				var tf:TextFlow = parent as TextFlow;
 				if( tf != null )
 				{
-					list = addListDirectlyToTextFlow( tf, spans, index+1 );//paragraphs, index + 1 );
+					list = addListDirectlyToTextFlow( tf, spans, index );//paragraphs, index + 1 );
 					
 //					//	[KK]	Attempt to remove last (empty) paragraph added through the creation process
 //					var lastItem:ListItemElementX;
@@ -832,6 +842,32 @@ package flashx.textLayout.operations
 			return parent.addChildAt( divIndex + 1, newDiv ) as DivElement;
 		}
 		
+		protected function splitParaInTwo( para:ParagraphElement, index:uint ):ParagraphElement
+		{
+			var parent:FlowGroupElement = para.parent;
+			var paraIndex:int = parent.getChildIndex( para );
+			var newPara:ParagraphElement = para.shallowCopy() as ParagraphElement;
+			
+			//	Take all children from end to index and place in new ParagraphElement
+			for ( var i:int = para.numChildren-1; i > index; i-- )//i >= index; i-- )
+			{
+				newPara.addChildAt( 0, para.removeChildAt(i) );
+			}
+			
+			var retPara:ParagraphElement = parent.addChildAt( paraIndex + 1, newPara ) as ParagraphElement; 
+			
+			if(retPara.getChildAt(0) is BreakElement) {
+				// create a span
+				var newSpan:SpanElement = new SpanElement();
+				newSpan.format = retPara.getChildAt(0).format;
+				newSpan.text = (retPara.getChildAt(0) as BreakElement).text.replace(/[\u2029\u2028\n\r]/g, "");
+				retPara.removeChildAt(0);
+				retPara.addChildAt(0, newSpan);
+			}
+			
+			return retPara;
+		}
+		
 		protected function splitListInTwo( list:ListElementX, index:uint ):ListElementX
 		{
 			var parent:FlowGroupElement = list.parent;
@@ -849,15 +885,51 @@ package flashx.textLayout.operations
 		/** @private */
 		public override function doOperation():Boolean
 		{
+			
+			switch(_mode) {
+				case ListItemModeEnum.ORDERED:
+				case ListItemModeEnum.UNORDERED:
+
+					var selectedListItems:Array = SelectionHelper.getSelectedListItems( textFlow );
+					// If there are currently selected list items then we can assume
+					// that we are changing an existing list.
+					// else we are creating a new list
+					if ( selectedListItems.length > 0 )
+					{
+						// there are selected lists so we change the mode on the 
+						// selected lists.
+						changeList();
+					}
+					else
+					{
+						// there are no selected lists so we create a list
+						createList();
+					}
+					
+					break;
+				
+				case ListItemModeEnum.UNDEFINED:
+					// we destroy the currently selected list
+					destroyLists();
+					break;
+				
+				default:
+					destroyLists();
+					break;
+				
+			}
+			
+			return true;	
+		}
+		
+		private function createList() : Boolean {
 			var selectedListItems:Array = SelectionHelper.getSelectedListItems( textFlow );
 			var lists:Array = SelectionHelper.getSelectedLists( textFlow );
 			var paragraphs:Array = SelectionHelper.getSelectedParagraphs( textFlow );
 			var spans:Array = SelectionHelper.getSelectedElements( textFlow, null, [SpanElement, BreakElement], true );
 			
-			var p:ParagraphElement;
 			var item:ListItemElementX;
 			var list:ListElementX;
-			var containerController:AutosizableContainerController;
 			
 			// selection related 
 			var absoluteStart:int = 0;
@@ -865,136 +937,115 @@ package flashx.textLayout.operations
 			var fe1:FlowElement;
 			var fe2:FlowElement;
 			
-			// If the mode is being changed to order or unordered, we can 
-			// assume that we are creating or changing an existing list
-			// else we are destroying a list.
-			if ( _mode == ListItemModeEnum.ORDERED || _mode == ListItemModeEnum.UNORDERED )
+			var lastParaFormat:ITextLayoutFormat = getCascadingFormatForElement( paragraphs[paragraphs.length - 1] as ParagraphElement );
+			//	Add ListElementX at position of first element
+			var p:ParagraphElement = paragraphs[0] as ParagraphElement;
+			var prnt:FlowGroupElement = p.parent;
+			// Owner is a TextFlow, just add at same position as first ParagraphElement
+			if ( prnt is TextFlow )
 			{
-				// If there are currently selected list items then we can assume
-				// that we are changing an existing list.
-				// else we are creating a new list
-				if ( selectedListItems.length > 0 )
-				{
-					list = changeListModeOnAlreadyCreatedList( selectedListItems, lists, _mode );
-					
-					fe1 = selectedListItems[0];
-					fe2 = selectedListItems[selectedListItems.length-1];
-					
-					absoluteStart = fe1.getAbsoluteStart() + (fe1 as ListItemElementX).seperatorLength;
-					absoluteEnd   = fe2.getAbsoluteStart() + fe2.textLength;
-				}
-				else
-				{
-//					/var newPara:ParagraphElement;
-					var lastParaFormat:ITextLayoutFormat = getCascadingFormatForElement( paragraphs[paragraphs.length - 1] as ParagraphElement );
-					//	Add ListElementX at position of first element
-					p = paragraphs[0] as ParagraphElement;
-					var prnt:FlowGroupElement = p.parent;
-					//	Owner is a TextFlow, just add at same position as first ParagraphElement
-					if ( prnt is TextFlow )
-					{
-						list = addListDirectlyToTextFlow( prnt as TextFlow, spans /* [KK] Changed from paragraphs */, prnt.getChildIndex( p ) );
-						
-						//	[KK]	Attempt to remove last (empty) paragraph added through the creation process
-/*						var lastItem:ListItemElementX;
-						var idx:int = list.numChildren;
-						while ( !lastItem || !(lastItem is ListItemElementX) )
-						{
-							idx--;
-							if ( idx < 0 )
-								break;
-							lastItem = list.getChildAt(idx) as ListItemElementX;
-						}
-						
-						if ( lastItem )
-						{
-							idx = lastItem.numChildren;
-							while (--idx > -1)
-							{
-								var child:FlowElement = lastItem.getChildAt(idx);
-								
-								if ( child is SpanElement )
-								{
-									//	[KK]	Remove the last character as it is an unnecessary line break added from who knows where
-									(child as SpanElement).text = (child as SpanElement).text.substring(0, (child as SpanElement).text.length);
-									break;
-								}
-							}
-						}
-						
-						newPara = new ParagraphElement();
-						newPara.format = lastParaFormat;
-						/*var newSpan:SpanElement = new SpanElement();
-						newSpan.text = "";
-						newPara.addChild(newSpan);*/
-						//textFlow.addChildAt(textFlow.getChildIndex(list)+1, newPara);
-					}
-					else
-					{
-						list = splitAndAddListToTextFlow( prnt, spans );//paragraphs );
-//						newPara = new ParagraphElement();
-//						newPara.format = lastParaFormat;
-						/*var newSpan:SpanElement = new SpanElement();
-						newSpan.text = "";
-						newPara.addChild(newSpan);*/
-//						textFlow.addChildAt(textFlow.getChildIndex(list)+1, newPara);
-					}
-					
-					// we should select the entire list
-					absoluteStart = list.getAbsoluteStart() + (list.getChildAt(1) as ListItemElementX).seperatorLength;
-					absoluteEnd   = list.getAbsoluteStart() + list.textLength-2;
-				}
-				
-				
-				
-				
-				
-				//list.paragraphSpaceAfter = 350;
-			//	(list.mxmlChildren[list.mxmlChildren.length-1] as ListItemElementX).paragraphSpaceAfter = 100;
-				
-				//(list.mxmlChildren[0] as ListPaddingElement).paragraphSpaceAfter = 0;
-				//(list.mxmlChildren[list.mxmlChildren.length-1] as ListPaddingElement).paragraphSpaceAfter = 0;
+				list = addListDirectlyToTextFlow( prnt as TextFlow, spans /* [KK] Changed from paragraphs */, prnt.getChildIndex( p ) );
 			}
 			else
 			{
-				// if there are multiple lists
-				// else we are dealing with one list
-				if ( lists.length > 1 )
-				{
-					paragraphs = returnElementsFromMultipleLists( lists, selectedListItems );
-				}
-				else
-				{
-					item = selectedListItems[0] as ListItemElementX;
-					list = item.parent as ListElementX;
-					paragraphs = returnElementsFromSingleList(list , selectedListItems );
-				}
+				list = splitAndAddListToTextFlow( prnt, spans );
+			}
+			
+			// we should select the entire list
+			absoluteStart = list.getAbsoluteStart();
+			absoluteEnd   = list.getAbsoluteStart() + list.textLength-1;
+			
+			// set the new selection
+			var newSS:SelectionState = new SelectionState(textFlow, absoluteStart, absoluteEnd);
+			textFlow.interactionManager.setSelectionState(newSS);
+			SelectionHelper.cacheSelectedLists(textFlow, absoluteStart, absoluteEnd);
+			textFlow.interactionManager.refreshSelection();
+			textFlow.flowComposer.updateAllControllers();
+			
+			return true;
+		}
+		
+		private function changeList() : Boolean {
+			var selectedListItems:Array = SelectionHelper.getSelectedListItems( textFlow );
+			var lists:Array = SelectionHelper.getSelectedLists( textFlow );
+			var paragraphs:Array = SelectionHelper.getSelectedParagraphs( textFlow );
+			var spans:Array = SelectionHelper.getSelectedElements( textFlow, null, [SpanElement, BreakElement], true );
+			
+			var item:ListItemElementX;
+			var list:ListElementX;
+			
+			// selection related 
+			var absoluteStart:int = 0;
+			var absoluteEnd:int = 0;
+			var fe1:FlowElement;
+			var fe2:FlowElement;
+			
+			list = changeListModeOnAlreadyCreatedList( selectedListItems, lists, _mode );
+			
+			fe1 = selectedListItems[0];
+			fe2 = selectedListItems[selectedListItems.length-1];
+			
+			absoluteStart = fe1.getAbsoluteStart();
+			absoluteEnd   = fe2.getAbsoluteStart() + fe2.textLength - 1;
+			
+			// set the new selection
+			var newSS:SelectionState = new SelectionState(textFlow, absoluteStart, absoluteEnd);
+			textFlow.interactionManager.setSelectionState(newSS);
+			SelectionHelper.cacheSelectedLists(textFlow, absoluteStart, absoluteEnd);
+			textFlow.interactionManager.refreshSelection();
+			textFlow.flowComposer.updateAllControllers();
+			
+			return true;
+		}
+		
+		private function destroyLists() : Boolean {
+			var selectedListItems:Array = SelectionHelper.getSelectedListItems( textFlow );
+			var lists:Array = SelectionHelper.getSelectedLists( textFlow );
+			var paragraphs:Array = SelectionHelper.getSelectedParagraphs( textFlow );
+			var spans:Array = SelectionHelper.getSelectedElements( textFlow, null, [SpanElement, BreakElement], true );
+			
+			var item:ListItemElementX;
+			var list:ListElementX;
+			
+			// selection related 
+			var absoluteStart:int = 0;
+			var absoluteEnd:int = 0;
+			var fe1:FlowElement;
+			var fe2:FlowElement;
+			
+			// if there are multiple lists
+			// else we are dealing with one list
+			if ( lists.length > 1 )
+			{
+				paragraphs = returnElementsFromMultipleLists( lists, selectedListItems );
+			}
+			else
+			{
+				item = selectedListItems[0] as ListItemElementX;
+				list = item.parent as ListElementX;
+				paragraphs = returnElementsFromSingleList(list , selectedListItems );
+			}
+			
+			if(paragraphs) {
+				this.textFlow.flowComposer.updateAllControllers();
 				
-				if(paragraphs) {
-					this.textFlow.flowComposer.updateAllControllers();
-					
-					// get the first and last flow leaf elements
-					fe1 = paragraphs[0];
-					fe2 = paragraphs[paragraphs.length-1];
-					
-					// get the start and end
-					absoluteStart = fe1.getAbsoluteStart();
-					absoluteEnd   = fe2.getAbsoluteStart() + fe2.textLength;
-				}
+				// get the first and last flow leaf elements
+				fe1 = paragraphs[0];
+				fe2 = paragraphs[paragraphs.length-1];
+				
+				// get the start and end
+				absoluteStart = fe1.getAbsoluteStart();
+				absoluteEnd   = fe2.getAbsoluteStart() + fe2.textLength;
 			}
 			
 			// set the new selection
 			var newSS:SelectionState = new SelectionState(textFlow, absoluteStart, absoluteEnd);
 			textFlow.interactionManager.setSelectionState(newSS);
 			SelectionHelper.cacheSelectedLists(textFlow, absoluteStart, absoluteEnd);
-		//	textFlow.interactionManager.focusInHandler(null);
 			textFlow.interactionManager.refreshSelection();
-		
-			//var li:ListItemElementX = list.mxmlChildren[list.mxmlChildren.length-1] as ListItemElementX;
-			//li.paragraphSpaceAfter = 200;
-			//if(list) 
 			textFlow.flowComposer.updateAllControllers();
-			return true;	
+			
+			return true;
 		}
 		
 		/** @private */
