@@ -121,12 +121,16 @@ package flashx.textLayout.container
 						element = textFlow.getChildAt( i );
 						if( element is TableElement )
 						{
-							flowIndex += ( element as TableElement ).getTableModel().cellAmount + 1;
+							flowIndex += ( element as TableElement ).getTableModel().cellAmount;
 						}
 						if( flowIndex == index )
 						{
 							startIndex = i + 1;
 							break;
+						}
+						else
+						{
+							flowIndex += 1;
 						}
 					}
 				}

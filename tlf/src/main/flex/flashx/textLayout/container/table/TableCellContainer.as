@@ -349,7 +349,7 @@ package flashx.textLayout.container.table
 		protected function composeCell( toWidth:Number, notify:Boolean = true ):void
 		{	
 			// Create textflow and import data as HTML.
-			if( _data.mxmlChildren ) determineCellSize( _data.mxmlChildren, toWidth, notify );
+			determineCellSize( _data, toWidth, notify );
 		}
 		
 		/**
@@ -358,17 +358,15 @@ package flashx.textLayout.container.table
 		 * Determines cell display size using non-display factory.
 		 * @param elements Array An array of FlowElements.
 		 */
-		protected function determineCellSize( elements:Array /* FlowElement[] */, fixedWidth:Number, notify:Boolean = true ):void
+		protected function determineCellSize( element:TableDataElement, fixedWidth:Number, notify:Boolean = true ):void
 		{
 			removeEventListener( Event.ENTER_FRAME, handleDelayedNotification, false );
 			
-			// Update held data.
-			var original:Array = elements.slice(0);
 			// Resolve any line breaks.
-			if( _lineBreakIdentifier != TableCellContainer.INTERNAL_LINE_BREAK_IDENTIFIER )
-			{
-				elements = resolvePossibleBreaks( elements );	
-			}
+//			if( _lineBreakIdentifier != TableCellContainer.INTERNAL_LINE_BREAK_IDENTIFIER )
+//			{
+//				elements = resolvePossibleBreaks( elements );	
+//			}
 			
 			var heightPadding:Number = _tableDataContext.getComputedHeightOfPaddingAndBorders();
 			var tempHeight:Number = _actualHeight;
@@ -385,42 +383,19 @@ package flashx.textLayout.container.table
 			_numLines = 0;
 			
 			cleanTextFlow();
-			var element:FlowElement;
-			var elementList:Array = []; // CellElement[]
-			var previousFormat:ITextLayoutFormat;
-			var computedFormat:ITextLayoutFormat;
-			// Loop through elements and pop from Array and place on TextFlow instance.
-			while( elements.length > 0 )
-			{
-				element = ( elements.shift() as FlowElement );
-				if( elements.length == 0 )
-				{
-					ensureLastElementHeight( element );
-				}
-				previousFormat = new FlowValueHolder( ( element.format as FlowValueHolder ) );
-				computedFormat = _data.computedFormat;
-				element.format = ( element.format ) ? TextLayoutFormatUtils.mergeFormats( computedFormat, element.format ) : computedFormat;
-				element.uid = _uid;
-				// Add to held list of elements.
-				elementList.push( CellElementPool.getCellElement( element, previousFormat ) );
-				// Push to stack of TextFlow
-				_textFlow.addChild( element );
-			}
+			ensureLastElementHeight( element );
+			var copy:TableDataElement = element.deepCopy() as TableDataElement;
+			var computedFormat:ITextLayoutFormat = element.computedFormat;
+			copy.format = ( element.format ) ? TextLayoutFormatUtils.mergeFormats( computedFormat, element.format ) : computedFormat;
+			_textFlow.addChild( copy );
 			
 			// Run textFlow through factry to determine the actual size of the cell container.
 			var factory:TextFlowTextLineFactory = new TextFlowTextLineFactory();
 			factory.compositionBounds = new Rectangle( 0, 0, fixedWidth, Number.NaN );
 			factory.createTextLines( updateActualBounds, _textFlow );
 			
-			var elementLength:int = elementList.length;
-			var cellElement:CellElement;
-			// Add back to element.
-			while( elementList.length > 0 )
-			{
-				cellElement = elementList.shift() as CellElement;
-				_data.addChild( cellElement.element );
-				CellElementPool.returnCellElement( cellElement );
-			}
+			_textFlow.removeChild( copy );
+			copy = null;
 			
 			// If we ran through construction and an image was found at a size larger than the detemrined fixed width, we need to run it again and make sure it fits.
 			if( _pendingRecompose )
@@ -444,15 +419,15 @@ package flashx.textLayout.container.table
 				invalidateSize( ( isNaN( _proposedMeasuredWidth ) ) ? _width : _proposedMeasuredWidth, _height );	
 			}
 			// If we want to notify and the elements weren;t reassmebled due to line breaks, notify.
-			if( notify && original.length == elementLength )
+			if( notify )
 			{
 				notifyOfChange();
 			}
 				// Else elements were reassembled due to line breaks. Wait a frame.
-			else if( notify && original.length != elementLength )
-			{
-				addEventListener( Event.ENTER_FRAME, handleDelayedNotification, false, 0, true );
-			}
+//			else( notify )
+//			{
+//				addEventListener( Event.ENTER_FRAME, handleDelayedNotification, false, 0, true );
+//			}
 		}
 		
 		/**
@@ -1013,15 +988,19 @@ package flashx.textLayout.container.table
 }
 
 import flashx.textLayout.elements.FlowElement;
+import flashx.textLayout.elements.FlowGroupElement;
 import flashx.textLayout.formats.ITextLayoutFormat;
 
 class CellElement
 {
 	public var element:FlowElement;
+	public var parent:FlowGroupElement;
+	public var previousFlowIndex:int;
 	public var previousFormat:ITextLayoutFormat;
-	public function CellElement( element:FlowElement, previousFormat:ITextLayoutFormat )
+	public function CellElement( element:FlowElement, parent:FlowGroupElement, previousFlowIndex:int, previousFormat:ITextLayoutFormat )
 	{
 		this.element = element;
+		this.previousFlowIndex = previousFlowIndex;
 		this.previousFormat = previousFormat;
 	}
 }
@@ -1031,11 +1010,17 @@ class CellElementPool
 	private static var _pool:Array = [];
 	static public function getCellElement( element:FlowElement, previousFormat:ITextLayoutFormat ):CellElement
 	{
+		var parent:FlowGroupElement = element.parent;
+		var previousFlowIndex:int = (parent) ? parent.getChildIndex( element ) : 0;
 		if( _pool.length == 0 )
-			_pool.push( new CellElement( element, previousFormat ) );
+		{
+			_pool.push( new CellElement( element, parent, previousFlowIndex, previousFormat ) );
+		}
 		
 		var cellElement:CellElement = _pool.shift() as CellElement;
 		cellElement.element = element;
+		cellElement.parent = parent;
+		cellElement.previousFlowIndex = previousFlowIndex;
 		cellElement.previousFormat = previousFormat;
 		return cellElement;
 	}
@@ -1043,6 +1028,7 @@ class CellElementPool
 	static public function returnCellElement( cellElement:CellElement ):void
 	{
 		cellElement.element.format = cellElement.previousFormat;
+//		cellElement.parent.addChildAt( cellElement.previousFlowIndex, cellElement.element );
 		_pool.push( cellElement );
 	}
 }

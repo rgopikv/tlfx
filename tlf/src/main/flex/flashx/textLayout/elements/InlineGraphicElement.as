@@ -997,10 +997,10 @@ package flashx.textLayout.elements
 			 copy.width = _elementWidth;
 			 copy.height = _elementHeight;
 			 // [TA] 07-22-2010 :: Pushing referenc to copied inline graphic to source is managed.
-//			 if( copy.source is IManagedInlineGraphicSource )
-//			 {
-//				 copy.source = ( copy.source as IManagedInlineGraphicSource ).copy();
-//			 }
+			 if( copy.source is IManagedInlineGraphicSource )
+			 {
+				 copy.source = ( copy.source as IManagedInlineGraphicSource ).copy();
+			 }
 			 // [END TA]
 			 return copy;
 		 }

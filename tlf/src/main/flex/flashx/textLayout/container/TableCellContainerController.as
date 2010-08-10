@@ -2,6 +2,7 @@ package flashx.textLayout.container
 {
 	import flash.display.Sprite;
 	
+	import flashx.textLayout.container.table.ICellContainer;
 	import flashx.textLayout.elements.table.ITableElementManager;
 	
 	/**
@@ -11,6 +12,7 @@ package flashx.textLayout.container
 	 */
 	public class TableCellContainerController extends ContainerController
 	{
+		private var _cellContainer:ICellContainer;
 		private var _tableManager:ITableElementManager;
 		
 		/**
@@ -19,9 +21,15 @@ package flashx.textLayout.container
 		 * @param compositionWidth Number
 		 * @param compositionHeight Number
 		 */
-		public function TableCellContainerController(container:Sprite, compositionWidth:Number=100, compositionHeight:Number=100)
+		public function TableCellContainerController(container:ICellContainer, compositionWidth:Number=100, compositionHeight:Number=100)
 		{
-			super(container, compositionWidth, compositionHeight);
+			super(container.getDisplay(), compositionWidth, compositionHeight);
+			_cellContainer = container;
+		}
+		
+		public function get cellContainer():ICellContainer
+		{
+			return _cellContainer;
 		}
 		
 		/**
