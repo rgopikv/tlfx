@@ -181,6 +181,14 @@ package flashx.textLayout.operations
 				//(newPara1 as ParagraphElement).addChild(newSpan);
 				newPara.addChild(newSpan);
 				
+				// get font size of last leaf
+				var lastItem:ListItemElementX = list.listItems[list.listItems.length-1] as ListItemElementX;
+				if(lastItem.fontSize != undefined) {
+					newPara.paragraphSpaceAfter = lastItem.fontSize;
+				} else {
+					newPara.paragraphSpaceAfter = 16;
+				} 
+				
 				var tf:TextLayoutFormat = new TextLayoutFormat(leaf.format);
 				tf.paragraphStartIndent = 0;
 				
