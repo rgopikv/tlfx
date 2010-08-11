@@ -25,6 +25,37 @@ package flashx.textLayout.edit.helpers
 		private static var _selectedListItemsCache:Array;
 		
 		/**
+		 * Locates and returns flag of having found element type recursively upwards. 
+		 * @param element FlowElement
+		 * @param elementType Class
+		 * @return Boolean
+		 */
+		public static function findElementType( element:FlowElement, elementType:Class ):Boolean
+		{
+			if( element is elementType ) return true;
+			var parent:FlowGroupElement = element.parent;
+			while( parent )
+			{
+				if( parent is elementType ) return true;
+				parent = parent.parent;
+			}
+			return false;
+		}
+		
+		/**
+		 * Returns flag of cursor position residing in a specified element type. 
+		 * @param tf TextFlow
+		 * @param position int
+		 * @param elementType Class
+		 * @return Boolean
+		 */
+		public static function isCursorInElement( tf:TextFlow, position:int, elementType:Class ):Boolean
+		{
+			var leaf:FlowElement = tf.findLeaf( position );
+			return SelectionHelper.findElementType( leaf, elementType );
+		}
+		
+		/**
 		 * Returns true if the TextFlow's current selection state contains the supplied paragraph.
 		 */
 		public static function selectionContainsParagraph(tf:TextFlow, paragraph:ParagraphElement):Boolean

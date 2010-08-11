@@ -388,6 +388,45 @@ package flashx.textLayout.edit
 			doOperation(new ExtendedApplyFormatOperation(operationState, characterFormat, null, null));
 		}
 		
+		override public function deleteNextCharacter(operationState:SelectionState=null):void
+		{
+			operationState = defaultOperationState(operationState);
+			if (!operationState)
+				return;
+			
+			// Check to see if we are trying to performa a delete from outside a table and will move the cursor into the table.
+			//	This is not allowed.
+			var paragraph:ParagraphElement = textFlow.findLeaf( operationState.anchorPosition ).getParagraph();
+			var sibling:ParagraphElement = paragraph.getNextParagraph();
+			if( paragraph.parent != sibling.parent )
+			{
+				var tableIsCurrent:Boolean = SelectionHelper.isCursorInElement( textFlow, operationState.absoluteStart, TableElement );
+				var tableIsNext:Boolean = SelectionHelper.isCursorInElement( textFlow, operationState.absoluteStart + 1, TableElement );
+				if( !tableIsCurrent && tableIsNext ) return;
+			}
+			// If we are not trying to do a delte from outside a table into a table with one character, then do super.
+			super.deleteNextCharacter( operationState );
+		}
+		
+		override public function deletePreviousCharacter(operationState:SelectionState=null):void
+		{
+			operationState = defaultOperationState( operationState );
+			if( !operationState ) return;
+			
+			// Check to see if we are trying to a perform a backspace from inside a table and will move the cursor outside the table.
+			//	This is not allowed.
+			var paragraph:ParagraphElement = textFlow.findLeaf( operationState.anchorPosition ).getParagraph();
+			var previousSibling:ParagraphElement = paragraph.getPreviousParagraph();
+			if( paragraph.parent != previousSibling.parent )
+			{
+				var tableIsCurrent:Boolean = SelectionHelper.isCursorInElement( textFlow, operationState.absoluteStart, TableElement );
+				var tableIsPrevious:Boolean = SelectionHelper.isCursorInElement( textFlow, Math.max(operationState.anchorPosition - 1, 0), TableElement );
+				if( tableIsCurrent && !tableIsPrevious ) return;
+			}
+			// If we are not backspacing from inside a table to outside of a table with one character, then do super.
+			super.deletePreviousCharacter( operationState );
+		}
+		
 		public function get htmlImporter():IHTMLImporter
 		{
 			return _htmlImporter;

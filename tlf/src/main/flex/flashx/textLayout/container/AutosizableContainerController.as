@@ -235,6 +235,21 @@ package flashx.textLayout.container
 		}
 		
 		/**
+		 * @private 
+		 * 
+		 * Reset any cached values used for space offset.
+		 */
+		protected function resetCachedOffsets():void
+		{
+			if( _cachedOffsetElement )
+			{
+				_cachedOffsetElement.paragraphSpaceAfter = _cachedOffset;
+				_cachedOffset = 0;
+				_cachedOffsetElement = null;
+			}
+		}
+		
+		/**
 		 * @private
 		 * 
 		 * Returns the offset in height based on the last element that is used to construct the internal flow.
@@ -246,15 +261,9 @@ package flashx.textLayout.container
 		protected function ensureProperSpaceAfterController( element:FlowElement ):Number
 		{
 			// If we are the last container contrller, don't have to fake spacing between table elements.
-			if( textFlow.flowComposer.getControllerAt(textFlow.flowComposer.numControllers - 1) != this )
+			if( textFlow.flowComposer.getControllerAt(textFlow.flowComposer.numControllers - 1) == this )
 			{
 				return 0;
-			}
-			// Else try and find the last element and if paragraph, start caching.
-			if( _cachedOffsetElement )
-			{
-				_cachedOffsetElement.paragraphSpaceAfter = _cachedOffset;
-				_cachedOffset = 0;
 			}
 			var offset:Number = 0;
 			if( element is ParagraphElement ) 
@@ -304,7 +313,9 @@ package flashx.textLayout.container
 			}
 			// Get monitored elements and add to internal text flow for TextLine creation.
 			var i:int = 0;
+			resetCachedOffsets();
 			_processedElements = getMonitoredElements();
+			
 			var element:FlowElement;
 			var lastElement:FlowElement;
 			for( i = 0 ;i < _processedElements.length; i++ )
@@ -325,8 +336,7 @@ package flashx.textLayout.container
 			factory.createTextLines( handleLineCreation, _containerFlow );
 		
 			// Grab offset based on last element to ensure proper sizing of container controller as it corresponds to the flow.
-			var heightOffset:Number = ensureProperSpaceAfterController( lastElement );
-			_actualHeight += ( isNaN(heightOffset) ) ? 0 : heightOffset;
+			ensureProperSpaceAfterController( lastElement );
 			
 			// Return the elements and resize.
 			returnMonitoredElements();

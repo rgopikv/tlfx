@@ -234,8 +234,6 @@ package flashx.textLayout.operations
 					//				}
 				}
 			}
-			
-			
 		}
 		
 		private function handleRangeDeletion() : void {
@@ -388,7 +386,7 @@ package flashx.textLayout.operations
 		 * a caret selection.
 		 */
 		private function deleteText() : void {
-			interactionManager.deletePreviousCharacter(interactionManager.getSelectionState());
+			interactionManager.deletePreviousCharacter(originalSelectionState);
 		}
 		
 		/**
