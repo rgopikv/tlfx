@@ -70,6 +70,9 @@ package flashx.textLayout.elements
 	{
 		private var _textBlock:TextBlock;
 		
+		//	[KK]	8/11/2010	For exporting HTML more like that which was imported and for applying CSS to spans that had to be converted due to complex content
+		protected var _isHtmlSpan:Boolean;
+		
 		/** Constructor - represents a paragraph in a text flow. 
 		*
 		* @playerversion Flash 10
@@ -80,12 +83,15 @@ package flashx.textLayout.elements
 		public function ParagraphElement()
 		{
 			super();
+			_isHtmlSpan = false;
 		}
 		
 		/** @private */
 		public override function shallowCopy(startPos:int = 0, endPos:int = -1):FlowElement
 		{
 			var retFlow:ParagraphElement = super.shallowCopy(startPos, endPos) as ParagraphElement;
+			//	[KK]	Any time you make a copy, it is no longer an HTML span
+			retFlow.isHtmlSpan = false;
 			if (_textBlock)
 				retFlow.createTextBlock();
 			return retFlow;
@@ -866,6 +872,16 @@ package flashx.textLayout.elements
 		{
 			super.original = value;
 			paragraphSpaceAfter = ( value ) ? 16 : undefined;
+		}
+		
+		//	[KK]	8/11/06
+		public function set isHtmlSpan( value:Boolean ):void
+		{
+			_isHtmlSpan = value;
+		}
+		public function get isHtmlSpan():Boolean
+		{
+			return _isHtmlSpan;
 		}
 	}
 }

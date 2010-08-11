@@ -10,6 +10,7 @@ package flashx.textLayout.operations
 	import flashx.textLayout.elements.FlowElement;
 	import flashx.textLayout.elements.FlowGroupElement;
 	import flashx.textLayout.elements.LinkElement;
+	import flashx.textLayout.elements.ListElement;
 	import flashx.textLayout.elements.ParagraphElement;
 	import flashx.textLayout.elements.SpanElement;
 	import flashx.textLayout.elements.TextFlow;
@@ -17,6 +18,7 @@ package flashx.textLayout.operations
 	import flashx.textLayout.elements.list.ListItemElementX;
 	import flashx.textLayout.elements.list.ListItemModeEnum;
 	import flashx.textLayout.elements.list.ListPaddingElement;
+	import flashx.textLayout.elements.table.TableElement;
 	import flashx.textLayout.events.TextLayoutEvent;
 	import flashx.textLayout.formats.ITextLayoutFormat;
 	import flashx.textLayout.formats.TextLayoutFormat;
@@ -539,6 +541,9 @@ package flashx.textLayout.operations
 					p.addChild( new BreakElement() );
 				}
 				
+				//	Remove the last unwanted break
+				p.removeChildAt( p.numChildren-1 );
+				
 				returnedElements.push(p);
 				
 				return returnedElements;
@@ -716,6 +721,8 @@ package flashx.textLayout.operations
 				list.parent.removeChild( list );
 			}
 			
+			checkAndRemoveEmptyParagraphs( textFlow );
+			
 			// Apply style and assign managing container controller to returned elements.
 //			var node:XML;
 //			var element:FlowElement;
@@ -729,6 +736,27 @@ package flashx.textLayout.operations
 //			_htmlImporter.importStyleHelper.apply();
 			
 			return returnedElements;			
+		}
+		
+		protected function checkAndRemoveEmptyParagraphs( group:FlowGroupElement ):void
+		{
+			for ( var i:int = group.numChildren-1; i > -1; i-- )
+			{
+				var child:FlowElement = group.getChildAt(i);
+				
+				if ( child is ParagraphElement )
+				{
+					var p:ParagraphElement = child as ParagraphElement;
+					if ( p.textLength <= 1 )
+					{
+						group.removeChildAt(i);
+					}
+				}
+				else if ( child is DivElement && !(child is ListElementX || child is TableElement) )
+				{
+					checkAndRemoveEmptyParagraphs( child as DivElement );
+				}
+			}
 		}
 		
 		/**
@@ -949,6 +977,20 @@ package flashx.textLayout.operations
 			else
 			{
 				list = splitAndAddListToTextFlow( prnt, spans );
+			}
+			
+			//	[KK]	Check and remove selected paragraphs if now empty
+			for ( var i:int = 0; i < paragraphs.length; i++ )
+			{
+				p = paragraphs[i] as ParagraphElement;
+				if ( p.textLength <= 1 )
+				{
+					try {
+						p.parent.removeChild(p);
+					} catch ( e:* ) {
+						//	[KK]	Fail silently because p is not owned by any parent
+					}
+				}
 			}
 			
 			// we should select the entire list

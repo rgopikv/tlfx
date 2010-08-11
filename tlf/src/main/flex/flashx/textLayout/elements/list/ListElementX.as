@@ -320,7 +320,6 @@ package flashx.textLayout.elements.list
 			
 			// we loop through the ListItems so that there paragraph spacing is correct
 			for(var i:int=0; i<= listItems.length-2; i++) {
-				trace(listItems[i]);
 				var item:ListItemElementX = listItems[i] as ListItemElementX;
 				item.paragraphSpaceAfter = 0;
 			}
