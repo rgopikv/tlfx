@@ -937,10 +937,10 @@ package flashx.textLayout.operations
 			var fe1:FlowElement;
 			var fe2:FlowElement;
 			
-			var lastParaFormat:ITextLayoutFormat = getCascadingFormatForElement( paragraphs[paragraphs.length - 1] as ParagraphElement );
+			//var lastParaFormat:ITextLayoutFormat = getCascadingFormatForElement( paragraphs[paragraphs.length - 1] as ParagraphElement );
 			//	Add ListElementX at position of first element
-			var p:ParagraphElement = paragraphs[0] as ParagraphElement;
-			var prnt:FlowGroupElement = p.parent;
+			var p:ParagraphElement = spans[0].parent as ParagraphElement;
+			var prnt:FlowGroupElement = spans[0].parent.parent;
 			// Owner is a TextFlow, just add at same position as first ParagraphElement
 			if ( prnt is TextFlow )
 			{

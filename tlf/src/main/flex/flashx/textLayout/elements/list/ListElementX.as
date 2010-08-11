@@ -306,8 +306,13 @@ package flashx.textLayout.elements.list
 				//correctPadding();
 				correctParagraphSpacing();
 				
-				if ( getTextFlow() )
-					getTextFlow().flowComposer.updateAllControllers();
+//				if ( getTextFlow() ) {
+//					try {
+//						getTextFlow().flowComposer.updateAllControllers();
+//					} catch (e:Error) {
+//						trace("ListElementX tried to updateAllControllers but errored");
+//					}
+//				}
 			}
 		}
 		
@@ -329,9 +334,9 @@ package flashx.textLayout.elements.list
 				lastItem.paragraphSpaceAfter = 16;
 			}
 		
-			if(getTextFlow()) {
+			/*if(getTextFlow()) {
 				getTextFlow().flowComposer.updateAllControllers();
-			}
+			}*/
 			//paragraphSpaceAfter = fs;
 			
 			
