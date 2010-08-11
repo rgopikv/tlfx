@@ -158,9 +158,13 @@ package flashx.textLayout.edit
 					trace("absoluteEnd: " + absoluteEnd);
 					trace("textFlow.getAbsoluteStart(): " + textFlow.getAbsoluteStart());
 					trace("tFlow.textLength-1: " + (textFlow.textLength-1));
-					if(absoluteStart == textFlow.getAbsoluteStart() && absoluteEnd == textFlow.textLength-1) {
+//					if(absoluteStart == textFlow.getAbsoluteStart() && absoluteEnd == textFlow.textLength-1) {
+//						doOperation( new BackspaceOperation( operationState, this ) )
+//					} 	
+					
+					if(absoluteStart != absoluteEnd) {
 						doOperation( new BackspaceOperation( operationState, this ) )
-					} 		
+					}
 				}
 			}
 			
