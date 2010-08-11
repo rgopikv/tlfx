@@ -112,26 +112,29 @@ package flashx.textLayout.container
 				removeInitialMonitoredElements();
 				
 				var startIndex:int = 0;
-				var index:int = flowComposer.getControllerIndex( this );
+				var index:int = textFlow.flowComposer.getControllerIndex( this );
+				var passedTable:Boolean;
 				if( index != 0 )
 				{
-					var flowIndex:int = 0;
+					var flowIndex:int;
 					for( i = 0; i < textFlow.numChildren; i++ )
 					{
 						element = textFlow.getChildAt( i );
 						if( element is TableElement )
 						{
 							flowIndex += ( element as TableElement ).getTableModel().cellAmount;
+							passedTable = true;
 						}
 						if( flowIndex == index )
 						{
-							startIndex = i + 1;
 							break;
 						}
-						else
+						else if( passedTable )
 						{
 							flowIndex += 1;
+							passedTable = false;
 						}
+						startIndex += 1;
 					}
 				}
 				
@@ -260,11 +263,6 @@ package flashx.textLayout.container
 		 */
 		protected function ensureProperSpaceAfterController( element:FlowElement ):Number
 		{
-			// If we are the last container contrller, don't have to fake spacing between table elements.
-			if( textFlow.flowComposer.getControllerAt(textFlow.flowComposer.numControllers - 1) == this )
-			{
-				return 0;
-			}
 			var offset:Number = 0;
 			if( element is ParagraphElement ) 
 			{
