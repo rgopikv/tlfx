@@ -168,6 +168,9 @@ package flashx.textLayout.edit
 				}
 			}
 			
+			var p:ParagraphElement;
+			var span:SpanElement;
+			
 			switch ( event.keyCode )
 			{
 				case Keyboard.TAB:
@@ -188,7 +191,6 @@ package flashx.textLayout.edit
 				
 				case Keyboard.DELETE:
 					doOperation( new DeleteOperation( operationState, this ) );
-					
 					return;
 					break;
 				
@@ -217,7 +219,6 @@ package flashx.textLayout.edit
 					var op:ClearOperation;
 					op = new ClearOperation( operationState, this );
 					doOperation(op);
-					
 					break;
 				default:
 					super.editHandler(event);

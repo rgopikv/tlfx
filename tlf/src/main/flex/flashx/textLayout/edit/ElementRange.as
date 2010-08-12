@@ -26,7 +26,6 @@ package flashx.textLayout.edit
  */	
 public class ElementRange
 {
-	import flashx.textLayout.formats.ITextLayoutFormat;
 	import flashx.textLayout.compose.IFlowComposer;
 	import flashx.textLayout.container.ContainerController;
 	import flashx.textLayout.elements.ContainerFormattedElement;
@@ -34,6 +33,7 @@ public class ElementRange
 	import flashx.textLayout.elements.ParagraphElement;
 	import flashx.textLayout.elements.SubParagraphGroupElement;
 	import flashx.textLayout.elements.TextFlow;
+	import flashx.textLayout.formats.ITextLayoutFormat;
 	import flashx.textLayout.tlf_internal;
 	
 	use namespace tlf_internal;
@@ -250,7 +250,11 @@ public class ElementRange
 		if (absoluteStart == absoluteEnd)
 		{
 			rslt.absoluteStart = rslt.absoluteEnd = absoluteStart;
-			rslt.firstLeaf = rslt.lastLeaf = textFlow.findLeaf(rslt.absoluteStart);
+			//	[KK]	After select all, delete, and paste of HTML content this function was throwing a null object error
+			//			Counter this by testing for null object and compensating
+			var leaf:FlowLeafElement = textFlow.findLeaf( Math.min( textFlow.textLength-1, rslt.absoluteStart ) );
+			
+			rslt.firstLeaf = rslt.lastLeaf = leaf;	//	[KK]	was textFlow.findLeaf( rslt.absoluteStart );
 			rslt.firstParagraph = rslt.lastParagraph = rslt.firstLeaf.getParagraph();
 	//		rslt.begContainer = rslt.endContainer = selState.textFlow.findAbsoluteContainer(rslt.begElemIdx);
 			adjustForLeanLeft(rslt);
