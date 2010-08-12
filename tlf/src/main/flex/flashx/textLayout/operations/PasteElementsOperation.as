@@ -90,7 +90,7 @@ package flashx.textLayout.operations
 					}
 					else
 					{
-						insertIndex = 0;
+						if( para.getAbsoluteStart() == 0 ) insertIndex = 0;
 					}
 				}
 				// Else, split flow up.
@@ -106,7 +106,7 @@ package flashx.textLayout.operations
 					}
 					else
 					{
-						insertIndex = 0;
+						if( para.getAbsoluteStart() == 0 ) insertIndex = 0;
 					}
 				}
 				targetGroup = textFlow;
