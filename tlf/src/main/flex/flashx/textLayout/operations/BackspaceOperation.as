@@ -386,7 +386,7 @@ package flashx.textLayout.operations
 		 * a caret selection.
 		 */
 		private function deleteText() : void {
-			interactionManager.deletePreviousCharacter(originalSelectionState);
+			interactionManager.deletePreviousCharacter(interactionManager.getSelectionState());
 		}
 		
 		/**
