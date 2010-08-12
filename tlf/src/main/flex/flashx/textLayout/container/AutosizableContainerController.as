@@ -127,6 +127,8 @@ package flashx.textLayout.container
 						}
 						if( flowIndex == index )
 						{
+							// If table was first element, update to start after.
+							if( i == 0 ) startIndex = 1;
 							break;
 						}
 						else if( passedTable )

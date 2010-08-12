@@ -384,18 +384,21 @@ package flashx.textLayout.container.table
 			
 			cleanTextFlow();
 			ensureLastElementHeight( element );
-			var copy:TableDataElement = element.deepCopy() as TableDataElement;
+			var parent:FlowGroupElement = element.parent;
+			var index:int = parent.getChildIndex( element );
+			var previousFormat:ITextLayoutFormat = element.format;
 			var computedFormat:ITextLayoutFormat = element.computedFormat;
-			copy.format = ( element.format ) ? TextLayoutFormatUtils.mergeFormats( computedFormat, element.format ) : computedFormat;
-			_textFlow.addChild( copy );
+			element.format = ( element.format ) ? TextLayoutFormatUtils.mergeFormats( computedFormat, element.format ) : computedFormat;
+			_textFlow.addChild( element );
 			
 			// Run textFlow through factry to determine the actual size of the cell container.
 			var factory:TextFlowTextLineFactory = new TextFlowTextLineFactory();
 			factory.compositionBounds = new Rectangle( 0, 0, fixedWidth, Number.NaN );
 			factory.createTextLines( updateActualBounds, _textFlow );
 			
-			_textFlow.removeChild( copy );
-			copy = null;
+			_textFlow.removeChild( element );
+			element.format = previousFormat;
+			parent.addChildAt( index, element );
 			
 			// If we ran through construction and an image was found at a size larger than the detemrined fixed width, we need to run it again and make sure it fits.
 			if( _pendingRecompose )
