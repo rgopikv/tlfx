@@ -170,7 +170,7 @@ package flashx.textLayout.edit
 		
 		private static function isInsertableItem(flItem:FlowElement, missingBeginElements:Array, missingEndElements:Array):Boolean
 		{
-			return ((flItem is ParagraphElement) || /* [TA] 07-24-2010 :: Added ListElement as exclusive to the club */ (flItem is ListElementX) || /* [END TA] */
+			return ((flItem is ParagraphElement) || /* [TA] 07-24-2010 :: Added ListElement as exclusive to the club */ (flItem is ListElementX) || /* [END TA] */ (flItem is TableElement) ||
 				(!TextFlowEdit.isFlowElementInArray(missingBeginElements, flItem) &&
 					!TextFlowEdit.isFlowElementInArray(missingEndElements, flItem)));
 		}

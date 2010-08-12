@@ -196,6 +196,12 @@ package flashx.textLayout.elements.table
 			return copy;
 		}
 		
+		override public function deepCopy(startPos:int=0, endPos:int=-1):FlowElement
+		{
+			var copy:TableElement = super.deepCopy(startPos, endPos) as TableElement;
+			return copy;
+		}
+		
 		/**
 		 * @private
 		 * 

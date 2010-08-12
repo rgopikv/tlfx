@@ -162,7 +162,9 @@ package flashx.textLayout.container
 				{
 					element = flowElements[i] as FlowElement;
 					if( _initialMonitoredElements.indexOf( element ) > -1 )
+					{
 						elements.push( new MonitoredElementContent( element, i ) );
+					}
 				}
 			}
 			return elements;

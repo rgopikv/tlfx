@@ -54,7 +54,9 @@ package flashx.textLayout.operations
 			var index:int = 0;
 			var length:int;
 			var leaf:FlowLeafElement = textFlow.findLeaf( absoluteEnd );
-			var para:ParagraphElement = leaf.getParagraph();
+			var para:ParagraphElement = textFlow.findAbsoluteParagraph(absoluteEnd);
+			var paraSplitIndex:int = absoluteEnd - para.getAbsoluteStart();
+			var flowElIndex:int = para.parent.getChildIndex(para);
 			var topGroup:FlowGroupElement = para.parent;
 			
 			var insertIndex:int;
@@ -78,14 +80,34 @@ package flashx.textLayout.operations
 				// If Paragraph is dirct child of TextFlow, just split it.
 				if( topGroup is TextFlow )
 				{
-					insertIndex = topGroup.getChildIndex( para );
-					ParaEdit.splitParagraph( para, absoluteEnd - para.getAbsoluteStart() );
+					insertIndex = topGroup.getChildIndex( para ) + 1;
+					if (paraSplitIndex > 0)
+					{
+						if (paraSplitIndex < (para.textLength - 1))
+						{
+							para.splitAtPosition( paraSplitIndex );
+						}
+					}
+					else
+					{
+						insertIndex = 0;
+					}
 				}
 				// Else, split flow up.
 				else
 				{
-					insertIndex = textFlow.getChildIndex( topGroup );
-					TextFlowEdit.splitElement( topGroup, absoluteEnd - topGroup.getAbsoluteStart(), true );
+					insertIndex = textFlow.getChildIndex( topGroup ) + 1;
+					if (paraSplitIndex > 0)
+					{
+						if (paraSplitIndex < (para.textLength - 1))
+						{
+							TextFlowEdit.splitElement( topGroup, absoluteEnd - topGroup.getAbsoluteStart(), true );
+						}
+					}
+					else
+					{
+						insertIndex = 0;
+					}
 				}
 				targetGroup = textFlow;
 			}
@@ -96,13 +118,13 @@ package flashx.textLayout.operations
 				if( topGroup is TableDataElement ) 
 				{
 					cellElement = topGroup as TableDataElement;
-					insertIndex = cellElement.getChildIndex( para );
+					insertIndex = cellElement.getChildIndex( para ) + 1;
 					ParaEdit.splitParagraph( para, absoluteEnd - para.getAbsoluteStart() );
 				}
 				else
 				{
 					cellElement = topGroup.parent as TableDataElement;
-					insertIndex = cellElement.getChildIndex( topGroup );
+					insertIndex = cellElement.getChildIndex( topGroup ) + 1;
 					TextFlowEdit.splitElement( topGroup, absoluteEnd - topGroup.getAbsoluteStart(), true );	
 				}
 				insertElementsIntoCell( topGroup as TableDataElement, para, _elementsToPaste );
@@ -110,7 +132,7 @@ package flashx.textLayout.operations
 			}
 			// Add the elements to the target group.
 			var elem:FlowElement;
-			var elemInsert:int = insertIndex + 1;
+			var elemInsert:int = insertIndex;
 			for( i = 0; i < _elementsToPaste.length; i++ )
 			{
 				elem = _elementsToPaste[i];
@@ -120,23 +142,23 @@ package flashx.textLayout.operations
 			}
 			
 			// Check if we emptied out where we split/started.
-			var insertElement:FlowElement = targetGroup.getChildAt( insertIndex );
-			if( insertElement.textLength == 0 )
-			{
-				targetGroup.removeChild( insertElement );
-			}
-			else if( insertElement is FlowGroupElement && insertElement.textLength == 1 )
-			{
-				// Empty spans, ones that are handed a paragraph terminator have the *awesome* design of havin textlength = 1.
-				leaf = ( insertElement as FlowGroupElement ).findLeaf( absoluteStart ) as FlowLeafElement;
-				if( leaf is SpanElement )
-				{
-					if( leaf.textLength == 1 && ( leaf as SpanElement ).hasParagraphTerminator )
-					{
-						targetGroup.removeChild( insertElement );
-					}
-				}
-			}
+//			var insertElement:FlowElement = targetGroup.getChildAt( insertIndex - 1 );
+//			if( insertElement.textLength == 0 )
+//			{
+//				targetGroup.removeChild( insertElement );
+//			}
+//			else if( insertElement is FlowGroupElement && insertElement.textLength == 1 )
+//			{
+//				// Empty spans, ones that are handed a paragraph terminator have the *awesome* design of havin textlength = 1.
+//				leaf = ( insertElement as FlowGroupElement ).findLeaf( absoluteStart ) as FlowLeafElement;
+//				if( leaf is SpanElement )
+//				{
+//					if( leaf.textLength == 1 && ( leaf as SpanElement ).hasParagraphTerminator )
+//					{
+//						targetGroup.removeChild( insertElement );
+//					}
+//				}
+//			}
 			
 			// Notify and update selection.
 			textFlow.interactionManager.notifyInsertOrDelete( absoluteEnd, length );
