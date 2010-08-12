@@ -240,79 +240,9 @@ package flashx.textLayout.elements.list
 		{
 			if ( numChildren > 0 && !pendingUpdate )
 			{
-				//removePadding();
-				
-				var items:Array = listItems;
-				
-				//	Start on 1 because 0 is ParagraphElement
-				var prevItem:ListItemElementX;
-				var numbers:Vector.<int> = new Vector.<int>();
-				
-				for ( var i:int = 0; i < items.length; i++ )
-				{
-					var item:ListItemElementX = items[i] as ListItemElementX;
-					var itemIndent:int = Math.max( 0, item.indent-24 );
-					
-					//	2nd item and beyond
-					if ( prevItem )
-					{
-						var indent:int;
-						var prevItemIndent:int = Math.max( 0, prevItem.indent-24 );
-						//	Nested
-						if ( itemIndent > prevItemIndent )
-						{
-							indent = Math.max(itemIndent, 0);
-							while ( indent > prevItemIndent )
-							{
-								numbers.push(1);
-								indent = Math.max( indent-24, 0 );
-								if ( indent == 0 )
-									break;
-							}
-						}
-						else if ( itemIndent < prevItemIndent )
-						{
-							indent = prevItemIndent;
-							while ( indent > itemIndent )
-							{
-								numbers.pop();
-								indent = Math.max( indent-24, 0 );
-								if ( indent == 0 )
-									break;
-							}
-						}
-						//	New list
-						else if ( item.mode != prevItem.mode )
-						{
-							numbers[numbers.length-1] = 1;
-						}
-					}
-					else
-						numbers.push(1);
-					
-					if ( numbers.length == 0 )
-						numbers.push(1);
-					
-					item.number = numbers[numbers.length-1] ? numbers[numbers.length-1] : 0;
-					item.update();
-					
-					numbers[numbers.length-1]++;
-					
-					prevItem = item;
-				}
-				
 				ensureIndentation();
 				
-				//correctPadding();
 				correctParagraphSpacing();
-				
-//				if ( getTextFlow() ) {
-//					try {
-//						getTextFlow().flowComposer.updateAllControllers();
-//					} catch (e:Error) {
-//						trace("ListElementX tried to updateAllControllers but errored");
-//					}
-//				}
 			}
 		}
 		
@@ -332,17 +262,6 @@ package flashx.textLayout.elements.list
 			} else {
 				lastItem.paragraphSpaceAfter = 16;
 			}
-		
-			/*if(getTextFlow()) {
-				getTextFlow().flowComposer.updateAllControllers();
-			}*/
-			//paragraphSpaceAfter = fs;
-			
-			
-			/*var fle:FlowLeafElement = getLastLeaf();
-			fle.parent.paragraphSpaceAfter = 100;*/
-			
-			//this.paragraphSpaceAfter = 100;
 		}
 		
 		protected function ensureIndentation():void
@@ -443,9 +362,13 @@ package flashx.textLayout.elements.list
 						//	Non matching modes
 						else if ( item.mode != prevItem.mode )
 						{
+							//	[KK]	OFFENDING LINE IS IF STATEMENT******************************
+							
 							//	+1 becase we want to insert it in the next group
 							if ( groups.length > uint(itemIndent/24)+1 )
-								groups[uint(itemIndent/24)+1].push(item);
+							{
+								groups[uint(itemIndent/24)].push(item);//+1].push(item);
+							}
 							else
 							{
 								if (groups.length > uint(itemIndent/24)+1 )
@@ -558,6 +481,8 @@ package flashx.textLayout.elements.list
 					{
 						item = group[j];
 						item.indent = Math.min( 240, Math.max( item.indent, i*24+24 ) );
+						item.number = j+1;
+						item.update();
 					}
 				}
 				pendingUpdate = false;
