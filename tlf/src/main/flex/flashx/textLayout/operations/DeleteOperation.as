@@ -94,8 +94,8 @@ package flashx.textLayout.operations
 						break;
 					
 					case DeleteOperation.END_OF_LIST:
-						var selectionState:SelectionState = interactionManager.getSelectionState();
-						var tf:TextFlow = interactionManager.textFlow;
+						selectionState = interactionManager.getSelectionState();
+						tf = interactionManager.textFlow;
 						interactionManager.setSelectionState(new SelectionState(tf, selectionState.absoluteStart+1, selectionState.absoluteStart+1));
 						interactionManager.refreshSelection();
 						break;

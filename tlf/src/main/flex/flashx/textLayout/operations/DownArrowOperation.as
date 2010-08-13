@@ -62,7 +62,7 @@ package flashx.textLayout.operations
 			
 			var fe:FlowElement = textFlow.findLeaf(absoluteStart+1);
 			
-			if(fe == undefined) {
+			if(fe == null) {
 				return true;
 			}
 
