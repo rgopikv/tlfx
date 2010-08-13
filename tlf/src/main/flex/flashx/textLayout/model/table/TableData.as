@@ -14,12 +14,10 @@ package flashx.textLayout.model.table
 	{
 		protected var _parentingTable:Table;
 		
-		/**
-		 * Dimensions are preserved for exporting sake and related to the area of which the cell holds content.
-		 * These properties are changed on update to related cell containers. 
-		 */
-		public var width:Number;
-		public var height:Number;
+		protected var _width:Number;
+		protected var _height:Number;
+		protected var _explicitWidth:Number;
+		private var _explicitHeight:Number;
 		
 		/**
 		 *Constructor.
@@ -49,6 +47,45 @@ package flashx.textLayout.model.table
 		public function getContextImplementation():ITableDataDecorationContext
 		{
 			return ( context as ITableDataDecorationContext );
+		}
+
+		/**
+		 * Dimensions are preserved for exporting sake and related to the area of which the cell holds content.
+		 * These properties are changed on update to related cell containers. 
+		 */
+		public function get width():Number
+		{
+			return _width;
+		}
+		public function set width(value:Number):void
+		{
+			_width = value;
+		}
+		public function get height():Number
+		{
+			return _height;
+		}
+		public function set height( value:Number ):void
+		{
+			_height = value;
+		}
+
+		public function get explicitWidth():Number
+		{
+			return _explicitWidth;
+		}
+		public function set explicitWidth(value:Number):void
+		{
+			_explicitWidth = value;
+		}
+
+		public function get explicitHeight():Number
+		{
+			return _explicitHeight;
+		}
+		public function set explicitHeight(value:Number):void
+		{
+			_explicitHeight = value;
 		}
 	}
 }

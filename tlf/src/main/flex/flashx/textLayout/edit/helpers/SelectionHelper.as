@@ -176,11 +176,10 @@ package flashx.textLayout.edit.helpers
 				
 				if (canPush)
 				{								
-					trace("element.absoluteStart: " + element.getAbsoluteStart());
-					trace("element.absoluteEnd: " + (element.getAbsoluteStart() + element.textLength - 1));
-					
-					trace("selectionState.absoluteStart: " + selectionState.absoluteStart);
-					trace("selectionState.absoluteEnd: " + selectionState.absoluteEnd);
+//					trace("element.absoluteStart: " + element.getAbsoluteStart());
+//					trace("element.absoluteEnd: " + (element.getAbsoluteStart() + element.textLength - 1));
+//					trace("selectionState.absoluteStart: " + selectionState.absoluteStart);
+//					trace("selectionState.absoluteEnd: " + selectionState.absoluteEnd);
 					// If it's at least partially within the selection bounds then add it to the list.
 					if ((element.getAbsoluteStart() + element.textLength) > selectionState.absoluteStart &&
 						selectionState.absoluteEnd > element.getAbsoluteStart()+1)

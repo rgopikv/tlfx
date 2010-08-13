@@ -173,48 +173,6 @@ package flashx.textLayout.container
 		/**
 		 * @private
 		 * 
-		 * Returns all elements from the flow that relate to this container based on uid. 
-		 * @return Vector.<MonitoredElementContent>
-		 */
-		protected function getLastMonitoredElement():FlowElement
-		{
-			if( textFlow == null || textFlow.mxmlChildren == null ) return null
-			
-			var i:int;
-			var element:FlowElement;
-			if( textLength > 0 )
-			{
-				var startIndex:int = textFlow.getChildIndex( findTopLevel( absoluteStart ) );
-				var endIndex:int = textFlow.getChildIndex( findTopLevel( Math.max(absoluteStart + textLength - 1, 0) ) );
-				for( i = startIndex; i <= endIndex; i++ )
-				{
-					element = textFlow.mxmlChildren[i] as FlowElement;
-					// This container does not monitor tables. They have their own container controller monitoring system.
-					// We could reach this from endIndex if the operation was a delete and the flow has not completed updating this contoller with final textlength.
-					if( ( element is TableElement ) )
-					{
-						element = textFlow.mxmlChildren[i-1] as FlowElement;
-						break;
-					}
-				}
-			}
-			return element;
-		}
-		
-		protected function findTopLevel( position:int ):FlowElement
-		{
-			var topLevel:FlowElement = textFlow.findLeaf( position );
-			findTopLevel: while( topLevel != null )
-			{
-				if( topLevel.parent == textFlow ) break findTopLevel;
-				topLevel = topLevel.parent;
-			}
-			return topLevel;
-		}
-		
-		/**
-		 * @private
-		 * 
 		 * Returns the monitored elements back to the text flow. Elements are removed from the flow and put through a factory to determine the size of the container.
 		 * Once this is complete, we return those elements back to the flow for composition.
 		 */

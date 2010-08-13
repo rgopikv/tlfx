@@ -28,6 +28,7 @@ package flashx.textLayout.container.table
 	import flashx.textLayout.events.table.TableCellFocusEvent;
 	import flashx.textLayout.factory.TextFlowTextLineFactory;
 	import flashx.textLayout.formats.ITextLayoutFormat;
+	import flashx.textLayout.formats.TextLayoutFormat;
 	import flashx.textLayout.model.attribute.TableDataAttribute;
 	import flashx.textLayout.model.style.IBorderStyle;
 	import flashx.textLayout.model.style.ITableStyle;
@@ -386,7 +387,7 @@ package flashx.textLayout.container.table
 			ensureLastElementHeight( element );
 			var parent:FlowGroupElement = element.parent;
 			var index:int = parent.getChildIndex( element );
-			var previousFormat:ITextLayoutFormat = element.format;
+			var previousFormat:ITextLayoutFormat = new TextLayoutFormat( element.format );
 			var computedFormat:ITextLayoutFormat = element.computedFormat;
 			element.format = ( element.format ) ? TextLayoutFormatUtils.mergeFormats( computedFormat, element.format ) : computedFormat;
 			_textFlow.addChild( element );
@@ -846,6 +847,7 @@ package flashx.textLayout.container.table
 		public function set explicitWidth( value:Number ):void
 		{
 			_tableDataContext.setDefinedWidth( Math.ceil( value ) );
+			_data.getTableDataModel().explicitWidth = Math.ceil( value );
 			process( false );
 		}
 		
@@ -861,6 +863,7 @@ package flashx.textLayout.container.table
 		public function set explicitHeight( value:Number ):void
 		{
 			_tableDataContext.setDefinedHeight( Math.ceil( value ) );
+			_data.getTableDataModel().explicitHeight = Math.ceil( value );
 			process( false );
 		}
 		

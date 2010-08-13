@@ -3,11 +3,13 @@ package flashx.textLayout.converter
 	import flashx.textLayout.elements.table.TableDataElement;
 	import flashx.textLayout.elements.table.TableHeadingElement;
 	import flashx.textLayout.model.attribute.IAttribute;
+	import flashx.textLayout.model.attribute.TableDataAttribute;
 	import flashx.textLayout.model.attribute.TableHeadingAttribute;
 	import flashx.textLayout.model.style.ITableStyle;
 	import flashx.textLayout.model.table.ITableBaseDecorationContext;
 	import flashx.textLayout.model.table.Table;
 	import flashx.textLayout.model.table.TableData;
+	import flashx.textLayout.utils.DimensionTokenUtil;
 	import flashx.textLayout.utils.FragmentAttributeUtil;
 	import flashx.textLayout.utils.StyleAttributeUtil;
 
@@ -53,12 +55,53 @@ package flashx.textLayout.converter
 			}
 		}
 		
+		/**
+		 * @private
+		 * 
+		 * Transfers any necessary stripped atributes to the styles. 
+		 * @param tableElement TableElement
+		 */
+		protected function transferAttributesToStyles( element:TableDataElement ):void
+		{
+			var context:ITableBaseDecorationContext = element.getDecorationContext();
+			var attributes:Object = context.attributes;
+			var styles:Object = context.style;
+			if( !attributes.isUndefined( TableDataAttribute.WIDTH ) )
+			{
+				styles.width = attributes[TableDataAttribute.WIDTH];
+				delete attributes[TableDataAttribute.WIDTH];
+			}
+			if( !attributes.isUndefined( TableDataAttribute.HEIGHT ) )
+			{
+				styles.width = attributes[TableDataAttribute.HEIGHT];
+				delete attributes[TableDataAttribute.HEIGHT];
+			}
+		}
+		
+		/**
+		 * @private
+		 * 
+		 * Update the widht and height dimension on the explicit styles in order to be exported properly with dimnesions. 
+		 * @param tableElement TableElement
+		 * @param width Number
+		 * @param height Number
+		 */
 		protected function affixDimensionsToStyleForElement( element:TableDataElement, fragment:XML, width:Number, height:Number ):void
 		{	
 			var explicitStyles:Object = StyleAttributeUtil.getExplicitStyle( element );
-			if( explicitStyles && explicitStyles.hasOwnProperty( "width" ) ) delete explicitStyles["width"];
-			if( explicitStyles && explicitStyles.hasOwnProperty( "height" ) ) delete explicitStyles["height"];
-			StyleAttributeUtil.assignDimensionsToTableBaseStyles( fragment, width, height );
+			if( explicitStyles == null ) 
+			{
+				StyleAttributeUtil.setExplicitStyle( element, {} );
+				explicitStyles = StyleAttributeUtil.getExplicitStyle( element );
+			}
+			if( !isNaN(width) )
+			{
+				explicitStyles["width"] = DimensionTokenUtil.exportAsPixel( width );
+			}
+			if( !isNaN(height) )
+			{
+				explicitStyles["height"] = DimensionTokenUtil.exportAsPixel( height );
+			}
 		}
 		
 		/**
@@ -79,9 +122,10 @@ package flashx.textLayout.converter
 			// Surgery on HTML compliant @src attribute from Flash @source
 			replaceImageSourceAttribute( fragment );
 			// Assign defined attributes.
+			transferAttributesToStyles( td );
 			FragmentAttributeUtil.assignAttributes( fragment, attributes );
 			StyleAttributeUtil.assembleTableBaseStyles( fragment, td );
-			affixDimensionsToStyleForElement( td, fragment, dataModel.width, dataModel.height );
+			affixDimensionsToStyleForElement( td, fragment, dataModel.explicitWidth, dataModel.explicitHeight );
 			// Stylize td or th element tag.
 			htmlExporter.exportStyleHelper.applyStyleAttributesFromElement( fragment, td );
 			

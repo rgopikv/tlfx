@@ -2,8 +2,12 @@ package flashx.textLayout.converter
 {
 	import flashx.textLayout.elements.table.TableElement;
 	import flashx.textLayout.elements.table.TableRowElement;
+	import flashx.textLayout.model.attribute.TableAttribute;
+	import flashx.textLayout.model.style.ITableStyle;
+	import flashx.textLayout.model.table.ITableBaseDecorationContext;
 	import flashx.textLayout.model.table.Table;
 	import flashx.textLayout.model.table.TableRow;
+	import flashx.textLayout.utils.DimensionTokenUtil;
 	import flashx.textLayout.utils.FragmentAttributeUtil;
 	import flashx.textLayout.utils.StyleAttributeUtil;
 	
@@ -78,7 +82,44 @@ package flashx.textLayout.converter
 			return !row.isBody && !row.isFooter && !row.isHeader;
 		}
 		
-		// TODO: Apply styles.
+		/**
+		 * @private
+		 * 
+		 * Transfers any necessary stripped atributes to the styles. 
+		 * @param tableElement TableElement
+		 */
+		protected function transferAttributesToStyles( tableElement:TableElement ):void
+		{
+			var context:ITableBaseDecorationContext = tableElement.getDecorationContext();
+			var attributes:Object = context.attributes;
+			var styles:Object = context.style;
+			if( !attributes.isUndefined( TableAttribute.WIDTH ) )
+			{
+				delete attributes[TableAttribute.WIDTH];
+			}
+		}
+		
+		/**
+		 * @private
+		 * 
+		 * Update the widht dimension on the explicit styles in order to be exported properly with dimnesions. 
+		 * @param tableElement TableElement
+		 * @param width Number
+		 */
+		protected function affixTableWidthDimension( tableElement:TableElement, width:Number ):void
+		{
+			var explicitStyles:Object = StyleAttributeUtil.getExplicitStyle( tableElement );
+			if( explicitStyles == null ) 
+			{
+				StyleAttributeUtil.setExplicitStyle( tableElement, {} );
+				explicitStyles = StyleAttributeUtil.getExplicitStyle( tableElement );
+			}
+			if( !isNaN(width) && explicitStyles )
+			{
+				explicitStyles["width"] = DimensionTokenUtil.exportAsPixel( width );
+			}
+		}
+		
 		/**
 		 * Creates a valid <table /> based on supplied data which is assumed as a Table.
 		 * @param value * A Table instance.
@@ -92,8 +133,10 @@ package flashx.textLayout.converter
 			var fragment:XML = <table />;
 			var tableElement:TableElement = value as TableElement;
 			var table:Table = tableElement.getTableModel();
+			transferAttributesToStyles( tableElement );
 			FragmentAttributeUtil.assignAttributes( fragment, table.context.getDefinedAttributes() );
 			StyleAttributeUtil.assembleTableBaseStyles( fragment, tableElement );
+			affixTableWidthDimension( tableElement, table.getComputedWidth() );
 			
 			var tableRows:Vector.<TableRowElement> = tableElement.children();
 			var assembledRows:Vector.<TableRowElement> = new Vector.<TableRowElement>();

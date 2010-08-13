@@ -175,9 +175,9 @@ package flashx.textLayout.operations
 			{
 				// Find the top group element based on parent structure.
 				//	This is used to detemrin how to split at the position and insert elements in a target element.
-				findTopGroup: while( topGroup && !(topGroup is TextFlow) && !(topGroup is TableDataElement) )
+				while( topGroup && !(topGroup is TextFlow) && !(topGroup is TableDataElement) )
 				{
-					if( topGroup.parent is TextFlow ) break findTopGroup;
+					if( topGroup.parent is TextFlow ) break;
 					topGroup = topGroup.parent;
 				}
 			}

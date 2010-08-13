@@ -18,13 +18,32 @@ package flashx.textLayout.utils
 		public static const STYLE_DELIMITER:String = ";";
 		public static const STYLE_PROPERTY_DELIMITER:String = ":";
 		
+		static public function setExplicitStyle( element:FlowElement, explicitStyle:Object ):void
+		{
+			var inline:InlineStyles = getInlineStyles( element );
+			if( inline )
+			{
+				inline.explicitStyle = explicitStyle;
+			}
+		}
+		
 		static public function getExplicitStyle( element:FlowElement ):Object
+		{
+			var inline:InlineStyles = getInlineStyles( element );
+			if( inline )
+			{
+				return inline.explicitStyle;
+			}
+			return null;
+		}
+		
+		static public function getInlineStyles( element:FlowElement ):InlineStyles
 		{
 			if( element.userStyles )
 			{
 				if( element.userStyles.inline as InlineStyles )
 				{
-					return ( element.userStyles.inline as InlineStyles ).explicitStyle;
+					return ( element.userStyles.inline as InlineStyles );
 				}
 			}
 			return null;
@@ -217,37 +236,6 @@ package flashx.textLayout.utils
 			{
 				fragment.@style = styleDefinition;
 			}
-		}
-		
-		/**
-		 * Appends dimension style to fragment for table base element. 
-		 * @param fragment XML
-		 * @param width Number
-		 * @param height Number
-		 */
-		static public function assignDimensionsToTableBaseStyles( fragment:XML, width:Number, height:Number ):void
-		{
-			var styleString:String = fragment.@style;
-			var w:String = DimensionTokenUtil.exportAsPixel( width );
-			var h:String = DimensionTokenUtil.exportAsPixel( height );
-			if( StyleAttributeUtil.isValidStyleString( styleString ) )
-			{
-				var styles:Object = StyleAttributeUtil.parseStyles( styleString );
-				styles["width"] = w;
-				styles["height"] = h;
-				styleString = "";
-				var property:String;
-				for( property in styles )
-				{
-					styleString += StyleAttributeUtil.assembleStyleProperty( property, styles[property] );
-				}
-			}
-			else
-			{
-				styleString += StyleAttributeUtil.assembleStyleProperty( "width", w );
-				styleString += StyleAttributeUtil.assembleStyleProperty( "height", h );
-			}
-			fragment.@style = styleString
 		}
 		
 		/**
