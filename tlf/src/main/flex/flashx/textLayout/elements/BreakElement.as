@@ -36,6 +36,7 @@ package flashx.textLayout.elements
 	*/
 	public final class BreakElement extends SpecialCharacterElement
 	{
+		public static const DEFAULT_TEXT:String = '\u2028';
 		/** Constructor. 
 		*
 		* @playerversion Flash 10 
@@ -45,7 +46,7 @@ package flashx.textLayout.elements
 		public function BreakElement()
 		{
 			super();
-			this.text = '\u2028';
+			this.text = BreakElement.DEFAULT_TEXT;
 		}
 		
 		/** @private */

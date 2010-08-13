@@ -128,7 +128,7 @@ package flashx.textLayout.container
 						if( flowIndex == index )
 						{
 							// If table was first element, update to start after.
-							if( i == 0 ) startIndex = 1;
+							if( textFlow.getChildAt( 0 ) is TableElement ) startIndex += 1;
 							break;
 						}
 						else if( passedTable )
@@ -295,9 +295,7 @@ package flashx.textLayout.container
 		 * @param element FlowElement
 		 */
 		public function addInitialMonitoredElement( element:FlowElement ):void
-		{
-			if( textLength > 0 ) return;
-			
+		{	
 			_initialMonitoredElements.push( element );
 		}
 		

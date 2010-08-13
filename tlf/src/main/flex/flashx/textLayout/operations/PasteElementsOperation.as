@@ -6,6 +6,7 @@ package flashx.textLayout.operations
 	import flashx.textLayout.edit.SelectionState;
 	import flashx.textLayout.edit.TextFlowEdit;
 	import flashx.textLayout.edit.TextScrap;
+	import flashx.textLayout.elements.BreakElement;
 	import flashx.textLayout.elements.ContainerFormattedElement;
 	import flashx.textLayout.elements.DivElement;
 	import flashx.textLayout.elements.FlowElement;
@@ -14,7 +15,9 @@ package flashx.textLayout.operations
 	import flashx.textLayout.elements.ParagraphElement;
 	import flashx.textLayout.elements.SpanElement;
 	import flashx.textLayout.elements.TextFlow;
+	import flashx.textLayout.elements.list.ListElementX;
 	import flashx.textLayout.elements.table.TableDataElement;
+	import flashx.textLayout.elements.table.TableElement;
 	import flashx.textLayout.events.ModelChange;
 	import flashx.textLayout.tlf_internal;
 	
@@ -40,6 +43,111 @@ package flashx.textLayout.operations
 			_elementsToPaste = elements;
 		}
 		
+		protected function isInsertLeafAnEmptyBreakElement( leaf:FlowElement ):Boolean
+		{
+			if( leaf is BreakElement )
+			{
+				var text:String = ( leaf as BreakElement ).text;
+				text = text.replace( /[\u2029\u2028\n\r]/g, "" );
+				return text.length == 0;
+			}
+			return false;
+		}
+		
+		protected function pastedContentRequiresSplit():Boolean
+		{
+			var i:int;
+			var length:int = elements.length;
+			var element:FlowElement;
+			for( i = 0; i < length; i++ )
+			{
+				element = elements[i] as FlowElement;
+				if( element is TableElement || element is ListElementX ) return true;
+			}
+			return false;
+		}
+		
+		protected function getInsertTokenForPasteIntoTextFlow( leaf:FlowElement, paragraph:ParagraphElement, splitIndex:int ):InsertToken
+		{
+			var targetGroup:FlowGroupElement = textFlow;
+			var insertIndex:int = textFlow.getChildIndex( paragraph ) + 1;
+			var globalSplitIndex:int = absoluteEnd - paragraph.getAbsoluteStart();
+			// If we are splitting after the first character of a target paragraph...
+			if( splitIndex > 0 )
+			{
+				if( isInsertLeafAnEmptyBreakElement( leaf ) )
+				{
+					paragraph.removeChild( leaf );
+				}
+				if( globalSplitIndex < (paragraph.textLength - 1) )
+				{
+					paragraph.splitAtPosition( splitIndex );
+				}
+			}
+			// Else we are pasting before it.
+			else if( paragraph.getAbsoluteStart() == 0 )
+			{
+				insertIndex = 0;
+			}
+			return new InsertToken( insertIndex, targetGroup );
+		}
+		
+		protected function getInsertTokenForPasteIntoDiv( div:DivElement, leaf:FlowElement, paragraph:ParagraphElement, splitIndex:int ):InsertToken
+		{
+			var targetGroup:FlowGroupElement = div;
+			var insertIndex:int = div.getChildIndex( paragraph ) + 1;
+			var len:int = leaf.getText().length;
+			var globalSplitIndex:int = absoluteEnd - paragraph.getAbsoluteStart();
+			if( splitIndex > 0 )
+			{
+				if( isInsertLeafAnEmptyBreakElement( leaf ) )
+				{
+					paragraph.removeChild( leaf );
+				}
+				if( globalSplitIndex < (paragraph.textLength - 1) )
+				{
+					targetGroup = div.parent;
+					insertIndex = targetGroup.getChildIndex( div ) + 1;
+					div.splitAtPosition( absoluteEnd - div.getAbsoluteStart() );
+				}
+				else if( pastedContentRequiresSplit() )
+				{
+					targetGroup = div.parent;
+					insertIndex = targetGroup.getChildIndex( div ) + 1;
+					div.splitAtPosition( absoluteEnd - div.getAbsoluteStart() );
+				}
+			}
+			else if( paragraph.getAbsoluteStart() == 0 ) 
+			{
+				targetGroup = div.parent;
+				insertIndex = 0;
+			}
+			return new InsertToken( insertIndex, targetGroup );
+		}
+		
+		protected function getInsertTokenForPasteIntoGroup( group:FlowGroupElement, leaf:FlowElement, paragraph:ParagraphElement, splitIndex:int ):InsertToken
+		{
+			var targetGroup:FlowGroupElement = group;
+			var insertIndex:int = group.getChildIndex( paragraph ) + 1;
+			var globalSplitIndex:int = absoluteEnd - paragraph.getAbsoluteStart();
+			if( splitIndex > 0 )
+			{
+				if( isInsertLeafAnEmptyBreakElement( leaf ) )
+				{
+					paragraph.removeChild( leaf );
+				}
+				if( splitIndex < (paragraph.textLength - 1) )
+				{
+					TextFlowEdit.splitElement( group, absoluteEnd - group.getAbsoluteStart(), true );
+				}
+			}
+			else if( paragraph.getAbsoluteStart() == 0 ) 
+			{
+				insertIndex = 0;
+			}
+			return new InsertToken( insertIndex, targetGroup );
+		}
+		
 		protected function internalDoOperation():void
 		{
 			// Update selection state if part of merge
@@ -50,95 +158,83 @@ package flashx.textLayout.operations
 				absoluteEnd = originalSelectionState.absoluteEnd;
 			}
 			
-			var i:int;
-			var index:int = 0;
-			var length:int;
-			var leaf:FlowLeafElement = textFlow.findLeaf( absoluteEnd );
-			var para:ParagraphElement = textFlow.findAbsoluteParagraph(absoluteEnd);
+			// Find leaf.
+			var leaf:FlowLeafElement = textFlow.findLeaf( absoluteStart );
+			// Find Paragraph at position in flow.
+			var para:ParagraphElement = textFlow.findAbsoluteParagraph( absoluteStart );
+			// Find the global character position.
 			var paraSplitIndex:int = absoluteEnd - para.getAbsoluteStart();
+			// Find the elemental index of para in parent.
 			var flowElIndex:int = para.parent.getChildIndex(para);
+			// Find the parent of the target para.
 			var topGroup:FlowGroupElement = para.parent;
-			
-			var insertIndex:int;
-			var targetGroup:FlowGroupElement;
+			// Determine if we are pasting into a table.
 			var isPastingIntoTable:Boolean = topGroup is TableDataElement;
-			// Flow up to find parent as long as not TextFlow or TableDataElement.
-			topFind: while( !isPastingIntoTable && !(topGroup is TextFlow) )
+			
+			if( !isPastingIntoTable && !(topGroup is TextFlow) )
 			{
-				if( topGroup.parent is TextFlow ) break topFind;
-				if( topGroup.parent is TableDataElement ) 
+				// Find the top group element based on parent structure.
+				//	This is used to detemrin how to split at the position and insert elements in a target element.
+				findTopGroup: while( topGroup && !(topGroup is TextFlow) && !(topGroup is TableDataElement) )
 				{
-					isPastingIntoTable = true;
-					break topFind;
+					if( topGroup.parent is TextFlow ) break findTopGroup;
+					topGroup = topGroup.parent;
 				}
-				topGroup = topGroup.parent;
 			}
 			
-			// Pasting content into a table takes on a different context.
+			// Default to paste at end of flow.
+			var insertToken:InsertToken = new InsertToken( textFlow.numChildren, textFlow );
+			// Pasting content into a table takes on a different context, if we arent' doing that, find the insert position and target group element to paste into.
 			if( !isPastingIntoTable )
 			{
-				// If Paragraph is dirct child of TextFlow, just split it.
+				// If Paragraph is direct child of TextFlow...
 				if( topGroup is TextFlow )
 				{
-					insertIndex = topGroup.getChildIndex( para ) + 1;
-					if (paraSplitIndex > 0)
-					{
-						if (paraSplitIndex < (para.textLength - 1))
-						{
-							para.splitAtPosition( paraSplitIndex );
-						}
-					}
-					else
-					{
-						if( para.getAbsoluteStart() == 0 ) insertIndex = 0;
-					}
+					insertToken = getInsertTokenForPasteIntoTextFlow( leaf, para, paraSplitIndex );
 				}
-				// Else, split flow up.
+				// If Paragraph is in a DivElement that is not a ListElement...
+				else if ( topGroup is DivElement && !(topGroup is ListElementX) )
+				{
+					insertToken = getInsertTokenForPasteIntoDiv( topGroup as DivElement, leaf, para, paraSplitIndex );
+				}
+				// Default...
 				else
 				{
-					insertIndex = textFlow.getChildIndex( topGroup ) + 1;
-					if (paraSplitIndex > 0)
-					{
-						if (paraSplitIndex < (para.textLength - 1))
-						{
-							TextFlowEdit.splitElement( topGroup, absoluteEnd - topGroup.getAbsoluteStart(), true );
-						}
-					}
-					else
-					{
-						if( para.getAbsoluteStart() == 0 ) insertIndex = 0;
-					}
+					insertToken = getInsertTokenForPasteIntoGroup( topGroup, leaf, para, paraSplitIndex );
 				}
-				targetGroup = textFlow;
 			}
 			// Switch target to table data element for operation.
 			else
 			{
+				var cellChildIndex:int;
 				var cellElement:TableDataElement;
 				if( topGroup is TableDataElement ) 
 				{
 					cellElement = topGroup as TableDataElement;
-					insertIndex = cellElement.getChildIndex( para ) + 1;
+					cellChildIndex = cellElement.getChildIndex( para ) + 1;
 					ParaEdit.splitParagraph( para, absoluteEnd - para.getAbsoluteStart() );
 				}
 				else
 				{
 					cellElement = topGroup.parent as TableDataElement;
-					insertIndex = cellElement.getChildIndex( topGroup ) + 1;
+					cellChildIndex = cellElement.getChildIndex( topGroup ) + 1;
 					TextFlowEdit.splitElement( topGroup, absoluteEnd - topGroup.getAbsoluteStart(), true );	
 				}
 				insertElementsIntoCell( topGroup as TableDataElement, para, _elementsToPaste );
-				targetGroup = cellElement;
+				insertToken = new InsertToken( cellChildIndex, cellElement );
 			}
 			// Add the elements to the target group.
+			var insertIndex:int = insertToken.index;
+			var targetGroup:FlowGroupElement = insertToken.target;
+			var i:int;
+			var length:int;
 			var elem:FlowElement;
-			var elemInsert:int = insertIndex;
 			for( i = 0; i < _elementsToPaste.length; i++ )
 			{
 				elem = _elementsToPaste[i];
-				targetGroup.addChildAt( elemInsert, elem );
+				targetGroup.addChildAt( insertIndex, elem );
 				length += elem.textLength;
-				elemInsert++;
+				insertIndex++;
 			}
 			
 			// Check if we emptied out where we split/started.
@@ -248,5 +344,18 @@ package flashx.textLayout.operations
 			return true;
 		}
 		// [END TA]
+	}
+}
+
+import flashx.textLayout.elements.FlowGroupElement;
+class InsertToken
+{
+	public var index:int;
+	public var target:FlowGroupElement;
+	
+	public function InsertToken( index:int, target:FlowGroupElement )
+	{
+		this.index = index;
+		this.target = target;
 	}
 }
