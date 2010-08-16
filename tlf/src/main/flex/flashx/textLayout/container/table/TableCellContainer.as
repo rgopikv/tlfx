@@ -387,8 +387,8 @@ package flashx.textLayout.container.table
 			ensureLastElementHeight( element );
 			var parent:FlowGroupElement = element.parent;
 			var index:int = parent.getChildIndex( element );
-			var previousFormat:ITextLayoutFormat = new TextLayoutFormat( element.format );
 			var computedFormat:ITextLayoutFormat = element.computedFormat;
+			var previousFormat:ITextLayoutFormat = new TextLayoutFormat( element.format );
 			element.format = ( element.format ) ? TextLayoutFormatUtils.mergeFormats( computedFormat, element.format ) : computedFormat;
 			_textFlow.addChild( element );
 			
