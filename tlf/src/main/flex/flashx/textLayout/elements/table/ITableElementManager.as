@@ -7,6 +7,7 @@ package flashx.textLayout.elements.table
 	import flashx.textLayout.container.table.ICellContainer;
 	import flashx.textLayout.container.table.TableDisplayContainer;
 	import flashx.textLayout.elements.FlowElement;
+	import flashx.textLayout.elements.TextFlow;
 	import flashx.textLayout.model.table.Table;
 
 	/**
@@ -33,6 +34,27 @@ package flashx.textLayout.elements.table
 		 * @return ICellContainer
 		 */
 		function findCellFromElement( element:FlowElement ):ICellContainer;
+		
+		/**
+		 * Toggles all cells as selected.
+		 */
+		function toggleAllCellsSelection():void;
+		
+		/**
+		 * Renders all cells as selected.
+		 */
+		function selectAllCells():void;
+		
+		/**
+		 * Renders all cells as unselected.
+		 */
+		function unselectAllCells():void;
+		
+		/**
+		 * Returns the top flow of the managed table element. 
+		 * @return TextFlow
+		 */
+		function getTextFlow():TextFlow;
 		
 		/**
 		 * Returns the managed table element reference. 
