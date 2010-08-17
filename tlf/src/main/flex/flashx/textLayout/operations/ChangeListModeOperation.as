@@ -103,7 +103,7 @@ package flashx.textLayout.operations
 				list.pendingUpdate = false;
 				list.update();
 			}
-				
+			
 			return list;
 		}
 		
@@ -140,7 +140,7 @@ package flashx.textLayout.operations
 		 */
 		protected function addListDirectlyToTextFlow( tf:TextFlow, spans:Array /* SpanElement[] */, index:int ):ListElementX//paragraphs:Array /* ParagraphElement[] */, index:int ):ListElementX
 		{
-//			var firstParagraph:ParagraphElement = paragraphs[0];
+			//			var firstParagraph:ParagraphElement = paragraphs[0];
 			var span:SpanElement = spans[0] as SpanElement;
 			
 			var list:ListElementX = new ListElementX();
@@ -149,15 +149,15 @@ package flashx.textLayout.operations
 			list.pendingUpdate = true;
 			//	[END KK]
 			
-//			addParagraphElementsAsItemsToList( paragraphs, list );
+			//			addParagraphElementsAsItemsToList( paragraphs, list );
 			addSpanElementsAsItemsToList( spans, list );
 			
 			_listModeCreateOnTextFlow = true;
 			_listCreatedOnTextFlow = list;
 			
-//			var node:XML = _htmlExporter.getSimpleMarkupModelForElement( list );
-//			_htmlImporter.importStyleHelper.assignInlineStyle( node, list );
-//			_htmlImporter.importStyleHelper.apply();
+			//			var node:XML = _htmlExporter.getSimpleMarkupModelForElement( list );
+			//			_htmlImporter.importStyleHelper.assignInlineStyle( node, list );
+			//			_htmlImporter.importStyleHelper.apply();
 			
 			// Weed out empty items
 			for ( var i:int = list.numChildren-1; i > -1; i-- )
@@ -174,10 +174,12 @@ package flashx.textLayout.operations
 			list.pendingUpdate = false;
 			//	[END KK]
 			
+			tf.addChildAt( index, list );
+			
 			//	Update in case any items were removed
 			list.update();
 			
-			return tf.addChildAt( index, list ) as ListElementX;
+			return list;
 		}
 		
 		
@@ -194,8 +196,9 @@ package flashx.textLayout.operations
 			var resetItem:Boolean = true;
 			var span:SpanElement;
 			var undefinedFormat:ITextLayoutFormat = new TextLayoutFormat();
+			var currentListIdx:int;
 			
-			for ( i = spans.length-1; i > -1; i-- )
+			for ( i = 0; i<=spans.length-1; i++ )
 			{
 				span = spans[i] as SpanElement;
 				
@@ -234,7 +237,7 @@ package flashx.textLayout.operations
 						
 						if ( span.text.match( /\w/g ).length > 0 )
 						{
-							item.addChildAt(0, span);
+							item.addChildAt(i, span);
 						}
 						resetItem = true;
 					}
@@ -252,14 +255,14 @@ package flashx.textLayout.operations
 										if ((link.getChildAt(j) as SpanElement).text.match( /\w/g ).length > 0 )
 										{
 											if ( item.getChildIndex( link ) < 0 )
-												item.addChildAt(0, link);
+												item.addChildAt(i, link);
 											break testLinkChildren;
 										}
 									}
 									else
 									{
 										if ( item.getChildIndex( link ) < 0 )
-											item.addChildAt(0, link);
+											item.addChildAt(i, link);
 										break testLinkChildren;
 									}
 								}
@@ -267,20 +270,123 @@ package flashx.textLayout.operations
 						}
 						else if ( span.text.match( /\w/g ).length > 0 )
 						{
+							
+							var tmp1:int = span.parent.getChildIndex(span);
+							var tmp2:int = span.parent.mxmlChildren.length-1;
+							if(span.parent is ParagraphElement && span.parent.getChildIndex(span) == span.parent.mxmlChildren.length-1) {
+								resetItem = true;
+							}
+							
+							if(span.getNextSibling() is BreakElement) {
+								resetItem = true;
+							}
+							
 							if ( item.getChildIndex( span ) < 0 )
-								item.addChildAt(0, span);
+								item.addChildAt(i, span);
 						}
 					}
 					else
 					{
 						if ( item.getChildIndex( span ) < 0 )
-							item.addChildAt(0, span);
+							item.addChildAt(i, span);
 					}
 					
-					if ( list.getChildIndex(item) < 0 )
-						list.addChildAt(0, item);
+					if ( list.getChildIndex(item) < 0 ) {
+						list.addChildAt(currentListIdx++, item);
+					}
 				}
 			}
+			
+			//			for ( i = spans.length-1; i > -1; i-- )
+			//			{
+			//				span = spans[i] as SpanElement;
+			//				
+			//				if ( span )
+			//				{
+			//					if (resetItem)
+			//					{
+			//						item = new ListItemElementX();
+			//						try {
+			//							cascadeFormat = getCascadingFormatForElement( span );
+			//						} catch ( e:* ) {
+			//							//	Nothing
+			//						}
+			//						item.format = cascadeFormat ? cascadeFormat : undefinedFormat;
+			//						cascadeFormat = null;
+			//						item.indent = int(span.paragraphStartIndent) > 0 ? int( 24 * (span.paragraphStartIndent % 24) ) : 0;
+			//						item.mode = _mode;
+			//						resetItem = false;
+			//					}
+			//					
+			//					if ( span is BreakElement )
+			//					{
+			//						br = span as BreakElement;
+			//						
+			//						span = new SpanElement();
+			//						try {
+			//							cascadeFormat = getCascadingFormatForElement( br );
+			//						} catch ( e:* ) {
+			//							//	Nothing
+			//						}
+			//						span.format = cascadeFormat ? cascadeFormat : undefinedFormat;
+			//						cascadeFormat = null;
+			//						span.text = br.text.replace(/[\u2028\n\r\u2029]/g, '');
+			//						
+			//						br.parent.removeChild(br);
+			//						
+			//						if ( span.text.match( /\w/g ).length > 0 )
+			//						{
+			//							item.addChildAt(0, span);
+			//						}
+			//						resetItem = true;
+			//					}
+			//					else if ( span is SpanElement )
+			//					{
+			//						if ( span.parent is LinkElement )
+			//						{
+			//							var link:LinkElement = span.parent as LinkElement;
+			//							testLinkChildren:for ( j = link.numChildren-1; j > -1; j-- )
+			//							{
+			//								if ( link.getChildAt(j) is SpanElement )
+			//								{
+			//									if ( link.getChildAt(j) is SpanElement )
+			//									{
+			//										if ((link.getChildAt(j) as SpanElement).text.match( /\w/g ).length > 0 )
+			//										{
+			//											if ( item.getChildIndex( link ) < 0 )
+			//												item.addChildAt(0, link);
+			//											break testLinkChildren;
+			//										}
+			//									}
+			//									else
+			//									{
+			//										if ( item.getChildIndex( link ) < 0 )
+			//											item.addChildAt(0, link);
+			//										break testLinkChildren;
+			//									}
+			//								}
+			//							}
+			//						}
+			//						else if ( span.text.match( /\w/g ).length > 0 )
+			//						{
+			//							if ( item.getChildIndex( span ) < 0 )
+			//								item.addChildAt(0, span);
+			//							
+			//							if(span.parent is ParagraphElement && span.parent.getChildIndex(span) == span.parent.mxmlChildren.length-1) {
+			//								resetItem = true;
+			//							}
+			//						}
+			//					}
+			//					else
+			//					{
+			//						if ( item.getChildIndex( span ) < 0 )
+			//							item.addChildAt(0, span);
+			//					}
+			//					
+			//					if ( list.getChildIndex(item) < 0 )
+			//						list.addChildAt(0, item);
+			//				}
+			//			}
 			
 			//	[FORMATING]
 			formatListItemsOnList( list );
@@ -370,7 +476,7 @@ package flashx.textLayout.operations
 							
 							continue;
 						}
-						//	Prevent adding blank list items by ensuring that they have either word characters or a TLF element
+							//	Prevent adding blank list items by ensuring that they have either word characters or a TLF element
 						else if ( pchild is SpanElement )
 						{
 							if ( (pchild as SpanElement).text.match( /\w/g ).length > 0 )
@@ -517,7 +623,7 @@ package flashx.textLayout.operations
 			if ( listItems.length > 0 )
 			{
 				//	[KK]	Commented out because it wasn't in newest revision, ask Todd about it
-//				p.format = new TextLayoutFormat( formatToPass );
+				//				p.format = new TextLayoutFormat( formatToPass );
 				p.original = true;
 				p.paragraphStartIndent = Math.max(0, (listItems[0] as ListItemElementX).indent-24);
 				
@@ -598,7 +704,7 @@ package flashx.textLayout.operations
 			parent = groupParent;
 			if( (parent is DivElement) )
 			{
-//				var firstParagraph:ParagraphElement = paragraphs[0] as ParagraphElement;
+				//				var firstParagraph:ParagraphElement = paragraphs[0] as ParagraphElement;
 				var firstSpan:SpanElement = spans[0] as SpanElement;
 				var lastSpan:SpanElement = spans[spans.length-1] as SpanElement;
 				var index:int = parent.getChildIndex( firstSpan.parent );//firstParagraph );
@@ -607,17 +713,21 @@ package flashx.textLayout.operations
 				//	Splits the div at the specified index (starting at the ParagraphElement)
 				while ( !(parent is TextFlow) )
 				{
-					var parentPara:ParagraphElement = firstSpan.parent as ParagraphElement;
+					var parentPara:FlowGroupElement = firstSpan.parent as FlowGroupElement;
 					
-					if(spans.length < firstSpan.parent.mxmlChildren.length) {
-						var newPara:ParagraphElement = splitParaInTwo( parentPara, lastIdx);
-					
-						var newDiv:DivElement = splitDivInTwo( parent as DivElement, index );
-						//	Get the index of the current DivElement from it's parent
-						index = newDiv.parent.getChildIndex(newDiv);
-					} else {
-						index = parent.parent.getChildIndex(parent);
+					// DA - This if statement makes sure we don't add additional space if we are 
+					// taking the spans from the end of the paragraph. Very important fix. 08/17/2010
+					if(lastSpan.parent.getChildIndex( lastSpan ) != lastSpan.parent.numChildren - 1) {
+						//if(spans.length <= firstSpan.parent.mxmlChildren.length) {
+						var newPara:FlowGroupElement = splitParaInTwo( parentPara, lastIdx);
 					}
+					
+					var newDiv:DivElement = splitDivInTwo( parent as DivElement, index );
+					//	Get the index of the current DivElement from it's parent
+					index = newDiv.parent.getChildIndex(newDiv);
+					//	} else {
+					//		index = parent.parent.getChildIndex(parent);
+					//	}
 					//	Assign the DivElement's parent to be the prnt variable
 					parent = parent.parent;
 				}
@@ -628,32 +738,32 @@ package flashx.textLayout.operations
 				{
 					list = addListDirectlyToTextFlow( tf, spans, index );//paragraphs, index + 1 );
 					
-//					//	[KK]	Attempt to remove last (empty) paragraph added through the creation process
-//					var lastItem:ListItemElementX;
-//					var idx:int = list.numChildren;
-//					while ( !lastItem || !(lastItem is ListItemElementX) )
-//					{
-//						idx--;
-//						if ( idx < 0 )
-//							break;
-//						lastItem = list.getChildAt(idx) as ListItemElementX;
-//					}
-//					
-//					if ( lastItem )
-//					{
-//						idx = lastItem.numChildren;
-//						while (--idx > -1)
-//						{
-//							var child:FlowElement = lastItem.getChildAt(idx);
-//							
-//							if ( child is SpanElement )
-//							{
-//								//	[KK]	Remove the last character as it is an unnecessary line break added from who knows where
-//								(child as SpanElement).text = (child as SpanElement).text.substring(0, (child as SpanElement).text.length-1);
-//								break;
-//							}
-//						}
-//					}
+					//					//	[KK]	Attempt to remove last (empty) paragraph added through the creation process
+					//					var lastItem:ListItemElementX;
+					//					var idx:int = list.numChildren;
+					//					while ( !lastItem || !(lastItem is ListItemElementX) )
+					//					{
+					//						idx--;
+					//						if ( idx < 0 )
+					//							break;
+					//						lastItem = list.getChildAt(idx) as ListItemElementX;
+					//					}
+					//					
+					//					if ( lastItem )
+					//					{
+					//						idx = lastItem.numChildren;
+					//						while (--idx > -1)
+					//						{
+					//							var child:FlowElement = lastItem.getChildAt(idx);
+					//							
+					//							if ( child is SpanElement )
+					//							{
+					//								//	[KK]	Remove the last character as it is an unnecessary line break added from who knows where
+					//								(child as SpanElement).text = (child as SpanElement).text.substring(0, (child as SpanElement).text.length-1);
+					//								break;
+					//							}
+					//						}
+					//					}
 				}
 			}
 			
@@ -706,8 +816,8 @@ package flashx.textLayout.operations
 			{
 				textFlow.flowComposer.updateAllControllers();
 				listItems = removeItemsFromList( list, 0, length );
-			//	textFlow.flowComposer.updateAllControllers();
-
+				//	textFlow.flowComposer.updateAllControllers();
+				
 				tmpIdx = list.parent.getChildIndex(list);
 				// get the returned paragraphs
 				returnedElements = returnListItemsAsParagraphElements( list.parent, listItems, list.parent.getChildIndex( list ), list.format );
@@ -716,7 +826,7 @@ package flashx.textLayout.operations
 				for(w=0; w<returnedElements.length; w++) {
 					list.parent.addChildAt(tmpIdx++, returnedElements[w]);
 				}
-
+				
 				// we must remove the currnt list or the editor will keep growing unnecessarily 
 				list.parent.removeChild( list );
 			}
@@ -724,16 +834,16 @@ package flashx.textLayout.operations
 			checkAndRemoveEmptyParagraphs( textFlow );
 			
 			// Apply style and assign managing container controller to returned elements.
-//			var node:XML;
-//			var element:FlowElement;
-//			for( var j:int=0; j<returnedElements.length; j++)
-//			{
-//				element = returnedElements[j];
-//				node = _htmlExporter.getSimpleMarkupModelForElement( element );
-//				_htmlImporter.importStyleHelper.assignInlineStyle( node, element );
-//			}
+			//			var node:XML;
+			//			var element:FlowElement;
+			//			for( var j:int=0; j<returnedElements.length; j++)
+			//			{
+			//				element = returnedElements[j];
+			//				node = _htmlExporter.getSimpleMarkupModelForElement( element );
+			//				_htmlImporter.importStyleHelper.assignInlineStyle( node, element );
+			//			}
 			textFlow.flowComposer.updateAllControllers();
-//			_htmlImporter.importStyleHelper.apply();
+			//			_htmlImporter.importStyleHelper.apply();
 			
 			return returnedElements;			
 		}
@@ -870,11 +980,11 @@ package flashx.textLayout.operations
 			return parent.addChildAt( divIndex + 1, newDiv ) as DivElement;
 		}
 		
-		protected function splitParaInTwo( para:ParagraphElement, index:uint ):ParagraphElement
+		protected function splitParaInTwo( para:FlowGroupElement, index:uint ):FlowGroupElement
 		{
 			var parent:FlowGroupElement = para.parent;
 			var paraIndex:int = parent.getChildIndex( para );
-			var newPara:ParagraphElement = para.shallowCopy() as ParagraphElement;
+			var newPara:FlowGroupElement = para.shallowCopy() as FlowGroupElement;
 			
 			//	Take all children from end to index and place in new ParagraphElement
 			for ( var i:int = para.numChildren-1; i > index; i-- )//i >= index; i-- )
@@ -882,7 +992,7 @@ package flashx.textLayout.operations
 				newPara.addChildAt( 0, para.removeChildAt(i) );
 			}
 			
-			var retPara:ParagraphElement = parent.addChildAt( paraIndex + 1, newPara ) as ParagraphElement; 
+			var retPara:FlowGroupElement = parent.addChildAt( paraIndex + 1, newPara ) as FlowGroupElement; 
 			
 			if(retPara.getChildAt(0) is BreakElement) {
 				// create a span
@@ -917,7 +1027,7 @@ package flashx.textLayout.operations
 			switch(_mode) {
 				case ListItemModeEnum.ORDERED:
 				case ListItemModeEnum.UNORDERED:
-
+					
 					var selectedListItems:Array = SelectionHelper.getSelectedListItems( textFlow );
 					// If there are currently selected list items then we can assume
 					// that we are changing an existing list.
@@ -972,10 +1082,12 @@ package flashx.textLayout.operations
 			// Owner is a TextFlow, just add at same position as first ParagraphElement
 			if ( prnt is TextFlow )
 			{
-				list = addListDirectlyToTextFlow( prnt as TextFlow, spans /* [KK] Changed from paragraphs */, prnt.getChildIndex( p ) );
+				// adding one to the child index so that the list doesn't jump
+				list = addListDirectlyToTextFlow( prnt as TextFlow, spans /* [KK] Changed from paragraphs */, prnt.getChildIndex( p ) + 1);
 			}
 			else
 			{
+				// need to make paragraphs not jump
 				list = splitAndAddListToTextFlow( prnt, spans );
 			}
 			
