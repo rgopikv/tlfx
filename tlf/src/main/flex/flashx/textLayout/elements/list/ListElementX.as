@@ -494,6 +494,10 @@ package flashx.textLayout.elements.list
 		public function export( exporter:IHTMLExporter, styleExporter:IExportStyleHelper ):String
 		{
 		// [END TA]
+			var settings:Object= XML.settings();
+			XML.ignoreWhitespace = true;
+			XML.prettyIndent = 0;
+			XML.prettyPrinting = false;
 			var xmlStr:String = '';
 			
 			var items:Array = listItems;
@@ -583,7 +587,7 @@ package flashx.textLayout.elements.list
 			
 			//	Ensure that everything is properly closed
 			xmlStr = cleanExport( xmlStr );
-			
+			XML.setSettings( settings );
 			return xmlStr;
 		}
 		
