@@ -45,6 +45,7 @@ package flashx.textLayout.edit
 			var curFlowElementIdx:int = 0;
 			var curFlowElement:FlowElement;
 			var needToMergeWhenDone:Boolean = false;
+			var needToMergeTo:Boolean = false;
 			var relStart:int = 0;
 			var relEnd:int = 0;
 			var s:SpanElement;
@@ -97,7 +98,14 @@ package flashx.textLayout.edit
 							if ((!processedAnElement) && (relEnd >= curFlowElement.textLength))
 							{
 								if (curFlowElement is ParagraphElement)
+								{
+									// [TA] 08-17-2010 :: Check to see if the item is the last in the container.
+									//						If se we need to do a merge with the next para, not merge with previous which would have happened.
+									numItems = ( curFlowElement.parent ) ? curFlowElement.parent.numChildren : Number.NaN;
+									needToMergeTo = ( !isNaN(numItems) && curFlowElement.parent.getChildIndex( curFlowElement ) == numItems - 1 );
+									// [END TA]	
 									needToMergeWhenDone = true;
+								}
 								else if (curFlowElement is FlowGroupElement)
 								{
 									numItems = (curFlowElement as FlowGroupElement).numChildren;
@@ -135,7 +143,16 @@ package flashx.textLayout.edit
 			}
 			if (needToMergeWhenDone)
 			{
-				joinNextParagraph(ParagraphElement(curFlowElement.getPreviousSibling()));
+				// [TA] 08-17-2010 :: If it is determined that the item needs to merge down, as is the case with the last item in a container, do joinToNextPar.
+				if( needToMergeTo )
+				{
+					joinToNextParagraph( ParagraphElement(curFlowElement) );	
+				}
+				else
+				{
+					joinNextParagraph(ParagraphElement(curFlowElement.getPreviousSibling()));	
+				}
+				// [END TA]
 			}
 			
 			return totalItemsDeleted;
