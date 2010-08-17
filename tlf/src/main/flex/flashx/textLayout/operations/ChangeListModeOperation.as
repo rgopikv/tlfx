@@ -1105,6 +1105,16 @@ package flashx.textLayout.operations
 				}
 			}
 			
+			// should we add a paragraph
+			if(textFlow.numChildren == 1) {
+				trace("need to add a para");
+				var newPara:ParagraphElement = new ParagraphElement();
+				var newSpan:SpanElement = new SpanElement();
+				newSpan.text = "";
+				newPara.addChild(newSpan);
+				textFlow.addChildAt(1, newPara);
+			}
+			
 			// we should select the entire list
 			absoluteStart = list.getAbsoluteStart();
 			absoluteEnd   = list.getAbsoluteStart() + list.textLength-1;
