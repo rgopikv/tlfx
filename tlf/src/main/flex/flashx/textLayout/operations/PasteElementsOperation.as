@@ -316,7 +316,7 @@ package flashx.textLayout.operations
 			if (this.endGeneration != operation.beginGeneration)
 				return null;
 			
-			if ((operation is SplitParagraphOperation))
+			if ((operation is SplitParagraphOperation) || (operation is DeleteElementsOperation))
 			{
 				_isPartOfComposite = true;
 				return new CompositeOperation([operation,this]);
